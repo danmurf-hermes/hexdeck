@@ -1,10 +1,32 @@
 # hexdeck
 
-A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files; the board is always a projection of them. No database, no server, no lock-in.
+A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
 **Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is next. Not yet dogfooded.
 
+## Board language
+
+These words describe the board as a project management tool. This is the language you use day to day.
+
+- **Board** — the whole kanban. It has four columns: `todo`, `in-progress`, `review`, `done`.
+- **Ticket** — one unit of work. Each ticket has an id like `T-1` and a title.
+- **Column** — where a ticket sits. A ticket is in exactly one column at a time.
+- **Move** — change a ticket's column. `hexdeck move T-1 in-progress`.
+- **Claim** — mark a ticket as yours. `hexdeck pick --as your-name` claims the next `todo` ticket. A claim shows who is working on the ticket.
+- **Release** — clear a claim. The ticket goes back to being unclaimed.
+- **Comment** — a note on a ticket. Comments are part of the ticket's history.
+- **Log** — the timeline of everything that happened on the board, newest first.
+
 ## How it works
+
+These words describe the inner workings of the app. You do not need them to use the board, but they explain why it behaves the way it does.
+
+- **Op** — one event, stored as one JSON file in `.kanban/ops/`. Creating a ticket is an op. Moving it is an op. Every change is an op.
+- **Ops are append-only** — ops are never edited or deleted. Corrections are new ops.
+- **Fold** — the process that replays the ops in order to build the board state.
+- **Projection** — the board files. The board is never stored; it is always rebuilt from the ops. Same ops, same board, always.
+- **Render** — write the projection: `board.md` (for humans), `board.json` (for machines), `board.svg` (the image).
+- **Sort order** — ops sort by `(seq, opId)`, so two writers who work at the same time never conflict when their work merges.
 
 ```mermaid
 flowchart TB
@@ -14,11 +36,6 @@ flowchart TB
     D --> E["Board views<br/>board.md · board.json · board.svg"]
     D --> F["render --check<br/>fail if the board does not match the ops"]
 ```
-
-- Every change to the board is an **op** — one JSON file per event in `.kanban/ops/`.
-- Ops are never edited or deleted. Corrections are new ops.
-- The board is rebuilt from the ops every time. Same ops, same board, always.
-- Ops sort by `(seq, opId)`, so concurrent writers never conflict.
 
 ## The board
 
