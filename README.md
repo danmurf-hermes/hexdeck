@@ -2,7 +2,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is next. Not yet dogfooded.
+**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is in progress: lint, test, and build gates run on every push and PR. Not yet dogfooded.
 
 ## Board language
 
@@ -72,7 +72,7 @@ Every change stages the op and the board files and prints a suggested commit mes
 
 ## What comes next
 
-- CI pipeline, then dogfood.
+- CI: `render --check` in the pipeline, then README badges. Then dogfood.
 
 ## Docs
 

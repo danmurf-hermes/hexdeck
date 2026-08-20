@@ -98,6 +98,16 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - `RenderAll(boardDir, svg)` rebuilds `board.md` and `board.json` from the ops, plus `board.svg` when asked.
 - `RenderCheck(boardDir)` compares the committed board files to a fresh render. It returns an error naming the first file that drifted. CI runs it.
 
+## The CI pipeline
+
+`.github/workflows/ci.yml` runs three jobs on every push and every pull request:
+
+- **Lint** — `gofmt -l .` must print nothing, then `go vet ./...` must pass.
+- **Test** — `go test -race ./...`.
+- **Build** — `go build ./...`.
+
+The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline and the local toolchain never drift apart.
+
 ## What is built so far
 
 - Chunk 1.1: op schema — types, parse, validation, deterministic sort. Golden tests for basic ops, seq collisions, and unparseable ops.
@@ -106,9 +116,10 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - Chunk 1.4: the board image — `board.svg` from a `BoardState`. Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests.
 - Phase 2: the CLI — all commands, git staging, `--commit`, pull before append. End-to-end tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`), the ticket id prefix, and the claim timestamp.
 - Phase 3: concurrency hardening — the merge matrix (18 scenarios, two writers in two clones, zero conflicts, identical projections after merge), the claim-race rule (first claim by `(seq, opId)` wins, second renders a warning), and claim expiry (stale claims marked in the projection, shown in the renders, pickable by `pick`).
+- Phase 3.5 chunk 1: the CI pipeline — `ci.yml` with three jobs (lint, test, build) on every push and PR.
 
 ## What comes next
 
-- Phase 3.5: the CI pipeline — lint, test, build, `render --check`, README badges.
+- Phase 3.5 chunks 2 and 3: `render --check` in CI, then README badges.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.
