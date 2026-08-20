@@ -6,7 +6,13 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
+
+// fixtureNow is the fixed clock for the golden tests. It is after the
+// last op ts in every fixture and within the claim timeout of every
+// fixture claim, so the goldens never depend on the wall clock.
+var fixtureNow = time.Date(2026, 8, 20, 15, 0, 0, 0, time.UTC)
 
 // TestFoldGolden runs the fold over fixture board dirs and compares the
 // resulting BoardState to a golden file, byte for byte.
@@ -15,9 +21,9 @@ func TestFoldGolden(t *testing.T) {
 	for _, name := range cases {
 		t.Run(name, func(t *testing.T) {
 			dir := filepath.Join("testdata", "ops", name)
-			state, err := Project(dir)
+			state, err := projectAt(dir, fixtureNow)
 			if err != nil {
-				t.Fatalf("Project: %v", err)
+				t.Fatalf("projectAt: %v", err)
 			}
 			data, err := json.MarshalIndent(state, "", "  ")
 			if err != nil {
@@ -135,5 +141,177 @@ func TestFoldMissingConfig(t *testing.T) {
 		if state.Columns[i] != want[i] {
 			t.Errorf("columns[%d] = %q, want %q", i, state.Columns[i], want[i])
 		}
+	}
+}
+
+// TestFoldClaimRace checks the claim-race rule: two writers claim the
+// same ticket, the first claim by (seq, opId) wins, the second renders
+// a warning.
+func TestFoldClaimRace(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"race","columns":["todo","in-progress","review","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.claimed","ticket":"T-1","payload":{"by":"claude-a"}}`)
+	writeOp(t, opsDir, 2, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"codex-1","type":"ticket.claimed","ticket":"T-1","payload":{"by":"codex-1"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	ticket := state.Tickets["T-1"]
+	if ticket.ClaimedBy != "claude-a" {
+		t.Errorf("claimedBy = %q, want claude-a (first claim by (seq, opId) wins)", ticket.ClaimedBy)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1", state.Warnings)
+	}
+	if state.Warnings[0] != "ticket.claimed for T-1: already claimed by claude-a, keeping the first claim" {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}
+
+// TestFoldClaimRaceRelease checks the claim-race rule with a release in
+// between: the second claim after a release is a normal claim, not a
+// race.
+func TestFoldClaimRaceRelease(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"race","columns":["todo","in-progress","review","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.claimed","ticket":"T-1","payload":{"by":"claude-a"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.released","ticket":"T-1","payload":{"by":"claude-a"}}`)
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"codex-1","type":"ticket.claimed","ticket":"T-1","payload":{"by":"codex-1"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	ticket := state.Tickets["T-1"]
+	if ticket.ClaimedBy != "codex-1" {
+		t.Errorf("claimedBy = %q, want codex-1 (claim after release is normal)", ticket.ClaimedBy)
+	}
+	if len(state.Warnings) != 0 {
+		t.Errorf("warnings = %v, want none", state.Warnings)
+	}
+}
+
+// TestFoldStaleClaim checks the stale-claim rule: a claim older than the
+// claim timeout is marked stale, a fresh claim is not. The claim still
+// stands either way.
+func TestFoldStaleClaim(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"stale","columns":["todo","in-progress","review","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.claimed","ticket":"T-1","payload":{"by":"claude-a"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-2","payload":{"title":"two"}}`)
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"codex-1","type":"ticket.claimed","ticket":"T-2","payload":{"by":"codex-1"}}`)
+
+	// now is 5 hours after both claims: both are stale.
+	now := time.Date(2026, 8, 20, 19, 3, 0, 0, time.UTC)
+	state, err := projectAt(dir, now)
+	if err != nil {
+		t.Fatalf("projectAt: %v", err)
+	}
+	if !state.Tickets["T-1"].ClaimStale {
+		t.Errorf("T-1 claim is not stale at %s", now)
+	}
+	if !state.Tickets["T-2"].ClaimStale {
+		t.Errorf("T-2 claim is not stale at %s", now)
+	}
+	if state.Tickets["T-1"].ClaimedBy != "claude-a" {
+		t.Errorf("T-1 claimedBy = %q, want claude-a (the claim still stands)", state.Tickets["T-1"].ClaimedBy)
+	}
+
+	// now is 1 hour after the claims: neither is stale.
+	now = time.Date(2026, 8, 20, 15, 3, 0, 0, time.UTC)
+	state, err = projectAt(dir, now)
+	if err != nil {
+		t.Fatalf("projectAt: %v", err)
+	}
+	if state.Tickets["T-1"].ClaimStale || state.Tickets["T-2"].ClaimStale {
+		t.Errorf("claims marked stale at %s, want fresh", now)
+	}
+}
+
+// TestFoldStaleClaimRelease checks that a release clears the stale flag.
+func TestFoldStaleClaimRelease(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"stale","columns":["todo","in-progress","review","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.claimed","ticket":"T-1","payload":{"by":"claude-a"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.released","ticket":"T-1","payload":{"by":"claude-a"}}`)
+
+	now := time.Date(2026, 8, 20, 19, 3, 0, 0, time.UTC)
+	state, err := projectAt(dir, now)
+	if err != nil {
+		t.Fatalf("projectAt: %v", err)
+	}
+	ticket := state.Tickets["T-1"]
+	if ticket.ClaimedBy != "" {
+		t.Errorf("claimedBy = %q, want empty after release", ticket.ClaimedBy)
+	}
+	if ticket.ClaimStale {
+		t.Errorf("claim marked stale after release")
+	}
+}
+
+// TestFoldStaleClaimBadTimeout checks that a missing or unparseable
+// claim timeout means no claim is ever stale.
+func TestFoldStaleClaimBadTimeout(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"stale","columns":["todo","in-progress","review","done"],"claimTimeout":"not-a-duration","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.claimed","ticket":"T-1","payload":{"by":"claude-a"}}`)
+
+	now := time.Date(2026, 8, 20, 19, 3, 0, 0, time.UTC)
+	state, err := projectAt(dir, now)
+	if err != nil {
+		t.Fatalf("projectAt: %v", err)
+	}
+	if state.Tickets["T-1"].ClaimStale {
+		t.Errorf("claim marked stale with a bad timeout, want never stale")
+	}
+}
+
+// writeOp writes one op file with the canonical name.
+func writeOp(t *testing.T, opsDir string, seq int, opID, data string) {
+	t.Helper()
+	path := filepath.Join(opsDir, OpFilename(seq, opID))
+	if err := os.WriteFile(path, []byte(data), 0o644); err != nil {
+		t.Fatalf("write op: %v", err)
 	}
 }

@@ -38,7 +38,11 @@ type Ticket struct {
 	Created     time.Time  `json:"created"`
 	ClaimedBy   string     `json:"claimedBy,omitempty"`
 	ClaimedAt   *time.Time `json:"claimedAt,omitempty"`
-	Archived    bool       `json:"archived"`
+	// ClaimStale is true when the claim is older than the claim
+	// timeout. The claim still stands — the flag only marks it for
+	// display and for pick.
+	ClaimStale bool `json:"claimStale,omitempty"`
+	Archived   bool `json:"archived"`
 }
 
 // BoardState is the board after the fold. The projection of the ops.
@@ -56,6 +60,12 @@ type BoardState struct {
 // Project reads the board dir and folds the ops into a BoardState.
 // The board is a pure function of the ops: same ops, same state, always.
 func Project(dir string) (BoardState, error) {
+	return projectAt(dir, time.Now())
+}
+
+// projectAt is Project with an explicit clock. Tests use it so claim
+// staleness is deterministic.
+func projectAt(dir string, now time.Time) (BoardState, error) {
 	state := BoardState{
 		Columns:  append([]string(nil), DefaultColumns...),
 		Prefix:   DefaultPrefix,
@@ -91,7 +101,27 @@ func Project(dir string) (BoardState, error) {
 		}
 		apply(op, &state)
 	}
+	markStaleClaims(&state, now)
 	return state, nil
+}
+
+// markStaleClaims flags every claim older than the claim timeout. The
+// claim still stands — the flag only marks it for display and for pick.
+// A missing or unparseable timeout means no claim is ever stale.
+func markStaleClaims(state *BoardState, now time.Time) {
+	timeout, err := time.ParseDuration(state.ClaimTimeout)
+	if err != nil {
+		return
+	}
+	for id, ticket := range state.Tickets {
+		if ticket.ClaimedBy == "" || ticket.ClaimedAt == nil {
+			continue
+		}
+		if now.Sub(*ticket.ClaimedAt) > timeout {
+			ticket.ClaimStale = true
+			state.Tickets[id] = ticket
+		}
+	}
 }
 
 // readConfig reads config.json. A missing file is fine — the defaults
@@ -209,9 +239,18 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
 		}
+		// A claim on an already-claimed ticket is a race: two writers
+		// picked the same ticket. The first claim by (seq, opId) wins;
+		// the second renders a warning. The claim is cooperative, not a
+		// security boundary — the warning is the whole resolution.
+		if ticket.ClaimedBy != "" {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: already claimed by %s, keeping the first claim", op.Type, op.Ticket, ticket.ClaimedBy))
+			return
+		}
 		ticket.ClaimedBy = p.By
 		claimedAt := op.TS
 		ticket.ClaimedAt = &claimedAt
+		ticket.ClaimStale = false
 		state.Tickets[op.Ticket] = ticket
 	case OpTicketReleased:
 		ticket, ok := state.Tickets[op.Ticket]
@@ -221,6 +260,7 @@ func apply(op Op, state *BoardState) {
 		}
 		ticket.ClaimedBy = ""
 		ticket.ClaimedAt = nil
+		ticket.ClaimStale = false
 		state.Tickets[op.Ticket] = ticket
 	case OpTicketArchived:
 		ticket, ok := state.Tickets[op.Ticket]

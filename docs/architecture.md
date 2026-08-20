@@ -17,7 +17,7 @@ The core library. Seven files:
 - `render.go` — the renders. Turns a `BoardState` into `board.md` (markdown) and `board.json` (JSON).
 - `svg.go` — the board image. Turns a `BoardState` into `board.svg`.
 - `write.go` — the write path. Creates a board (`InitBoard`), appends ops (`AppendOp`), picks the next ticket id (`NextTicketID`), rebuilds the board files (`RenderAll`), and checks them for drift (`RenderCheck`).
-- `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go`, `write_test.go` — table-driven tests plus golden files for the projection and the renders.
+- `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go`, `write_test.go`, `merge_test.go` — table-driven tests plus golden files for the projection and the renders, and the merge matrix: two writers in two git clones, merged with zero conflicts.
 
 ### CLI package (`github.com/danmurf/hexdeck/cmd/hexdeck`)
 
@@ -47,6 +47,7 @@ Steps:
 2. Read every op in `ops/`. Unparseable files are skipped with a warning, never fatal.
 3. Sort the ops by `(seq, opId)`.
 4. Fold: apply each op to the state in order.
+5. Mark stale claims: a claim older than the claim timeout gets the `ClaimStale` flag.
 
 The fold rules:
 
@@ -55,20 +56,30 @@ The fold rules:
 - `ticket.moved` changes the ticket's column.
 - `ticket.updated` merges title and description changes.
 - `comment.added` appends a comment.
-- `ticket.claimed` / `ticket.released` set and clear the claim.
+- `ticket.claimed` sets the claim. A claim on an already-claimed ticket is a race: the first claim by `(seq, opId)` wins, the second renders a warning.
+- `ticket.released` clears the claim.
 - `ticket.archived` marks the ticket archived.
 
 Ops about a ticket that was never created are skipped with a warning — visible, never fatal. The board must always build.
 
-`BoardState` holds the board name, the columns, the ticket id prefix, the claim timeout, the tickets (a map by id), the warnings, and the newest op ts (`Updated`). `Ticket` holds the id, title, description, status, comments, created time, claim (who and when), and archived flag.
+`BoardState` holds the board name, the columns, the ticket id prefix, the claim timeout, the tickets (a map by id), the warnings, and the newest op ts (`Updated`). `Ticket` holds the id, title, description, status, comments, created time, claim (who and when), the stale flag, and the archived flag.
+
+## Claims
+
+A claim is a cooperative lock, not a security boundary. Two rules make it safe under concurrency:
+
+- **The race rule.** Two writers can claim the same ticket. The first claim by `(seq, opId)` wins; the second renders a warning. The projection resolves the race deterministically.
+- **The expiry rule.** A claim older than the claim timeout is stale. The projection marks it with the `ClaimStale` flag. The claim still stands — the flag only changes the display (`(stale claim)` in `board.md`, `(stale)` in the SVG badge) and lets `pick` take the ticket.
+
+Staleness is computed at projection time from the wall clock. The fold itself never reads the clock — only the staleness pass does, so the fold stays deterministic. Tests use `projectAt`, the same projection with an explicit clock.
 
 ## The renders
 
 Three functions turn a `BoardState` into the committed board files. All are deterministic: same state, same bytes, always.
 
-- `RenderMarkdown(state)` — `board.md`, the human-readable view. A header with the board name, an `Updated:` line with the newest op ts and the ticket count per column, then one section per column. Tickets sort by id within a column, numerically — T-2 comes before T-10. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing section named after the column.
+- `RenderMarkdown(state)` — `board.md`, the human-readable view. A header with the board name, an `Updated:` line with the newest op ts and the ticket count per column, then one section per column. Tickets sort by id within a column, numerically — T-2 comes before T-10. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing section named after the column. A stale claim renders `(stale claim)` after the claim.
 - `RenderJSON(state)` — `board.json`, the machine view. The full `BoardState`, indented, with a trailing newline.
-- `RenderSVG(state)` — `board.svg`, the board image for the README. A header with the board name and the `Updated:` line, then one column per configured column, side by side. Each ticket is a card: the id, the title, and small badges for the claim and the comment count. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing column named after the column.
+- `RenderSVG(state)` — `board.svg`, the board image for the README. A header with the board name and the `Updated:` line, then one column per configured column, side by side. Each ticket is a card: the id, the title, and small badges for the claim and the comment count. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing column named after the column. A stale claim renders `(stale)` in the claim badge.
 
 The `Updated:` line uses the newest op ts, so rendering is deterministic — it never depends on the wall clock.
 
@@ -94,9 +105,10 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - Chunk 1.3: the renders — `board.md` and `board.json` from a `BoardState`. Golden tests for both, over every fixture board.
 - Chunk 1.4: the board image — `board.svg` from a `BoardState`. Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests.
 - Phase 2: the CLI — all commands, git staging, `--commit`, pull before append. End-to-end tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`), the ticket id prefix, and the claim timestamp.
+- Phase 3: concurrency hardening — the merge matrix (18 scenarios, two writers in two clones, zero conflicts, identical projections after merge), the claim-race rule (first claim by `(seq, opId)` wins, second renders a warning), and claim expiry (stale claims marked in the projection, shown in the renders, pickable by `pick`).
 
 ## What comes next
 
-- Phase 3: concurrency hardening — the merge matrix, claim expiry, stale-claim rendering.
+- Phase 3.5: the CI pipeline — lint, test, build, `render --check`, README badges.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

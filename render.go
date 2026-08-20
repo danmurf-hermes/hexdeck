@@ -45,6 +45,9 @@ func RenderMarkdown(state BoardState) []byte {
 			fmt.Fprintf(&b, "- %s %s", ticket.ID, ticket.Title)
 			if ticket.ClaimedBy != "" {
 				fmt.Fprintf(&b, " — claimed by %s", ticket.ClaimedBy)
+				if ticket.ClaimStale {
+					b.WriteString(" (stale claim)")
+				}
 			}
 			if len(ticket.Comments) > 0 {
 				fmt.Fprintf(&b, " · %d comment", len(ticket.Comments))

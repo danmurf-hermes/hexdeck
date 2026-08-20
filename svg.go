@@ -139,6 +139,9 @@ func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y in
 	badgeX := x + layout.cardPad
 	if ticket.ClaimedBy != "" {
 		label := "claimed by " + ticket.ClaimedBy
+		if ticket.ClaimStale {
+			label += " (stale)"
+		}
 		badgeX = writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.claim, palette.claimText)
 	}
 	if len(ticket.Comments) > 0 {
