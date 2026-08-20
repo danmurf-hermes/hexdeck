@@ -310,6 +310,8 @@ Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's 
 - Agents doing code work run `board move ...` (staged), then commit code + op together — the commit IS the evidence.
 - Before appending, the CLI runs `git pull --rebase` (skipped if `--no-pull`).
 
+**The merge rule (project decision, Aug 20 2026):** a ticket in `review` is done when its PR is merged. The agent that opened the PR moves the ticket to `done` the moment the merge lands — as an ops-only commit straight to main (no PR, no review, same as a `chore` commit). Rationale: `review` means "waiting on a human". The human's verdict is the merge. No extra PR should be needed to close a ticket.
+
 ---
 
 ## 6. Use cases — the different ways this could be used
