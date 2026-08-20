@@ -402,11 +402,11 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 ## 11. Open questions
 
-- [ ] **Stack: Go (recommended) or Node/TS?** Go = single static binary, zero deps, fastest for agents to install. Node = your stack, a5c precedent.
-- [ ] **Board dir: `.kanban/` (recommended, hidden) or `kanban/` (visible)?**
-- [ ] **Columns: `todo / in-progress / review / done` (recommended) or faru's minimal 3 (`todo / wip / done`)?**
-- [ ] **Claims in V1?** Recommended yes — it's the multi-agent safety and ~30 lines.
-- [ ] **Dogfood target: a real project or a fresh repo?**
+- [x] **Stack** — DECIDED (Aug 20 2026): **Go** (spec recommendation; veto via PR comment).
+- [x] **Board dir** — DECIDED (Aug 20 2026): `.kanban/` (hidden, out of the way).
+- [x] **Columns** — DECIDED (Aug 20 2026): `todo / in-progress / review / done`.
+- [x] **Claims in V1** — DECIDED (Aug 20 2026): yes — the multi-agent safety.
+- [ ] **Dogfood target: a real project or a fresh repo?** — decide at Phase 4.
 - [x] **Name** — DECIDED (Aug 20 2026): **hexdeck**. hexdeck.com free; no same-category collisions (Steam game + termux theme, both different fields); Companies House clean.
 
 ---
