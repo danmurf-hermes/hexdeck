@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // TestRenderSVGGolden renders board.svg for every fixture board and
@@ -16,9 +17,9 @@ func TestRenderSVGGolden(t *testing.T) {
 	for _, name := range cases {
 		t.Run(name, func(t *testing.T) {
 			dir := filepath.Join("testdata", "ops", name)
-			state, err := Project(dir)
+			state, err := projectAt(dir, fixtureNow)
 			if err != nil {
-				t.Fatalf("Project: %v", err)
+				t.Fatalf("projectAt: %v", err)
 			}
 			got := RenderSVG(state)
 			golden := filepath.Join("testdata", "golden", "board-"+name+".svg")
@@ -41,9 +42,9 @@ func TestRenderSVGGolden(t *testing.T) {
 // TestRenderSVGDeterministic renders the same state twice and checks the
 // bytes are identical. The render must never depend on map order.
 func TestRenderSVGDeterministic(t *testing.T) {
-	state, err := Project(filepath.Join("testdata", "ops", "render"))
+	state, err := projectAt(filepath.Join("testdata", "ops", "render"), fixtureNow)
 	if err != nil {
-		t.Fatalf("Project: %v", err)
+		t.Fatalf("projectAt: %v", err)
 	}
 	first := RenderSVG(state)
 	for i := 0; i < 20; i++ {
@@ -56,9 +57,9 @@ func TestRenderSVGDeterministic(t *testing.T) {
 // TestRenderSVGWellFormed checks the output is well-formed XML with an
 // svg root element.
 func TestRenderSVGWellFormed(t *testing.T) {
-	state, err := Project(filepath.Join("testdata", "ops", "render"))
+	state, err := projectAt(filepath.Join("testdata", "ops", "render"), fixtureNow)
 	if err != nil {
-		t.Fatalf("Project: %v", err)
+		t.Fatalf("projectAt: %v", err)
 	}
 	var doc struct {
 		XMLName xml.Name
@@ -89,5 +90,26 @@ func TestRenderSVGEscapesText(t *testing.T) {
 	}
 	if !strings.Contains(svg, "a &amp; b &lt;c&gt;") {
 		t.Fatalf("svg does not contain the escaped board name:\n%s", svg)
+	}
+}
+
+// TestRenderSVGStaleClaim checks the stale-claim badge: a stale claim
+// renders "(stale)" in the badge, a fresh claim does not.
+func TestRenderSVGStaleClaim(t *testing.T) {
+	claimedAt := time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC)
+	state := BoardState{
+		Name:    "stale",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "stale one", Status: "todo", ClaimedBy: "claude-a", ClaimedAt: &claimedAt, ClaimStale: true, Comments: []Comment{}},
+			"T-2": {ID: "T-2", Title: "fresh one", Status: "todo", ClaimedBy: "codex-1", ClaimedAt: &claimedAt, Comments: []Comment{}},
+		},
+	}
+	svg := string(RenderSVG(state))
+	if !strings.Contains(svg, "claimed by claude-a (stale)") {
+		t.Errorf("svg does not mark the stale claim:\n%s", svg)
+	}
+	if !strings.Contains(svg, "claimed by codex-1") {
+		t.Errorf("svg does not render the fresh claim:\n%s", svg)
 	}
 }

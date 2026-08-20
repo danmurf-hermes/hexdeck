@@ -12,15 +12,20 @@ Code: `op.go` (schema, parse, validation, sort).
 
 The board is a pure function of the ops. `Project(dir)` reads the config and the ops, sorts them by `(seq, opId)`, and folds them into a `BoardState`. Same ops, same state, always.
 
+The fold resolves the concurrency races deterministically:
+
+- Two claims on the same ticket: the first claim by `(seq, opId)` wins, the second renders a warning.
+- A claim older than the claim timeout is marked stale. The claim still stands; the flag changes the display and lets `pick` take the ticket.
+
 Code: `fold.go`.
 
 ## The renders
 
 Three views over the same `BoardState`, all deterministic:
 
-- `board.md` — the human-readable view. Committed, diffable in PRs.
+- `board.md` — the human-readable view. Committed, diffable in PRs. A stale claim renders `(stale claim)`.
 - `board.json` — the machine view. The full state, for UIs and agents.
-- `board.svg` — the board image for the README. Fixed layout and palette, no external fonts, no random ids.
+- `board.svg` — the board image for the README. Fixed layout and palette, no external fonts, no random ids. A stale claim renders `(stale)` in the claim badge.
 
 Code: `render.go`, `svg.go`.
 
@@ -37,3 +42,11 @@ The `hexdeck` binary. A thin shell over the library: it parses flags, finds the 
 Commands: `init`, `create`, `move`, `comment`, `show`, `log`, `pick`, `release`, `render`.
 
 Code: `cmd/hexdeck/main.go`.
+
+## The merge matrix
+
+The concurrency proof. `merge_test.go` runs 18 scenarios: two writers in two git clones append ops at the same time, then merge. Every scenario must merge with zero conflicts, and the projection must be identical on both sides after the merge. The scenarios cover every op type, same-ticket and different-ticket writes, seq collisions, and stale checkouts.
+
+The matrix proves the design: one op per file means concurrent appends never conflict. The committed board files can conflict, but the resolution is mechanical — re-render from the merged ops, never hand-edit.
+
+Code: `merge_test.go`.

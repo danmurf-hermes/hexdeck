@@ -378,7 +378,11 @@ func showTicket(state hexdeck.BoardState, id string) error {
 		fmt.Printf("description: %s\n", ticket.Description)
 	}
 	if ticket.ClaimedBy != "" {
-		fmt.Printf("claimed by: %s\n", ticket.ClaimedBy)
+		fmt.Printf("claimed by: %s", ticket.ClaimedBy)
+		if ticket.ClaimStale {
+			fmt.Print(" (stale claim)")
+		}
+		fmt.Println()
 	}
 	fmt.Printf("created: %s\n", ticket.Created.UTC().Format("2006-01-02T15:04:05Z"))
 	if len(ticket.Comments) > 0 {
@@ -463,20 +467,15 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	timeout, err := time.ParseDuration(state.ClaimTimeout)
-	if err != nil {
-		timeout = 4 * time.Hour
-	}
-	now := time.Now().UTC()
 	var candidates []hexdeck.Ticket
 	for _, ticket := range state.Tickets {
 		if ticket.Archived || ticket.Status != state.Columns[0] {
 			continue
 		}
-		if ticket.ClaimedBy != "" {
-			if ticket.ClaimedAt == nil || now.Sub(*ticket.ClaimedAt) < timeout {
-				continue
-			}
+		// A fresh claim blocks the ticket. A stale claim does not —
+		// the projection marks it, and pick takes the ticket.
+		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
+			continue
 		}
 		candidates = append(candidates, ticket)
 	}

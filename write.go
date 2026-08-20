@@ -61,6 +61,8 @@ todo → in-progress → review → done   (see config.json)
 - Commit ops with your code (same commit) or use ` + "`hexdeck ... --commit`" + `.
 - ` + "`git pull --rebase`" + ` before appending ops.
 - A ticket is done only when moved to done. No other signal counts.
+- A claim older than the claim timeout is stale — ` + "`hexdeck pick`" + `
+  takes the ticket anyway. The board marks it "(stale claim)".
 `
 
 // agentsHook is the one line appended to AGENTS.md at init. Every major
