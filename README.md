@@ -15,10 +15,10 @@ A kanban board stored in git, built for AI agents. Tickets, columns, comments, a
 
 - The op schema: types, JSON parse, validation, deterministic sort.
 - The fold: apply ops in order to build the board state.
+- The renders: `board.md` (human-readable) and `board.json` (machine view) from the board state.
 
 ## What comes next
 
-- Render `board.md` and `board.json`.
 - Render `board.svg` (deterministic, byte-for-byte).
 - The CLI.
 

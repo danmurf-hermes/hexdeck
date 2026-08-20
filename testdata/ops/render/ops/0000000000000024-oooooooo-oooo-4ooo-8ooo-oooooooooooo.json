@@ -1,0 +1,1 @@
+{"schema":1,"opId":"oooooooo-oooo-4ooo-8ooo-oooooooooooo","seq":24,"ts":"2026-08-20T14:23:00Z","actor":"claude-a","type":"ticket.moved","ticket":"T-10","payload":{"from":"todo","to":"in-progress"}}
