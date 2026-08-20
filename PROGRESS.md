@@ -30,7 +30,7 @@
 | Chunk | Work | Status |
 |---|---|---|
 | 3.5.1 | `ci.yml`: gofmt check, `go vet`, `go test -race ./...`, `go build`. Every push and PR. | ✅ done — `556151a` |
-| 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ⏳ pending |
+| 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ✅ done — `d113e63` |
 | 3.5.3 | README badges: CI passing + code coverage. | ⏳ pending |
 
 ## How to pick up work
@@ -52,3 +52,4 @@
 - Phase 3 done (`9a6a3e2`): concurrency hardening. The merge matrix (`merge_test.go`) runs 18 scenarios — two writers in two git clones append ops at the same time, then merge. Every scenario merges with zero conflicts and identical projections on both sides. The claim-race rule: two claims on the same ticket, the first by (seq, opId) wins, the second renders a warning. Claim expiry: a claim older than the claim timeout is marked stale in the projection, shown as "(stale claim)" in board.md and "(stale)" in the SVG badge, and `pick` takes it. The projection grew `projectAt` (explicit clock) so staleness is testable; golden tests use a fixed clock. Phase 3.5 (CI pipeline) is next.
 - CI added to the plan (Aug 20): Phase 3.5 — GitHub Actions pipeline (gofmt, vet, tests, build, `render --check`) + README badges for CI passing and coverage. It runs after concurrency hardening, before dogfood.
 - Phase 3.5 chunk 1 done: `ci.yml` — three jobs (lint, test, build) on every push and PR. Lint runs `gofmt -l .` (must print nothing) and `go vet ./...`. Test runs `go test -race ./...`. Build runs `go build ./...`. All use the Go version from `go.mod`. Verified locally: gofmt clean, vet clean, race tests green. Chunks 2 (`render --check` in CI) and 3 (README badges) are next.
+- Phase 3.5 chunk 2 done: `render --check` in CI — a fourth job builds the CLI and runs `hexdeck render --check --dir docs/demo`. The demo board is the repo's own dogfood: its committed projections must match its ops, or the job fails. To make that possible: `RenderCheck` now covers `board.svg` too (when it exists), `--dir` accepts a bare board dir (config.json + ops/ directly, no `.kanban/`), the demo board gained committed `board.md`/`board.json`, and its claim timeout is ten years so the projections never change with the wall clock. Verified locally: the exact CI commands pass on the committed board and fail on a hand-edited one. Chunk 3 (README badges) is next.
