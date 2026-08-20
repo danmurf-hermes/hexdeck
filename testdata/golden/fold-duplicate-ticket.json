@@ -1,0 +1,23 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "First T-1 wins",
+      "description": "",
+      "status": "in-progress",
+      "comments": [],
+      "created": "2026-08-20T14:01:00Z",
+      "archived": false
+    }
+  },
+  "warnings": [
+    "ticket.created for T-1: ticket already exists, keeping the first"
+  ]
+}

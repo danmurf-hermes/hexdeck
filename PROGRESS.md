@@ -8,11 +8,11 @@
 
 | # | Phase | Status | Commit | Notes |
 |---|---|---|---|---|
-| 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target deferred to Phase 4 |
+| 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target: hexdeck itself |
 | 1 | Core library (ops, projection, renders) | ⏳ pending | — | Chunks below |
 | 2 | CLI (all commands, git staging) | ⏳ pending | — | |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
-| 4 | Dogfood on a real project | ⏳ pending | — | |
+| 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
 ## Phase 1 chunks (Go, module github.com/danmurf/hexdeck)
@@ -20,7 +20,7 @@
 | Chunk | Work | Status |
 |---|---|---|
 | 1.1 | Op schema: types, JSON parse, validation, sort by (seq, opId). Golden tests. | ✅ done — `ba57159` |
-| 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ⏳ pending |
+| 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ✅ done — `c63cc87` |
 | 1.3 | Render board.md + board.json. Golden tests. | ⏳ pending |
 | 1.4 | Render board.svg — deterministic, byte-for-byte golden test. | ⏳ pending |
 
@@ -35,4 +35,5 @@
 
 - Design complete: build spec v3.0 in `docs/BUILD-SPEC.md` (op-file event log, deterministic projection, three board views, domain glossary, quality bar).
 - Phase 0 decisions made: Go, `.kanban/`, 4 columns, claims in V1.
-- Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests. Chunk 1.2 (fold) is next.
+- Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests.
+- Chunk 1.2 done (`c63cc87`): the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops. Chunk 1.3 (render board.md + board.json) is next.

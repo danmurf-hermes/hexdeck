@@ -1,0 +1,24 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Real ticket",
+      "description": "",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-20T14:01:00Z",
+      "archived": false
+    }
+  },
+  "warnings": [
+    "ticket.moved for T-99: ticket does not exist, skipping",
+    "comment.added for T-99: ticket does not exist, skipping"
+  ]
+}

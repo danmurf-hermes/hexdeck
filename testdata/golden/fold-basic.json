@@ -1,0 +1,27 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Fix login race condition",
+      "description": "login is broken",
+      "status": "in-progress",
+      "comments": [
+        {
+          "ts": "2026-08-20T14:04:00Z",
+          "actor": "claude-a",
+          "text": "on it"
+        }
+      ],
+      "created": "2026-08-20T14:01:00Z",
+      "archived": true
+    }
+  },
+  "warnings": []
+}

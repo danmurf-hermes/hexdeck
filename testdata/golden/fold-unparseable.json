@@ -1,0 +1,30 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Good ticket",
+      "description": "",
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-20T14:04:00Z",
+          "actor": "claude-a",
+          "text": "still fine"
+        }
+      ],
+      "created": "2026-08-20T14:01:00Z",
+      "archived": false
+    }
+  },
+  "warnings": [
+    "0000000000000003-broken.json: invalid op JSON: invalid character 'h' in literal true (expecting 'r')",
+    "0000000000000004-44444444-4444-4444-8444-444444444444.json: invalid payload for ticket.moved: to is required"
+  ]
+}

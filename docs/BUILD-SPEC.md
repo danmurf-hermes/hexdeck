@@ -129,6 +129,9 @@ Every change to the board is an **op** — a small JSON file appended to
 `.kanban/ops/`. Never edit or delete existing ops. The board is always
 rebuilt from the ops, so the ops are the truth.
 
+## Where the project is up to
+Read board.md — the committed board view. No CLI needed.
+
 ## Commands (preferred)
 board create "Title" [-d "description"]   # new ticket
 board move T-12 in-progress               # change column
@@ -406,7 +409,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 - [x] **Board dir** — DECIDED (Aug 20 2026): `.kanban/` (hidden, out of the way).
 - [x] **Columns** — DECIDED (Aug 20 2026): `todo / in-progress / review / done`.
 - [x] **Claims in V1** — DECIDED (Aug 20 2026): yes — the multi-agent safety.
-- [ ] **Dogfood target: a real project or a fresh repo?** — decide at Phase 4.
+- [x] **Dogfood target** — DECIDED (Aug 20 2026): **hexdeck itself**. Once the CLI works (Phase 2), `hexdeck init` in the hexdeck repo, migrate PROGRESS.md's phase table into tickets, and the build worker uses the board instead of PROGRESS.md. The tool tracks its own build.
 - [x] **Name** — DECIDED (Aug 20 2026): **hexdeck**. hexdeck.com free; no same-category collisions (Steam game + termux theme, both different fields); Companies House clean.
 
 ---
