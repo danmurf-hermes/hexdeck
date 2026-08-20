@@ -105,12 +105,18 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - **Lint** — `gofmt -l .` must print nothing, then `go vet ./...` must pass.
 - **Test** — `go test -race ./...`.
 - **Build** — `go build ./...`.
-- **Render check** — builds the CLI and runs `hexdeck render --check --dir docs/demo`. The committed demo board must match its ops. A hand-edited or stale projection fails the job.
+- **Render check** — builds the CLI and runs `hexdeck render --check --dir docs/demo`, then `hexdeck render --check --dir .kanban`. Both committed boards must match their ops. A hand-edited or stale projection fails the job.
 - **Coverage badge** — runs only on pushes to `main`. It runs `go test -coverprofile=coverage.out ./...`, reads the total from `go tool cover -func`, and writes `coverage.json` — a shields.io endpoint badge file. If the number changed, it commits and pushes the file. The README badge reads it through `img.shields.io/endpoint`.
 
 The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline and the local toolchain never drift apart.
 
-The demo board in `docs/demo/` is the repo's own dogfood: it is a real board (config, ops, and the three committed projections) that CI checks on every run. Its claim timeout is ten years, so the committed projections never change with the wall clock — the check fails only on real drift.
+The demo board in `docs/demo/` is a real board (config, ops, and the three committed projections) that CI checks on every run. Its claim timeout is ten years, so the committed projections never change with the wall clock — the check fails only on real drift.
+
+## The dogfood board
+
+The repo's own board lives in `.kanban/`. It is the build tracker: the phase table from PROGRESS.md migrated into tickets, and the build worker creates, moves, and comments on tickets as it works. CI checks it with `hexdeck render --check --dir .kanban` — the same honesty gate as the demo board. Its claim timeout is ten years, for the same reason: the committed projections never change with the wall clock.
+
+The merge rule applies to the dogfood board: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.
 
 ## The README badges
 
@@ -134,9 +140,10 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 3.5 chunk 1: the CI pipeline — `ci.yml` with three jobs (lint, test, build) on every push and PR.
 - Phase 3.5 chunk 2: `render --check` in CI — a fourth job checks the committed demo board against its ops. `RenderCheck` now covers `board.svg` too, and `--dir` accepts a bare board dir.
 - Phase 3.5 chunk 3: README badges — a CI badge (shields.io GitHub Actions) and a coverage badge (shields.io endpoint over `coverage.json`, written by a fifth CI job on pushes to `main`). The contract is tested in `ci_test.go`.
+- Phase 4 chunk 1: the dogfood board — `hexdeck init` in the hexdeck repo, the phase table migrated into tickets, and a second render check in CI for `.kanban/`. The board is the build tracker now.
 
 ## What comes next
 
-- Phase 4: dogfood — run hexdeck on a real project, with the board as the progress tracker.
+- Phase 4 chunk 2: the build worker runs against the board — it creates, moves, and comments on tickets as it works.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

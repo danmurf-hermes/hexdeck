@@ -59,6 +59,8 @@ jobs:
         run: go build -o hexdeck ./cmd/hexdeck
       - name: hexdeck render --check
         run: ./hexdeck render --check --dir docs/demo
+      - name: hexdeck render --check (dogfood board)
+        run: ./hexdeck render --check --dir .kanban
 
   coverage:
     name: Coverage badge

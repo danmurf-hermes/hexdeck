@@ -1,0 +1,1 @@
+{"schema":1,"opId":"b70dc222-1ff6-48da-a27c-7fa59adf79db","seq":2,"ts":"2026-08-20T22:20:19Z","actor":"hermes","type":"ticket.created","ticket":"T-1","payload":{"title":"Migrate the build tracker into the board","description":"PROGRESS.md's phase table becomes tickets. The board is the tracker."}}

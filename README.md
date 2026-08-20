@@ -5,7 +5,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is done: lint, test, build, and `render --check` gates run on every push and PR, and the README badges show CI status and code coverage. Not yet dogfooded.
+**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is done: lint, test, build, and `render --check` gates run on every push and PR, and the README badges show CI status and code coverage. Phase 4 (dogfood) is in progress: hexdeck tracks its own build in `.kanban/`.
 
 ## Board language
 
@@ -48,6 +48,10 @@ A real board, rendered by hexdeck from real ops:
 
 That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg --dir docs/demo` and you get the same image, byte for byte. CI runs `hexdeck render --check --dir docs/demo` on every push — a hand-edited or stale projection fails the build.
 
+## The dogfood board
+
+hexdeck tracks its own build in `.kanban/` — the board is the build tracker. The phase table from PROGRESS.md migrated into tickets, and the build worker creates, moves, and comments on tickets as it works. CI runs `hexdeck render --check --dir .kanban` on every push, so the dogfood board must match its ops too. Read `.kanban/board.md` to see where the build is up to.
+
 ## Quick start
 
 ```
@@ -75,7 +79,7 @@ Every change stages the op and the board files and prints a suggested commit mes
 
 ## What comes next
 
-- Dogfood: run hexdeck on a real project, with the board as the progress tracker.
+- Dogfood: the build worker runs against the board — it creates, moves, and comments on tickets as it works.
 
 ## Docs
 

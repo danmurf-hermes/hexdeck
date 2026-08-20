@@ -1,0 +1,90 @@
+{
+  "name": "hexdeck",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "prefix": "T",
+  "claimTimeout": "87600h",
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Migrate the build tracker into the board",
+      "description": "PROGRESS.md's phase table becomes tickets. The board is the tracker.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-20T22:20:22Z",
+          "actor": "hermes",
+          "text": "Phases 1-3.5 complete. The board replaces the phase table."
+        }
+      ],
+      "created": "2026-08-20T22:20:19Z",
+      "archived": false
+    },
+    "T-2": {
+      "id": "T-2",
+      "title": "Run the build worker against the board",
+      "description": "The worker creates, moves, and comments on tickets as it works. Code and ops land in the same commit.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-20T22:20:22Z",
+          "actor": "hermes",
+          "text": "This chunk: the worker runs against the board."
+        }
+      ],
+      "created": "2026-08-20T22:20:19Z",
+      "archived": false
+    },
+    "T-3": {
+      "id": "T-3",
+      "title": "Dogfood acceptance: board.md answers where the project is up to",
+      "description": "A human reads board.md and can answer the question without opening anything else.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-20T22:20:22Z",
+          "actor": "hermes",
+          "text": "The acceptance test for Phase 4."
+        }
+      ],
+      "created": "2026-08-20T22:20:19Z",
+      "archived": false
+    },
+    "T-4": {
+      "id": "T-4",
+      "title": "Cold-start test: a fresh agent uses the board in one attempt",
+      "description": "A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.",
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-20T22:20:22Z",
+          "actor": "hermes",
+          "text": "The acceptance test for Phase 4."
+        }
+      ],
+      "created": "2026-08-20T22:20:19Z",
+      "archived": false
+    },
+    "T-5": {
+      "id": "T-5",
+      "title": "V1.1: web view, MCP, snapshots",
+      "description": "Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.",
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-20T22:20:22Z",
+          "actor": "hermes",
+          "text": "Deferred until V1 earns it."
+        }
+      ],
+      "created": "2026-08-20T22:20:19Z",
+      "archived": false
+    }
+  },
+  "warnings": [],
+  "updated": "2026-08-20T22:20:36Z"
+}

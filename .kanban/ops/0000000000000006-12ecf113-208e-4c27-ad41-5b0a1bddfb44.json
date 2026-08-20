@@ -1,0 +1,1 @@
+{"schema":1,"opId":"12ecf113-208e-4c27-ad41-5b0a1bddfb44","seq":6,"ts":"2026-08-20T22:20:19Z","actor":"hermes","type":"ticket.created","ticket":"T-5","payload":{"title":"V1.1: web view, MCP, snapshots","description":"Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing."}}

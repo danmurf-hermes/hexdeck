@@ -1,0 +1,1 @@
+{"schema":1,"opId":"1ffb4adf-8317-465c-9943-24806dd634c5","seq":5,"ts":"2026-08-20T22:20:19Z","actor":"hermes","type":"ticket.created","ticket":"T-4","payload":{"title":"Cold-start test: a fresh agent uses the board in one attempt","description":"A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt."}}
