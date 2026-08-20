@@ -31,7 +31,7 @@
 |---|---|---|
 | 3.5.1 | `ci.yml`: gofmt check, `go vet`, `go test -race ./...`, `go build`. Every push and PR. | ✅ done — `556151a` |
 | 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ✅ done — `d113e63` |
-| 3.5.3 | README badges: CI passing + code coverage. | ✅ done — `d113e63` |
+| 3.5.3 | README badges: CI passing + code coverage. | ✅ done — `362f742` |
 
 ## How to pick up work
 
