@@ -1,0 +1,1 @@
+{"schema":1,"opId":"dce6e4a6-0511-4588-b430-5b386c8d0eb4","seq":8,"ts":"2026-08-20T20:56:20Z","actor":"alice","type":"ticket.moved","ticket":"T-3","payload":{"from":"todo","to":"review"}}

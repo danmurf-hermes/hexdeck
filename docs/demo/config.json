@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "board": "hd-demo",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "ticketPrefix": "T",
+  "claimTimeout": "4h",
+  "autoPush": false
+}

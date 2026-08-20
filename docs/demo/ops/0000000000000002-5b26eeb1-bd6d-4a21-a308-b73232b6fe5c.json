@@ -1,0 +1,1 @@
+{"schema":1,"opId":"5b26eeb1-bd6d-4a21-a308-b73232b6fe5c","seq":2,"ts":"2026-08-20T20:56:16Z","actor":"alice","type":"ticket.created","ticket":"T-1","payload":{"title":"Add login with Google","description":"OAuth 2.0 flow, refresh tokens"}}

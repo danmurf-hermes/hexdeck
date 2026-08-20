@@ -6,10 +6,27 @@ A kanban board stored in git, built for AI agents. Tickets, columns, comments, a
 
 ## How it works
 
+```mermaid
+flowchart TB
+    A["You or an agent<br/>write an op"] --> B["Op file<br/>one JSON file in .kanban/ops/"]
+    B --> C["Git commit<br/>ops and code land together"]
+    C --> D["Fold<br/>replay the ops in order"]
+    D --> E["Board views<br/>board.md · board.json · board.svg"]
+    D --> F["render --check<br/>fail if the board does not match the ops"]
+```
+
 - Every change to the board is an **op** — one JSON file per event in `.kanban/ops/`.
 - Ops are never edited or deleted. Corrections are new ops.
 - The board is rebuilt from the ops every time. Same ops, same board, always.
 - Ops sort by `(seq, opId)`, so concurrent writers never conflict.
+
+## The board
+
+A real board, rendered by hexdeck from real ops:
+
+![Board](docs/demo/board.svg)
+
+That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg` in that folder and you get the same image, byte for byte.
 
 ## Quick start
 
