@@ -1,9 +1,9 @@
 # Agent PM Tool — Build Spec (v3.0)
 
-**Status:** DRAFT v3.0 (Aug 20 2026) — the buildable core, scoped from the v2.1 product spec. For Dan's review.
-**Author:** Hermes (for Dan)
-**Part of:** Agent PM Tool (vault) · supersedes the build-level detail of Agent PM Tool - Product Spec (vault) (v2.1 — still the product vision)
-**Research base:** Agent PM Tool - Git-Native Comparison (vault) · Agent PM Tool - Event Sourcing Mechanics (vault) · new-entrant sweep Aug 20 2026 (below)
+**Status:** DRAFT v3.0 (Aug 20 2026) — the buildable core, scoped from the v2.1 product spec. For review.
+**Author:** Hermes
+**Part of:** the Agent PM Tool idea · supersedes the build-level detail of the product spec (v2.1 — still the product vision)
+**Research base:** the git-native comparison notes · the event-sourcing mechanics notes · new-entrant sweep Aug 20 2026 (below)
 
 ---
 
@@ -26,14 +26,14 @@ A **kanban board stored in git, built for agents**. Tickets, columns, comments, 
 
 ---
 
-## 2. Design principles (mapped to Dan's requirements)
+## 2. Design principles (mapped to the requirements)
 
 1. **Easy for agents cold** → a `README.md` inside the board dir is the entire manual (~40 lines, full text in §3.4). An agent that has never seen the system reads it once and can do everything. A CLI makes the common path one command; the README shows the raw file format for agents without the CLI.
 2. **Easy to build a projection** → the projection is a pure function: read ops → sort → fold (§4). Deterministic: same ops, same board, always. ~100 lines in any language.
 3. **Human-readable state** → a generated `board.md` (committed) shows the whole board in plain markdown, readable in GitHub, any editor, or a PR diff. `board.json` is the machine view.
 4. **Agents can create / move / comment / track** → four op types + a timeline command. That's the whole write surface.
 5. **Zero-conflict concurrency** → every event is its own file. Two agents can never touch the same file (verified Aug 13: same-position appends to a shared file ALWAYS conflict; unique files never do).
-6. **The same-commit rule** (Dan's call, Aug 13) → an agent that changes code updates the board in the SAME commit. The commit IS the evidence.
+6. **The same-commit rule** (project decision, Aug 13) → an agent that changes code updates the board in the SAME commit. The commit IS the evidence.
 
 ### 2.5 The domain language (glossary)
 
@@ -55,7 +55,7 @@ The ubiquitous language. Code, docs, CLI, and the primer use these exact words �
 | **Board dir** | The `.kanban/` folder in a repo. Holds the ops, config, and generated views. |
 | **Primer** | The README inside the board dir. Teaches any agent the system. |
 
-### 2.6 Domain-driven design (Dan's call, Aug 20 2026)
+### 2.6 Domain-driven design (project decision, Aug 20 2026)
 
 - The code speaks the domain language. The glossary above is the contract: code, docs, CLI, and primer all use it.
 - One bounded context in V1: **the board**. Everything in the tool serves it.
@@ -175,7 +175,7 @@ An agent that has never heard of the tool must find it, learn it, and use it cor
 ```json
 {
   "schema": 1,
-  "board": "trebuchet-game",
+  "board": "my-project",
   "columns": ["todo", "in-progress", "review", "done"],
   "claimTimeout": "4h",
   "autoPush": false
@@ -224,7 +224,7 @@ apply(op, state):
 **`board.md`** — the text view (committed; `Updated:` line uses the max op ts, so rendering is deterministic). For agents, PR diffs, and any editor:
 
 ```markdown
-# Board — trebuchet-game
+# Board — my-project
 Updated: 2026-08-20T14:03:00Z · 3 todo · 2 in-progress · 1 review · 5 done
 
 ## todo
@@ -244,11 +244,11 @@ Updated: 2026-08-20T14:03:00Z · 3 todo · 2 in-progress · 1 review · 5 done
 
 **`board.json`** — the machine view: the full `BoardState` (tickets with comments, claims, transitions). For UIs, MCP, and agents that want structure.
 
-**The interactive view (Dan's call, Aug 20 2026) — a JS plugin, mermaid-style.** A `hexdeck` code block in any markdown renders a live kanban board wherever JavaScript runs: docs sites (VitePress, Docusaurus, MkDocs), Obsidian, VS Code, the local web view. The block holds a pointer to the state (`.kanban/`), or an inlined snapshot (`hexdeck render --embed`) so the markdown is self-contained. The plugin reads the ops, runs the same projection, and renders the board.
+**The interactive view (project decision, Aug 20 2026) — a JS plugin, mermaid-style.** A `hexdeck` code block in any markdown renders a live kanban board wherever JavaScript runs: docs sites (VitePress, Docusaurus, MkDocs), Obsidian, VS Code, the local web view. The block holds a pointer to the state (`.kanban/`), or an inlined snapshot (`hexdeck render --embed`) so the markdown is self-contained. The plugin reads the ops, runs the same projection, and renders the board.
 
 **Why the static image still exists:** GitHub does not run JavaScript in READMEs. Mermaid works there only because GitHub built it in — a new tool cannot get that. So on GitHub the board is a committed image: CI runs `board render --svg` and the README embeds `![Board](board.svg)`. Mermaid solves the same problem the same way — its CLI (`mmdc`) renders to SVG for places where JavaScript cannot run.
 
-**The SVG is deterministic** (Dan's call, Aug 20 2026): same ops → same bytes, always. No timestamps inside (the `Updated:` line uses the max op ts, like `board.md`), stable ordering, no external fonts. Determinism is what makes it a safe committed artifact — CI can verify it with `render --check`, and it never produces noisy diffs.
+**The SVG is deterministic** (project decision, Aug 20 2026): same ops → same bytes, always. No timestamps inside (the `Updated:` line uses the max op ts, like `board.md`), stable ordering, no external fonts. Determinism is what makes it a safe committed artifact — CI can verify it with `render --check`, and it never produces noisy diffs.
 
 ### 4.3 Checkpoints, snapshots, compaction
 
@@ -257,17 +257,27 @@ Updated: 2026-08-20T14:03:00Z · 3 todo · 2 in-progress · 1 review · 5 done
 - **V1.1:** `snapshot.json` (state + last processed opId) — replay from snapshot + delta. Disposable, rebuildable, never the source of truth.
 - **V2:** compaction — archive old ops to cold storage, replace with a `Compacted` summary op. **Never rewrite git history** (breaks hashes). Full mechanics in Agent PM Tool - Event Sourcing Mechanics (vault).
 
+### 4.3.1 Why the snapshot can never conflict
+
+- **The snapshot is never committed.** It is a local, gitignored cache — disposable, rebuildable, per-machine. It exists only to make replay faster on that machine. Never shared → never merged → never conflicts. (Fowler: "an application state is purely derivable from the event log, you can cache it anywhere".)
+- **The committed projections CAN conflict** — if two writers append ops and re-render at the same time, the ops merge cleanly (unique files) but the projections are same-file edits. The resolution is mechanical:
+  1. Merge the ops — always clean.
+  2. Re-run `board render` — regenerates the projections from the merged ops.
+  3. Commit. The conflict is resolved by regeneration, never by hand-editing.
+- **Belt-and-braces:** a custom git merge driver in `.gitattributes` can regenerate the projections automatically on merge (the package-lock.json pattern). Optional — the manual re-render is one command.
+- **CI catches drift:** `board render --check` fails if the committed projections don't match the ops.
+
 ---
 
 ## 5. The CLI
 
-Name: **hexdeck** (Dan's pick, Aug 20 2026 — deck of cards, hex = git's language). Binary: `hexdeck` (alias `hd`). Single static binary, no runtime deps.
+Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's language). Binary: `hexdeck` (alias `hd`). Single static binary, no runtime deps.
 
-### 5.1 Human UX (how Dan uses it)
+### 5.1 Human UX
 
 - **Create tickets:** `board create "Fix login bug"` in the terminal. One command, staged, suggested commit message printed.
 - **Visualize the board:** three views over the same projection — `board show` (terminal), `board.md` (text — readable anywhere, diffable in PRs), and the interactive JS plugin (mermaid-style `hexdeck` block, V1.1). On GitHub, where JavaScript cannot run, the board is a CI-rendered `board.svg` in the README (V1.1).
-- **Review & commit:** every change is a staged git change with a suggested message; Dan reviews the diff and commits — the same path agents use, so history is uniform.
+- **Review & commit:** every change is a staged git change with a suggested message; the human reviews the diff and commits — the same path agents use, so history is uniform.
 - **V1.1:** local web view — drag tickets between columns, click to comment, with the changes panel (diff → suggested message → commit, the GitHub Desktop pattern from v2.1 §5.3).
 - **Optional middle ground:** a TUI (`board tui`) — keyboard-driven board in the terminal, kanban-md's proven pattern. Cheap to add if the CLI table feels thin.
 
@@ -297,15 +307,15 @@ Name: **hexdeck** (Dan's pick, Aug 20 2026 — deck of cards, hex = git's langua
 
 ## 6. Use cases — the different ways this could be used
 
-1. **Agent fleet mission control (core).** Dan runs 3–5 agents in worktrees; the board shows who's doing what, what's stuck, what's done. `board show` is the "where is my project up to" answer.
+1. **Agent fleet mission control (core).** A solo dev runs 3–5 agents in worktrees; the board shows who's doing what, what's stuck, what's done. `board show` is the "where is my project up to" answer.
 2. **Single agent, long project.** One agent, many sessions, context resets. The board survives every reset; a fresh agent reads README + `board show` and picks up.
-3. **Human-only kanban.** Dan's own task list in any repo. Works with zero agents — it's just a kanban in git.
+3. **Human-only kanban.** A personal task list in any repo. Works with zero agents — it's just a kanban in git.
 4. **Cross-project board repo.** A dedicated repo holding the board for several projects (faru's pattern) — board ops in one repo, code elsewhere. `board` works from any directory with `--dir`.
 5. **Public progress display.** CI runs `board render --svg`; README embeds `![Board](board.svg)`. GitHub shows the live board on the repo homepage (V1). Docs sites and Obsidian embed the interactive JS plugin (V1.1).
 6. **MCP integration (V1.1).** Expose the board as an MCP server — any agent asks "what's the status?", "any open tickets?", "what happened since Tuesday?" without the CLI.
 7. **Team mode (V2).** Multiple humans + agents; `review` column becomes a real gate; assignees become first-class.
 8. **Evidence-gated done (V2).** The v2.1 wedge: `done` requires proof (commit/test evidence) — the op log already has the shape; add `evidence.attached` ops and a CI gate.
-9. **Dogfood.** Replaces PROGRESS.md in Dan's repos (Trebuchet Game first) — the board IS the progress file, generated instead of hand-maintained.
+9. **Dogfood.** Replaces hand-maintained progress files in personal repos — the board IS the progress file, generated instead of hand-maintained.
 
 ---
 
@@ -338,7 +348,7 @@ Name: **hexdeck** (Dan's pick, Aug 20 2026 — deck of cards, hex = git's langua
 
 Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended — single static binary, zero deps, kanban-md proves the pattern; alternative: Node/TS, a5c proves it — open question §11).
 
-### 8.0 Quality bar (Dan's call, Aug 20 2026 — applies to every phase, every language)
+### 8.0 Quality bar (project decision, Aug 20 2026 — applies to every phase, every language)
 
 **Code:**
 - **Idiomatic.** Go: stdlib-first, effective-Go conventions, `gofmt` clean, no cleverness, no unnecessary dependencies. TS: strict mode, idiomatic React, no any-casts, no dead code.
@@ -351,7 +361,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 - Written **as work goes along**, not at the end: README + `docs/architecture.md` + `docs/components.md`.
 - **A feature ships with its doc line in the same commit** — no undocumented features, ever.
 
-**Phase 0 — Decisions (Dan, not an agent run).** Answer §11. Confirm stack.
+**Phase 0 — Decisions (human, not an agent run).** Answer §11. Confirm stack.
 
 **Phase 1 — Core library.** Go module: op schema + parse, sort `(seq, opId)`, fold, render `board.md` + `board.json` + `board.svg`. TDD with golden files: fixture ops dirs → exact expected `board.md`/`board.json`/`board.svg` (byte-for-byte — the SVG is deterministic). Acceptance: `go test ./...` green; golden tests cover every op type + seq-collision + duplicate-ticket-id + unparseable-op cases.
 
@@ -359,7 +369,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 **Phase 3 — Concurrency hardening.** Re-run the 18-scenario merge matrix (two writers appending concurrently, stale checkouts, seq collisions) against the real tool. Claim expiry + stale-claim rendering. Acceptance: zero conflicts in every scenario; projection identical on both sides after merge.
 
-**Phase 4 — Dogfood on Trebuchet Game.** Install the binary, `board init` in `~/code/trebuchet-game`, migrate PROGRESS.md's phase table into tickets, run one real worker phase against the board (worker creates/moves/comments as it works). Add a CI job: `board render --check`. Acceptance: Dan reads `board.md` and can answer "where is the project up to" without opening anything else; worker's commits show code + ops together.
+**Phase 4 — Dogfood on a real project.** Install the binary, `board init` in a real repo, migrate its existing progress notes into tickets, run one real worker phase against the board (worker creates/moves/comments as it works). Add a CI job: `board render --check`. Acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else; worker's commits show code + ops together.
 
 **Phase 5 — V1.1 (only if V1 earns it).** board.svg CI render + README embed; local web view; MCP server; snapshot checkpointing.
 
@@ -370,7 +380,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 1. **Golden projection tests** — fixture ops → exact board.md/board.json (Phase 1).
 2. **Merge matrix** — concurrent appends never conflict (Phase 3, the Aug 13 recipe).
 3. **Cold-start test** — a fresh agent with zero context, given only the repo + README, must create a ticket, move it, and comment correctly within one attempt (Phase 4, run against a real agent).
-4. **Dogfood** — Trebuchet Game runs a real phase through the board; Dan reviews the result (Phase 4).
+4. **Dogfood** — a real project runs a phase through the board; the human reviews the result (Phase 4).
 5. **CI honesty** — `board render --check` fails if the committed board drifts from the ops (Phase 4).
 
 ---
@@ -390,14 +400,14 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 ---
 
-## 11. Open questions for Dan
+## 11. Open questions
 
 - [ ] **Stack: Go (recommended) or Node/TS?** Go = single static binary, zero deps, fastest for agents to install. Node = your stack, a5c precedent.
 - [ ] **Board dir: `.kanban/` (recommended, hidden) or `kanban/` (visible)?**
 - [ ] **Columns: `todo / in-progress / review / done` (recommended) or faru's minimal 3 (`todo / wip / done`)?**
 - [ ] **Claims in V1?** Recommended yes — it's the multi-agent safety and ~30 lines.
-- [ ] **Dogfood target: Trebuchet Game (recommended) or a fresh repo?**
-- [x] **Name** — DECIDED (Aug 20 2026): **hexdeck** (Dan's pick). hexdeck.com free; no same-category collisions (Steam game + termux theme, both different fields); Companies House clean.
+- [ ] **Dogfood target: a real project or a fresh repo?**
+- [x] **Name** — DECIDED (Aug 20 2026): **hexdeck**. hexdeck.com free; no same-category collisions (Steam game + termux theme, both different fields); Companies House clean.
 
 ---
 
@@ -407,4 +417,4 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 - github.com/antopolskiy/kanban-md (README + SKILL.md fetched — claims w/ expiry, `pick --claim`, `--compact` output, installable agent skills, TUI, config.yml statuses/WIP/classes)
 - github.com/a5c-ai/kanban (source fetched — `ops.ts`/`state.ts`: one JSON op file per event, `%016d-seq-opId.json` naming, replay + LWW fold, retry-on-EEXIST append)
 - vibekanban.com + BloopAI/vibe-kanban (24k★, sunsetting as product, continues OSS — market signal)
-- Prior research: Agent PM Tool - Git-Native Comparison (vault) · Agent PM Tool - Event Sourcing Mechanics (vault) (18 git merge experiments, Bruno internals, git-bug/Grite/git-native-issue, verify-before-done pattern)
+- Prior research: the git-native comparison notes · the event-sourcing mechanics notes (18 git merge experiments, Bruno internals, git-bug/Grite/git-native-issue, verify-before-done pattern)
