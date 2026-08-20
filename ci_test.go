@@ -61,6 +61,20 @@ func TestCoverageBadgeFile(t *testing.T) {
 	}
 }
 
+// TestDogfoodBoardInWorkflow checks that the CI workflow also checks
+// the repo's own dogfood board in .kanban/ — the board the worker uses
+// as the build tracker. Same contract as the demo board: if it drifts,
+// CI must fail.
+func TestDogfoodBoardInWorkflow(t *testing.T) {
+	data, err := os.ReadFile(".github/workflows/ci.yml")
+	if err != nil {
+		t.Fatalf("read ci.yml: %v", err)
+	}
+	if !strings.Contains(string(data), "render --check --dir .kanban") {
+		t.Error("ci.yml does not check the dogfood board in .kanban/")
+	}
+}
+
 func TestReadmeBadges(t *testing.T) {
 	data, err := os.ReadFile("README.md")
 	if err != nil {

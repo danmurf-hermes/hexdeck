@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "board": "hexdeck",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "ticketPrefix": "T",
+  "claimTimeout": "87600h",
+  "autoPush": false
+}

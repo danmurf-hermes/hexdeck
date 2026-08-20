@@ -66,3 +66,9 @@ Code: `coverage.json`, `ci_test.go`.
 ## The demo board
 
 A real board in `docs/demo/` — config, ops, and the three committed projections (`board.md`, `board.json`, `board.svg`). The README embeds its SVG. CI runs `render --check` on it, so the demo is the repo's own dogfood: a hand-edited or stale projection fails the build. Its claim timeout is ten years, so the projections never change with the wall clock — the check fails only on real drift.
+
+## The dogfood board
+
+The repo's own board in `.kanban/`. It is the build tracker: the phase table from PROGRESS.md migrated into tickets, and the build worker creates, moves, and comments on tickets as it works. CI runs `render --check` on it — the same honesty gate as the demo board. Its claim timeout is ten years, for the same reason: the committed projections never change with the wall clock.
+
+The merge rule applies here: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.

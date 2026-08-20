@@ -1,0 +1,1 @@
+{"schema":1,"opId":"9333170c-6396-4702-a2d6-7b0e9d12c03d","seq":4,"ts":"2026-08-20T22:20:19Z","actor":"hermes","type":"ticket.created","ticket":"T-3","payload":{"title":"Dogfood acceptance: board.md answers where the project is up to","description":"A human reads board.md and can answer the question without opening anything else."}}

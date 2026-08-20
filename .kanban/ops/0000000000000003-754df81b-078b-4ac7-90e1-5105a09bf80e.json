@@ -1,0 +1,1 @@
+{"schema":1,"opId":"754df81b-078b-4ac7-90e1-5105a09bf80e","seq":3,"ts":"2026-08-20T22:20:19Z","actor":"hermes","type":"ticket.created","ticket":"T-2","payload":{"title":"Run the build worker against the board","description":"The worker creates, moves, and comments on tickets as it works. Code and ops land in the same commit."}}
