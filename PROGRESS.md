@@ -13,7 +13,7 @@
 | 2 | CLI (all commands, git staging) | ✅ done | `86601f6` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ✅ done | `9a6a3e2` | 18-scenario merge matrix: zero conflicts, identical projections. Claim race: first claim by (seq, opId) wins, second warns. Claim expiry: stale claims marked, shown in renders, pickable |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ✅ done | `556151a` | All three chunks done: `ci.yml` (lint, test, build), `render --check` in CI, README badges (CI + coverage). Phase 4 (dogfood) is next |
-| 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
+| 4 | Dogfood on a real project | ⏳ in progress | — | Target: hexdeck itself. The board lives in `.kanban/` — it is the tracker now. Chunk 1 done: board init + migration + CI check. Chunk 2: the worker runs against the board |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
 ## Phase 1 chunks (Go, module github.com/danmurf/hexdeck)
@@ -32,6 +32,15 @@
 | 3.5.1 | `ci.yml`: gofmt check, `go vet`, `go test -race ./...`, `go build`. Every push and PR. | ✅ done — `556151a` |
 | 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ✅ done — `d113e63` |
 | 3.5.3 | README badges: CI passing + code coverage. | ✅ done — `362f742` |
+
+## Phase 4 chunks (dogfood on hexdeck itself)
+
+| Chunk | Work | Status |
+|---|---|---|
+| 4.1 | `hexdeck init` in the hexdeck repo, migrate PROGRESS.md's phase table into tickets, CI checks the dogfood board. | ✅ done — this chunk |
+| 4.2 | The worker runs against the board: creates, moves, and comments on tickets as it works. Code and ops land in the same commit. | ⏳ next |
+| 4.3 | Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else. | ⏳ pending |
+| 4.4 | Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt. | ⏳ pending |
 
 ## How to pick up work
 
@@ -54,3 +63,4 @@
 - Merge rule (Aug 20): a ticket in `review` is done when its PR is merged. The worker moves it to `done` as an ops-only commit straight to main — no second PR (spec §5, "The merge rule").
 - Phase 3.5 chunk 1 done: `ci.yml` — three jobs (lint, test, build) on every push and PR. Lint runs `gofmt -l .` (must print nothing) and `go vet ./...`. Test runs `go test -race ./...`. Build runs `go build ./...`. All use the Go version from `go.mod`. Verified locally: gofmt clean, vet clean, race tests green. Chunks 2 (`render --check` in CI) and 3 (README badges) are next.
 - Phase 3.5 chunk 2 done: `render --check` in CI — a fourth job builds the CLI and runs `hexdeck render --check --dir docs/demo`. The demo board is the repo's own dogfood: its committed projections must match its ops, or the job fails. To make that possible: `RenderCheck` now covers `board.svg` too (when it exists), `--dir` accepts a bare board dir (config.json + ops/ directly, no `.kanban/`), the demo board gained committed `board.md`/`board.json`, and its claim timeout is ten years so the projections never change with the wall clock. Verified locally: the exact CI commands pass on the committed board and fail on a hand-edited one. Chunk 3 (README badges) is next.
+- Phase 4 chunk 1 done: the dogfood board. `hexdeck init` in the hexdeck repo — the board lives in `.kanban/` and is the build tracker now. The phase table migrated into tickets: T-1 (migrate the tracker), T-2 (worker runs against the board), T-3 (acceptance: board.md answers the question), T-4 (cold-start test), T-5 (V1.1). T-1–T-3 sit in `review` — they are done when this PR merges (the merge rule). T-4 and T-5 sit in `todo`. The claim timeout is ten years, so the committed projections never change with the wall clock. CI gained a second render check: `hexdeck render --check --dir .kanban` — the dogfood board must match its ops, or the build fails. The contract is tested in `ci_test.go`. Chunk 2 (the worker runs against the board) is next.
