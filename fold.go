@@ -45,8 +45,7 @@ type BoardState struct {
 	Columns  []string          `json:"columns"`
 	Tickets  map[string]Ticket `json:"tickets"`
 	Warnings []string          `json:"warnings"`
-	// Updated is the newest op ts. It is display-only: the fold never
-	// uses it, and the renders use it for the "Updated:" line.
+	// Updated is display-only — the fold never reads it.
 	Updated time.Time `json:"updated"`
 }
 
