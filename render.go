@@ -96,23 +96,24 @@ func columnCounts(state BoardState) string {
 }
 
 // sortedTickets returns the tickets sorted by id, numerically: T-2 comes
-// before T-10. Ids that do not match T-<number> sort after the numbered
-// ones, in plain string order.
+// before T-10. The number part is the suffix after the board's prefix.
+// Ids that do not match <prefix>-<number> sort after the numbered ones,
+// in plain string order.
 func sortedTickets(state BoardState) []Ticket {
 	tickets := make([]Ticket, 0, len(state.Tickets))
 	for _, ticket := range state.Tickets {
 		tickets = append(tickets, ticket)
 	}
 	sort.Slice(tickets, func(i, j int) bool {
-		return ticketIDLess(tickets[i].ID, tickets[j].ID)
+		return ticketIDLess(state.Prefix, tickets[i].ID, tickets[j].ID)
 	})
 	return tickets
 }
 
 // ticketIDLess compares two ticket ids. T-2 < T-10 < T-11 < X-1.
-func ticketIDLess(a, b string) bool {
-	an, aok := ticketNumber(a)
-	bn, bok := ticketNumber(b)
+func ticketIDLess(prefix string, a, b string) bool {
+	an, aok := ticketNumber(prefix, a)
+	bn, bok := ticketNumber(prefix, b)
 	switch {
 	case aok && bok:
 		if an != bn {
@@ -128,12 +129,16 @@ func ticketIDLess(a, b string) bool {
 	}
 }
 
-// ticketNumber returns the number part of a T-<number> id.
-func ticketNumber(id string) (int, bool) {
-	if !strings.HasPrefix(id, "T-") {
+// ticketNumber returns the number part of a <prefix>-<number> id. An
+// empty prefix means the default T.
+func ticketNumber(prefix, id string) (int, bool) {
+	if prefix == "" {
+		prefix = DefaultPrefix
+	}
+	if !strings.HasPrefix(id, prefix+"-") {
 		return 0, false
 	}
-	n, err := strconv.Atoi(id[2:])
+	n, err := strconv.Atoi(id[len(prefix)+1:])
 	if err != nil {
 		return 0, false
 	}

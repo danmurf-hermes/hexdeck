@@ -10,13 +10,22 @@ hexdeck is a kanban board stored in git. Every change to the board is an **op** 
 
 ### Root package (`github.com/danmurf/hexdeck`)
 
-The core library. Six files:
+The core library. Seven files:
 
 - `op.go` — the op schema. Defines the op types, parses op files from a directory, validates them, and sorts them in a deterministic order.
 - `fold.go` — the fold. Applies ops in order to build the board state. Also reads the board config.
 - `render.go` — the renders. Turns a `BoardState` into `board.md` (markdown) and `board.json` (JSON).
 - `svg.go` — the board image. Turns a `BoardState` into `board.svg`.
-- `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go` — table-driven tests plus golden files for the projection and the renders.
+- `write.go` — the write path. Creates a board (`InitBoard`), appends ops (`AppendOp`), picks the next ticket id (`NextTicketID`), rebuilds the board files (`RenderAll`), and checks them for drift (`RenderCheck`).
+- `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go`, `write_test.go` — table-driven tests plus golden files for the projection and the renders.
+
+### CLI package (`github.com/danmurf/hexdeck/cmd/hexdeck`)
+
+The `hexdeck` binary. One file, `main.go`, plus `main_test.go` with end-to-end tests in temp git repos. The CLI is a thin shell over the library: it parses flags, resolves the board dir and the actor name, and calls the library. It never touches the board files directly.
+
+The commands: `init`, `create`, `move`, `comment`, `show`, `log`, `pick`, `release`, `render`.
+
+The CLI owns the git behaviour: it stages the op and the board files after every change, prints the suggested commit message, and commits when `--commit` is set. It runs `git pull --rebase` before appending (skipped with `--no-pull`, or when the repo has no upstream).
 
 ## The op
 
@@ -51,7 +60,7 @@ The fold rules:
 
 Ops about a ticket that was never created are skipped with a warning — visible, never fatal. The board must always build.
 
-`BoardState` holds the board name, the columns, the tickets (a map by id), the warnings, and the newest op ts (`Updated`). `Ticket` holds the id, title, description, status, comments, created time, claim, and archived flag.
+`BoardState` holds the board name, the columns, the ticket id prefix, the claim timeout, the tickets (a map by id), the warnings, and the newest op ts (`Updated`). `Ticket` holds the id, title, description, status, comments, created time, claim (who and when), and archived flag.
 
 ## The renders
 
@@ -65,15 +74,29 @@ The `Updated:` line uses the newest op ts, so rendering is deterministic — it 
 
 The SVG is deterministic by construction: a fixed layout and palette, no external fonts, no random ids, and text is XML-escaped. The canvas grows with the board — the width with the column count, the height with the longest column. Both are pure functions of the state.
 
+## Ticket ids
+
+Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticketPrefix`), set at `hexdeck init --prefix` (default `T`). `NextTicketID` returns the highest numeric suffix plus one. Tickets sort numerically within a column, whatever the prefix — `HDX-2` comes before `HDX-10`.
+
+## The write path
+
+`write.go` is the only code that changes a board:
+
+- `InitBoard(dir, name, prefix, actor)` creates `.kanban/` — the primer README, the config, the `board.created` op, and the rendered board files — plus the AGENTS.md discovery hook. It fails if the board already exists.
+- `AppendOp(opsDir, op)` writes one op file. It fills the seq (highest seen plus one), the opId (a random UUID), the ts (now, UTC), and the schema. The op is validated first — nothing is written for an invalid op.
+- `RenderAll(boardDir, svg)` rebuilds `board.md` and `board.json` from the ops, plus `board.svg` when asked.
+- `RenderCheck(boardDir)` compares the committed board files to a fresh render. It returns an error naming the first file that drifted. CI runs it.
+
 ## What is built so far
 
 - Chunk 1.1: op schema — types, parse, validation, deterministic sort. Golden tests for basic ops, seq collisions, and unparseable ops.
 - Chunk 1.2: the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops.
 - Chunk 1.3: the renders — `board.md` and `board.json` from a `BoardState`. Golden tests for both, over every fixture board.
 - Chunk 1.4: the board image — `board.svg` from a `BoardState`. Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests.
+- Phase 2: the CLI — all commands, git staging, `--commit`, pull before append. End-to-end tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`), the ticket id prefix, and the claim timestamp.
 
 ## What comes next
 
-- Phase 2: the CLI — all commands, git staging, `--commit`, pull before append.
+- Phase 3: concurrency hardening — the merge matrix, claim expiry, stale-claim rendering.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.
