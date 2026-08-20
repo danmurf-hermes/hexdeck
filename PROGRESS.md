@@ -8,11 +8,11 @@
 
 | # | Phase | Status | Commit | Notes |
 |---|---|---|---|---|
-| 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target deferred to Phase 4 |
+| 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target: hexdeck itself |
 | 1 | Core library (ops, projection, renders) | ⏳ pending | — | Chunks below |
 | 2 | CLI (all commands, git staging) | ⏳ pending | — | |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
-| 4 | Dogfood on a real project | ⏳ pending | — | |
+| 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
 ## Phase 1 chunks (Go, module github.com/danmurf/hexdeck)
