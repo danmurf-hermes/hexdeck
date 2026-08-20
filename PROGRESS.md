@@ -12,7 +12,7 @@
 | 1 | Core library (ops, projection, renders) | ✅ done | `6113c2d` | All four chunks done |
 | 2 | CLI (all commands, git staging) | ✅ done | `86601f6` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ✅ done | `9a6a3e2` | 18-scenario merge matrix: zero conflicts, identical projections. Claim race: first claim by (seq, opId) wins, second warns. Claim expiry: stale claims marked, shown in renders, pickable |
-| 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ⏳ pending | — | Added Aug 20 2026 — before dogfood needs the gates |
+| 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | 🔨 in progress | `556151a` | Chunk 1 done: `ci.yml` — lint (gofmt + vet), test (`-race`), build, on every push and PR. Chunks 2 (`render --check` in CI) and 3 (README badges) pending |
 | 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
@@ -24,6 +24,14 @@
 | 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ✅ done — `c63cc87` |
 | 1.3 | Render board.md + board.json. Golden tests. | ✅ done — `caf3516` |
 | 1.4 | Render board.svg — deterministic, byte-for-byte golden test. | ✅ done — `6113c2d` |
+
+## Phase 3.5 chunks (CI pipeline)
+
+| Chunk | Work | Status |
+|---|---|---|
+| 3.5.1 | `ci.yml`: gofmt check, `go vet`, `go test -race ./...`, `go build`. Every push and PR. | ✅ done — `556151a` |
+| 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ⏳ pending |
+| 3.5.3 | README badges: CI passing + code coverage. | ⏳ pending |
 
 ## How to pick up work
 
@@ -43,3 +51,4 @@
 - Phase 2 done: the CLI — all commands (`init`, `create`, `move`, `comment`, `show`, `log`, `pick`, `release`, `render`), git staging, `--commit`, pull before append. E2E tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`: `InitBoard`, `AppendOp`, `NextTicketID`, `RenderAll`, `RenderCheck`), the configurable ticket prefix (spec change from upstream, Aug 20), and the claim timestamp. Phase 3 (concurrency hardening) is next.
 - Phase 3 done (`9a6a3e2`): concurrency hardening. The merge matrix (`merge_test.go`) runs 18 scenarios — two writers in two git clones append ops at the same time, then merge. Every scenario merges with zero conflicts and identical projections on both sides. The claim-race rule: two claims on the same ticket, the first by (seq, opId) wins, the second renders a warning. Claim expiry: a claim older than the claim timeout is marked stale in the projection, shown as "(stale claim)" in board.md and "(stale)" in the SVG badge, and `pick` takes it. The projection grew `projectAt` (explicit clock) so staleness is testable; golden tests use a fixed clock. Phase 3.5 (CI pipeline) is next.
 - CI added to the plan (Aug 20): Phase 3.5 — GitHub Actions pipeline (gofmt, vet, tests, build, `render --check`) + README badges for CI passing and coverage. It runs after concurrency hardening, before dogfood.
+- Phase 3.5 chunk 1 done: `ci.yml` — three jobs (lint, test, build) on every push and PR. Lint runs `gofmt -l .` (must print nothing) and `go vet ./...`. Test runs `go test -race ./...`. Build runs `go build ./...`. All use the Go version from `go.mod`. Verified locally: gofmt clean, vet clean, race tests green. Chunks 2 (`render --check` in CI) and 3 (README badges) are next.
