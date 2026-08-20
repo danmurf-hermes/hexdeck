@@ -96,17 +96,20 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - `InitBoard(dir, name, prefix, actor)` creates `.kanban/` — the primer README, the config, the `board.created` op, and the rendered board files — plus the AGENTS.md discovery hook. It fails if the board already exists.
 - `AppendOp(opsDir, op)` writes one op file. It fills the seq (highest seen plus one), the opId (a random UUID), the ts (now, UTC), and the schema. The op is validated first — nothing is written for an invalid op.
 - `RenderAll(boardDir, svg)` rebuilds `board.md` and `board.json` from the ops, plus `board.svg` when asked.
-- `RenderCheck(boardDir)` compares the committed board files to a fresh render. It returns an error naming the first file that drifted. CI runs it.
+- `RenderCheck(boardDir)` compares the committed board files to a fresh render. It returns an error naming the first file that drifted. CI runs it. `board.svg` is checked only when it exists — it is opt-in via `render --svg`.
 
 ## The CI pipeline
 
-`.github/workflows/ci.yml` runs three jobs on every push and every pull request:
+`.github/workflows/ci.yml` runs four jobs on every push and every pull request:
 
 - **Lint** — `gofmt -l .` must print nothing, then `go vet ./...` must pass.
 - **Test** — `go test -race ./...`.
 - **Build** — `go build ./...`.
+- **Render check** — builds the CLI and runs `hexdeck render --check --dir docs/demo`. The committed demo board must match its ops. A hand-edited or stale projection fails the job.
 
 The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline and the local toolchain never drift apart.
+
+The demo board in `docs/demo/` is the repo's own dogfood: it is a real board (config, ops, and the three committed projections) that CI checks on every run. Its claim timeout is ten years, so the committed projections never change with the wall clock — the check fails only on real drift.
 
 ## What is built so far
 
@@ -117,9 +120,10 @@ The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline a
 - Phase 2: the CLI — all commands, git staging, `--commit`, pull before append. End-to-end tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`), the ticket id prefix, and the claim timestamp.
 - Phase 3: concurrency hardening — the merge matrix (18 scenarios, two writers in two clones, zero conflicts, identical projections after merge), the claim-race rule (first claim by `(seq, opId)` wins, second renders a warning), and claim expiry (stale claims marked in the projection, shown in the renders, pickable by `pick`).
 - Phase 3.5 chunk 1: the CI pipeline — `ci.yml` with three jobs (lint, test, build) on every push and PR.
+- Phase 3.5 chunk 2: `render --check` in CI — a fourth job checks the committed demo board against its ops. `RenderCheck` now covers `board.svg` too, and `--dir` accepts a bare board dir.
 
 ## What comes next
 
-- Phase 3.5 chunks 2 and 3: `render --check` in CI, then README badges.
+- Phase 3.5 chunk 3: README badges.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

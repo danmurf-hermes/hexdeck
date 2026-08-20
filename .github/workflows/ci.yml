@@ -46,3 +46,16 @@ jobs:
           go-version-file: go.mod
       - name: go build
         run: go build ./...
+
+  render-check:
+    name: Render check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: go build
+        run: go build -o hexdeck ./cmd/hexdeck
+      - name: hexdeck render --check
+        run: ./hexdeck render --check --dir docs/demo

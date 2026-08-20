@@ -1,0 +1,79 @@
+{
+  "name": "hd-demo",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "prefix": "T",
+  "claimTimeout": "87600h",
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Add login with Google",
+      "description": "OAuth 2.0 flow, refresh tokens",
+      "status": "in-progress",
+      "comments": [
+        {
+          "ts": "2026-08-20T20:56:20Z",
+          "actor": "bob",
+          "text": "google scope question — see PR"
+        }
+      ],
+      "created": "2026-08-20T20:56:16Z",
+      "archived": false
+    },
+    "T-2": {
+      "id": "T-2",
+      "title": "Dark mode",
+      "description": "",
+      "status": "done",
+      "comments": [],
+      "created": "2026-08-20T20:56:16Z",
+      "archived": false
+    },
+    "T-3": {
+      "id": "T-3",
+      "title": "Fix checkout race condition",
+      "description": "",
+      "status": "review",
+      "comments": [],
+      "created": "2026-08-20T20:56:16Z",
+      "archived": false
+    },
+    "T-4": {
+      "id": "T-4",
+      "title": "Add search to docs site",
+      "description": "",
+      "status": "in-progress",
+      "comments": [
+        {
+          "ts": "2026-08-20T20:56:21Z",
+          "actor": "carol",
+          "text": "indexing plan drafted"
+        },
+        {
+          "ts": "2026-08-20T20:56:21Z",
+          "actor": "carol",
+          "text": "2 comments"
+        }
+      ],
+      "created": "2026-08-20T20:56:16Z",
+      "archived": false
+    },
+    "T-5": {
+      "id": "T-5",
+      "title": "Ship v1.0",
+      "description": "",
+      "status": "in-progress",
+      "comments": [],
+      "created": "2026-08-20T20:56:16Z",
+      "claimedBy": "carol",
+      "claimedAt": "2026-08-20T20:56:21Z",
+      "archived": false
+    }
+  },
+  "warnings": [],
+  "updated": "2026-08-20T20:56:21Z"
+}

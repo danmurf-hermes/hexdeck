@@ -116,14 +116,23 @@ func findBoardDir() (string, error) {
 	}
 }
 
-// resolveBoardDir returns the board dir from --dir or the search.
+// resolveBoardDir returns the board dir from --dir or the search. The
+// --dir flag takes either a repo dir (the board is <dir>/.kanban) or a
+// bare board dir (the board is <dir> itself — config.json and ops/
+// directly inside). The bare form serves boards that live outside a
+// repo, like the demo board in docs/demo.
 func resolveBoardDir(cf commonFlags) (string, error) {
 	if cf.dir != "" {
 		boardDir := filepath.Join(cf.dir, ".kanban")
-		if info, err := os.Stat(boardDir); err != nil || !info.IsDir() {
-			return "", fmt.Errorf("no .kanban board in %s", cf.dir)
+		if info, err := os.Stat(boardDir); err == nil && info.IsDir() {
+			return boardDir, nil
 		}
-		return boardDir, nil
+		if info, err := os.Stat(cf.dir); err == nil && info.IsDir() {
+			if _, err := os.Stat(filepath.Join(cf.dir, "config.json")); err == nil {
+				return cf.dir, nil
+			}
+		}
+		return "", fmt.Errorf("no .kanban board in %s", cf.dir)
 	}
 	return findBoardDir()
 }

@@ -8,6 +8,6 @@
     "done"
   ],
   "ticketPrefix": "T",
-  "claimTimeout": "4h",
+  "claimTimeout": "87600h",
   "autoPush": false
 }

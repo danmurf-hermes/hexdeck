@@ -2,7 +2,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is in progress: lint, test, and build gates run on every push and PR. Not yet dogfooded.
+**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is in progress: lint, test, build, and `render --check` gates run on every push and PR. Not yet dogfooded.
 
 ## Board language
 
@@ -43,7 +43,7 @@ A real board, rendered by hexdeck from real ops:
 
 ![Board](docs/demo/board.svg)
 
-That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg` in that folder and you get the same image, byte for byte.
+That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg --dir docs/demo` and you get the same image, byte for byte. CI runs `hexdeck render --check --dir docs/demo` on every push — a hand-edited or stale projection fails the build.
 
 ## Quick start
 
@@ -72,7 +72,7 @@ Every change stages the op and the board files and prints a suggested commit mes
 
 ## What comes next
 
-- CI: `render --check` in the pipeline, then README badges. Then dogfood.
+- CI: README badges. Then dogfood.
 
 ## Docs
 
