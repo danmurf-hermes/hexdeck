@@ -1,0 +1,16 @@
+# Go
+*.exe
+*.test
+*.out
+bin/
+dist/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Local config (machine-specific)
+.faru.local.json
