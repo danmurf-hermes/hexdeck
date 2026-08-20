@@ -10,11 +10,13 @@ hexdeck is a kanban board stored in git. Every change to the board is an **op** 
 
 ### Root package (`github.com/danmurf/hexdeck`)
 
-The core library. Three files:
+The core library. Six files:
 
 - `op.go` — the op schema. Defines the op types, parses op files from a directory, validates them, and sorts them in a deterministic order.
 - `fold.go` — the fold. Applies ops in order to build the board state. Also reads the board config.
-- `op_test.go`, `fold_test.go` — table-driven tests plus golden files for the projection.
+- `render.go` — the renders. Turns a `BoardState` into `board.md` (markdown) and `board.json` (JSON).
+- `svg.go` — the board image. Turns a `BoardState` into `board.svg`.
+- `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go` — table-driven tests plus golden files for the projection and the renders.
 
 ## The op
 
@@ -49,16 +51,29 @@ The fold rules:
 
 Ops about a ticket that was never created are skipped with a warning — visible, never fatal. The board must always build.
 
-`BoardState` holds the board name, the columns, the tickets (a map by id), and the warnings. `Ticket` holds the id, title, description, status, comments, created time, claim, and archived flag.
+`BoardState` holds the board name, the columns, the tickets (a map by id), the warnings, and the newest op ts (`Updated`). `Ticket` holds the id, title, description, status, comments, created time, claim, and archived flag.
+
+## The renders
+
+Three functions turn a `BoardState` into the committed board files. All are deterministic: same state, same bytes, always.
+
+- `RenderMarkdown(state)` — `board.md`, the human-readable view. A header with the board name, an `Updated:` line with the newest op ts and the ticket count per column, then one section per column. Tickets sort by id within a column, numerically — T-2 comes before T-10. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing section named after the column.
+- `RenderJSON(state)` — `board.json`, the machine view. The full `BoardState`, indented, with a trailing newline.
+- `RenderSVG(state)` — `board.svg`, the board image for the README. A header with the board name and the `Updated:` line, then one column per configured column, side by side. Each ticket is a card: the id, the title, and small badges for the claim and the comment count. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing column named after the column.
+
+The `Updated:` line uses the newest op ts, so rendering is deterministic — it never depends on the wall clock.
+
+The SVG is deterministic by construction: a fixed layout and palette, no external fonts, no random ids, and text is XML-escaped. The canvas grows with the board — the width with the column count, the height with the longest column. Both are pure functions of the state.
 
 ## What is built so far
 
 - Chunk 1.1: op schema — types, parse, validation, deterministic sort. Golden tests for basic ops, seq collisions, and unparseable ops.
 - Chunk 1.2: the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops.
+- Chunk 1.3: the renders — `board.md` and `board.json` from a `BoardState`. Golden tests for both, over every fixture board.
+- Chunk 1.4: the board image — `board.svg` from a `BoardState`. Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests.
 
 ## What comes next
 
-- Chunk 1.3: render `board.md` and `board.json`.
-- Chunk 1.4: render `board.svg` (deterministic, byte-for-byte).
+- Phase 2: the CLI — all commands, git staging, `--commit`, pull before append.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

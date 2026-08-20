@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="192" viewBox="0 0 960 192">
+<rect width="960" height="192" fill="#f6f8fa"/>
+<rect width="960" height="64" fill="#24292f"/>
+<text x="16" y="26" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff">my-project</text>
+<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">Updated: 2026-08-20T14:02:00Z · 1 todo · 1 in-progress · 0 review · 0 done</text>
+<rect x="16" y="80" width="220" height="96" rx="6" fill="#eaeef2"/>
+<text x="26" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">todo</text>
+<rect x="16" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+<text x="26" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-2</text>
+<text x="26" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">From claude</text>
+<rect x="252" y="80" width="220" height="96" rx="6" fill="#eaeef2"/>
+<text x="262" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">in-progress</text>
+<rect x="252" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+<text x="262" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-1</text>
+<text x="262" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">From codex</text>
+<rect x="262" y="158" width="72" height="14" rx="7" fill="#dafbe1"/>
+<text x="268" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#1a7f37">2 comments</text>
+<rect x="488" y="80" width="220" height="96" rx="6" fill="#eaeef2"/>
+<text x="498" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">review</text>
+<rect x="724" y="80" width="220" height="96" rx="6" fill="#eaeef2"/>
+<text x="734" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">done</text>
+</svg>

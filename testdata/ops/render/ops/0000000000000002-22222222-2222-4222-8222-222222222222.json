@@ -1,0 +1,1 @@
+{"schema":1,"opId":"22222222-2222-4222-8222-222222222222","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"Fix login race condition","description":"login is broken"}}

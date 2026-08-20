@@ -45,6 +45,8 @@ type BoardState struct {
 	Columns  []string          `json:"columns"`
 	Tickets  map[string]Ticket `json:"tickets"`
 	Warnings []string          `json:"warnings"`
+	// Updated is display-only — the fold never reads it.
+	Updated time.Time `json:"updated"`
 }
 
 // Project reads the board dir and folds the ops into a BoardState.
@@ -73,6 +75,9 @@ func Project(dir string) (BoardState, error) {
 	}
 	state.Warnings = append(state.Warnings, warnings...)
 	for _, op := range ops {
+		if op.TS.After(state.Updated) {
+			state.Updated = op.TS
+		}
 		apply(op, &state)
 	}
 	return state, nil

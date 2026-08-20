@@ -2,7 +2,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files; the board is always a projection of them. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library) is in progress. The op schema and the fold are done; the renders are next. Nothing is usable yet.
+**Status: in build.** Phase 1 (core library) is done: op schema, fold, and all three renders. Phase 2 (the CLI) is next. Nothing is usable yet.
 
 ## How it works
 
@@ -15,11 +15,10 @@ A kanban board stored in git, built for AI agents. Tickets, columns, comments, a
 
 - The op schema: types, JSON parse, validation, deterministic sort.
 - The fold: apply ops in order to build the board state.
+- The renders: `board.md` (human-readable), `board.json` (machine view), and `board.svg` (the board image) from the board state.
 
 ## What comes next
 
-- Render `board.md` and `board.json`.
-- Render `board.svg` (deterministic, byte-for-byte).
 - The CLI.
 
 ## Docs

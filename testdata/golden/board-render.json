@@ -1,0 +1,115 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "Fix login race condition",
+      "description": "login is broken",
+      "status": "in-progress",
+      "comments": [
+        {
+          "ts": "2026-08-20T14:09:00Z",
+          "actor": "claude-a",
+          "text": "on it"
+        },
+        {
+          "ts": "2026-08-20T14:10:00Z",
+          "actor": "claude-a",
+          "text": "fixed in 3f2a9c1"
+        }
+      ],
+      "created": "2026-08-20T14:01:00Z",
+      "claimedBy": "claude-a",
+      "archived": false
+    },
+    "T-10": {
+      "id": "T-10",
+      "title": "Ten before two",
+      "description": "",
+      "status": "in-progress",
+      "comments": [],
+      "created": "2026-08-20T14:22:00Z",
+      "archived": false
+    },
+    "T-2": {
+      "id": "T-2",
+      "title": "Add sound settings",
+      "description": "",
+      "status": "in-progress",
+      "comments": [],
+      "created": "2026-08-20T14:02:00Z",
+      "claimedBy": "codex-1",
+      "archived": false
+    },
+    "T-3": {
+      "id": "T-3",
+      "title": "Refactor level loader",
+      "description": "",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-20T14:14:00Z",
+          "actor": "claude-a",
+          "text": "please check"
+        }
+      ],
+      "created": "2026-08-20T14:03:00Z",
+      "archived": false
+    },
+    "T-4": {
+      "id": "T-4",
+      "title": "Juice pass 2",
+      "description": "",
+      "status": "done",
+      "comments": [],
+      "created": "2026-08-20T14:04:00Z",
+      "archived": false
+    },
+    "T-5": {
+      "id": "T-5",
+      "title": "Munitions (4 types)",
+      "description": "",
+      "status": "done",
+      "comments": [],
+      "created": "2026-08-20T14:05:00Z",
+      "archived": false
+    },
+    "T-6": {
+      "id": "T-6",
+      "title": "Old ticket, archived",
+      "description": "",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-20T14:06:00Z",
+      "archived": true
+    },
+    "T-8": {
+      "id": "T-8",
+      "title": "Backlog item",
+      "description": "",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-20T14:19:00Z",
+      "archived": false
+    },
+    "T-9": {
+      "id": "T-9",
+      "title": "Write the primer",
+      "description": "",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-20T14:21:00Z",
+      "archived": false
+    }
+  },
+  "warnings": [
+    "ticket.created for T-1: ticket already exists, keeping the first"
+  ],
+  "updated": "2026-08-20T14:23:00Z"
+}
