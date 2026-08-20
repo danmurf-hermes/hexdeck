@@ -357,7 +357,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 - **Idiomatic.** Go: stdlib-first, effective-Go conventions, `gofmt` clean, no cleverness, no unnecessary dependencies. TS: strict mode, idiomatic React, no any-casts, no dead code.
 - **Well tested.** TDD per phase. Go: table-driven tests + golden files for the projection. TS: Vitest. Concurrency paths get the race detector / merge-matrix scenarios.
 - **Clean.** Small functions, single responsibility, no commented-out code, no TODOs that outlive their phase. Every phase ends with lint + tests + build green.
-- **CI gates:** lint → test → build on every push; `board render --check` once the board exists.
+- **CI gates (Phase 3.5):** lint → test → build on every push; `board render --check` once the board exists.
 
 **Docs (human-facing):**
 - **Simplified technical English** — short sentences, active voice, plain words. No jargon where a plain word works. A new engineer (or agent) reads it once and understands.
@@ -372,7 +372,12 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 **Phase 3 — Concurrency hardening.** Re-run the 18-scenario merge matrix (two writers appending concurrently, stale checkouts, seq collisions) against the real tool. Claim expiry + stale-claim rendering. Acceptance: zero conflicts in every scenario; projection identical on both sides after merge.
 
-**Phase 4 — Dogfood on a real project.** Install the binary, `board init` in a real repo, migrate its existing progress notes into tickets, run one real worker phase against the board (worker creates/moves/comments as it works). Add a CI job: `board render --check`. Acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else; worker's commits show code + ops together.
+**Phase 3.5 — CI pipeline (GitHub Actions).** The quality bar (§8.0) promises lint → test → build gates on every push, and Phase 4's acceptance needs `board render --check` in CI. This phase builds the pipeline while the core is complete but before dogfood relies on it. Chunks:
+1. `ci.yml`: gofmt check, `go vet`, `go test ./...` (with `-race`), `go build`. Runs on every push and PR. Acceptance: green on the repo's own history; a deliberately broken change fails the run.
+2. Wire `board render --check` into the workflow — the CI-honesty job. Acceptance: a drifted committed board fails CI.
+3. README badges: CI passing (shields.io GitHub Actions badge — no account needed) and code coverage (`go test -coverprofile`; codecov.io for a public repo, or a shields endpoint — decided in-phase). Acceptance: both badges render on the README with real values.
+
+**Phase 4 — Dogfood on a real project.** Install the binary, `board init` in a real repo, migrate its existing progress notes into tickets, run one real worker phase against the board (worker creates/moves/comments as it works). The `board render --check` job from Phase 3.5 is already in CI — dogfood verifies it fires on real drift. Acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else; worker's commits show code + ops together.
 
 **Phase 5 — V1.1 (only if V1 earns it).** board.svg CI render + README embed; local web view; MCP server; snapshot checkpointing.
 
@@ -384,7 +389,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 2. **Merge matrix** — concurrent appends never conflict (Phase 3, the Aug 13 recipe).
 3. **Cold-start test** — a fresh agent with zero context, given only the repo + README, must create a ticket, move it, and comment correctly within one attempt (Phase 4, run against a real agent).
 4. **Dogfood** — a real project runs a phase through the board; the human reviews the result (Phase 4).
-5. **CI honesty** — `board render --check` fails if the committed board drifts from the ops (Phase 4).
+5. **CI honesty** — `board render --check` fails if the committed board drifts from the ops (Phase 3.5 pipeline, verified in Phase 4).
 
 ---
 

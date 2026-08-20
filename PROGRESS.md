@@ -12,6 +12,7 @@
 | 1 | Core library (ops, projection, renders) | ⏳ pending | — | Chunks below |
 | 2 | CLI (all commands, git staging) | ⏳ pending | — | |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
+| 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ⏳ pending | — | Added Aug 20 2026 — before dogfood needs the gates |
 | 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
@@ -37,3 +38,4 @@
 - Phase 0 decisions made: Go, `.kanban/`, 4 columns, claims in V1.
 - Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests.
 - Chunk 1.2 done (`c63cc87`): the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops. Chunk 1.3 (render board.md + board.json) is next.
+- CI added to the plan (Aug 20): Phase 3.5 — GitHub Actions pipeline (gofmt, vet, tests, build, `render --check`) + README badges for CI passing and coverage. It runs after concurrency hardening, before dogfood.
