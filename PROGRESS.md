@@ -9,7 +9,7 @@
 | # | Phase | Status | Commit | Notes |
 |---|---|---|---|---|
 | 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target: hexdeck itself |
-| 1 | Core library (ops, projection, renders) | ⏳ pending | — | Chunks below |
+| 1 | Core library (ops, projection, renders) | ✅ done | `6113c2d` | All four chunks done |
 | 2 | CLI (all commands, git staging) | ⏳ pending | — | |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ⏳ pending | — | Added Aug 20 2026 — before dogfood needs the gates |
@@ -23,7 +23,7 @@
 | 1.1 | Op schema: types, JSON parse, validation, sort by (seq, opId). Golden tests. | ✅ done — `ba57159` |
 | 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ✅ done — `c63cc87` |
 | 1.3 | Render board.md + board.json. Golden tests. | ✅ done — `caf3516` |
-| 1.4 | Render board.svg — deterministic, byte-for-byte golden test. | ⏳ pending |
+| 1.4 | Render board.svg — deterministic, byte-for-byte golden test. | ✅ done — `6113c2d` |
 
 ## How to pick up work
 
@@ -38,5 +38,6 @@
 - Phase 0 decisions made: Go, `.kanban/`, 4 columns, claims in V1.
 - Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests.
 - Chunk 1.2 done (`c63cc87`): the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops.
-- Chunk 1.3 done (`caf3516`): the renders — `board.md` (human-readable) and `board.json` (machine view) from the board state. Deterministic: the `Updated:` line uses the newest op ts, never the wall clock. Golden tests for both renders over every fixture board. Chunk 1.4 (board.svg) is next.
+- Chunk 1.3 done (`caf3516`): the renders — `board.md` (human-readable) and `board.json` (machine view) from the board state. Deterministic: the `Updated:` line uses the newest op ts, never the wall clock. Golden tests for both renders over every fixture board.
+- Chunk 1.4 done (`6113c2d`): the board image — `board.svg` from the board state. Deterministic by construction: fixed layout and palette, no external fonts, no random ids, XML-escaped text. The canvas grows with the board (width with the column count, height with the longest column). Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests. **Phase 1 complete.** Phase 2 (the CLI) is next.
 - CI added to the plan (Aug 20): Phase 3.5 — GitHub Actions pipeline (gofmt, vet, tests, build, `render --check`) + README badges for CI passing and coverage. It runs after concurrency hardening, before dogfood.
