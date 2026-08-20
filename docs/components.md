@@ -53,9 +53,15 @@ Code: `merge_test.go`.
 
 ## The CI pipeline
 
-The quality gates. `.github/workflows/ci.yml` runs four jobs on every push and every pull request: lint (`gofmt` + `go vet`), test (`go test -race ./...`), build (`go build ./...`), and render check (`hexdeck render --check --dir docs/demo` — the committed demo board must match its ops). The jobs use the Go version from `go.mod`, so the pipeline and the local toolchain never drift apart.
+The quality gates. `.github/workflows/ci.yml` runs five jobs on every push and every pull request: lint (`gofmt` + `go vet`), test (`go test -race ./...`), build (`go build ./...`), render check (`hexdeck render --check --dir docs/demo` — the committed demo board must match its ops), and coverage badge (pushes to `main` only — measures coverage and writes `coverage.json`). The jobs use the Go version from `go.mod`, so the pipeline and the local toolchain never drift apart.
 
 Code: `.github/workflows/ci.yml`.
+
+## The README badges
+
+Two shields.io badges under the README title. The CI badge shows the state of the `ci.yml` workflow on `main`. The coverage badge is an endpoint badge over `coverage.json` — the coverage job in CI writes that file after every push to `main`, so the badge always shows the real measured number. The contract is tested: `ci_test.go` reads the real workflow, badge file, and README, and fails if any part is missing.
+
+Code: `coverage.json`, `ci_test.go`.
 
 ## The demo board
 

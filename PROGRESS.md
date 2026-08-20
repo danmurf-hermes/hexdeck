@@ -12,7 +12,7 @@
 | 1 | Core library (ops, projection, renders) | ✅ done | `6113c2d` | All four chunks done |
 | 2 | CLI (all commands, git staging) | ✅ done | `86601f6` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ✅ done | `9a6a3e2` | 18-scenario merge matrix: zero conflicts, identical projections. Claim race: first claim by (seq, opId) wins, second warns. Claim expiry: stale claims marked, shown in renders, pickable |
-| 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | 🔨 in progress | `556151a` | Chunk 1 done: `ci.yml` — lint (gofmt + vet), test (`-race`), build, on every push and PR. Chunks 2 (`render --check` in CI) and 3 (README badges) pending |
+| 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ✅ done | `556151a` | All three chunks done: `ci.yml` (lint, test, build), `render --check` in CI, README badges (CI + coverage). Phase 4 (dogfood) is next |
 | 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
@@ -31,7 +31,7 @@
 |---|---|---|
 | 3.5.1 | `ci.yml`: gofmt check, `go vet`, `go test -race ./...`, `go build`. Every push and PR. | ✅ done — `556151a` |
 | 3.5.2 | Wire `render --check` into the workflow — the CI-honesty job. | ✅ done — `d113e63` |
-| 3.5.3 | README badges: CI passing + code coverage. | ⏳ pending |
+| 3.5.3 | README badges: CI passing + code coverage. | ✅ done — `d113e63` |
 
 ## How to pick up work
 
