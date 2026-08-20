@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target: hexdeck itself |
 | 1 | Core library (ops, projection, renders) | ✅ done | `6113c2d` | All four chunks done |
-| 2 | CLI (all commands, git staging) | ✅ done | `9a1f2c3` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
+| 2 | CLI (all commands, git staging) | ✅ done | `86601f6` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ⏳ pending | — | Added Aug 20 2026 — before dogfood needs the gates |
 | 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
