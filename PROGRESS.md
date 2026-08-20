@@ -20,7 +20,7 @@
 | Chunk | Work | Status |
 |---|---|---|
 | 1.1 | Op schema: types, JSON parse, validation, sort by (seq, opId). Golden tests. | ✅ done — `ba57159` |
-| 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ⏳ pending |
+| 1.2 | Fold: apply ops → BoardState. Golden tests: every op type, seq collisions, duplicate ticket ids, unparseable ops. | ✅ done — `c63cc87` |
 | 1.3 | Render board.md + board.json. Golden tests. | ⏳ pending |
 | 1.4 | Render board.svg — deterministic, byte-for-byte golden test. | ⏳ pending |
 
@@ -35,4 +35,5 @@
 
 - Design complete: build spec v3.0 in `docs/BUILD-SPEC.md` (op-file event log, deterministic projection, three board views, domain glossary, quality bar).
 - Phase 0 decisions made: Go, `.kanban/`, 4 columns, claims in V1.
-- Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests. Chunk 1.2 (fold) is next.
+- Chunk 1.1 done (`ba57159`): op schema, parse, validation, deterministic sort, golden tests.
+- Chunk 1.2 done (`c63cc87`): the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops. Chunk 1.3 (render board.md + board.json) is next.
