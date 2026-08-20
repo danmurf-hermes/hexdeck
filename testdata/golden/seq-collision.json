@@ -1,0 +1,77 @@
+{
+  "ops": [
+    {
+      "schema": 1,
+      "opId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "seq": 1,
+      "ts": "2026-08-20T14:00:00Z",
+      "actor": "claude-a",
+      "type": "board.created",
+      "payload": {
+        "name": "my-project"
+      }
+    },
+    {
+      "schema": 1,
+      "opId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "seq": 1,
+      "ts": "2026-08-20T14:00:30Z",
+      "actor": "codex-1",
+      "type": "ticket.created",
+      "ticket": "T-1",
+      "payload": {
+        "title": "From codex"
+      }
+    },
+    {
+      "schema": 1,
+      "opId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      "seq": 2,
+      "ts": "2026-08-20T14:01:00Z",
+      "actor": "claude-a",
+      "type": "ticket.created",
+      "ticket": "T-2",
+      "payload": {
+        "title": "From claude"
+      }
+    },
+    {
+      "schema": 1,
+      "opId": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      "seq": 2,
+      "ts": "2026-08-20T14:01:30Z",
+      "actor": "codex-1",
+      "type": "ticket.moved",
+      "ticket": "T-1",
+      "payload": {
+        "from": "todo",
+        "to": "in-progress"
+      }
+    },
+    {
+      "schema": 1,
+      "opId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "seq": 3,
+      "ts": "2026-08-20T14:02:00Z",
+      "actor": "claude-a",
+      "type": "comment.added",
+      "ticket": "T-1",
+      "payload": {
+        "text": "same seq and opId as the next file"
+      }
+    },
+    {
+      "schema": 1,
+      "opId": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "seq": 3,
+      "ts": "2026-08-20T14:02:00Z",
+      "actor": "claude-a",
+      "type": "comment.added",
+      "ticket": "T-1",
+      "payload": {
+        "text": "same seq and opId as the next file"
+      }
+    }
+  ],
+  "warnings": []
+}
