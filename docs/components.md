@@ -50,3 +50,9 @@ The concurrency proof. `merge_test.go` runs 18 scenarios: two writers in two git
 The matrix proves the design: one op per file means concurrent appends never conflict. The committed board files can conflict, but the resolution is mechanical — re-render from the merged ops, never hand-edit.
 
 Code: `merge_test.go`.
+
+## The CI pipeline
+
+The quality gates. `.github/workflows/ci.yml` runs three jobs on every push and every pull request: lint (`gofmt` + `go vet`), test (`go test -race ./...`), and build (`go build ./...`). The jobs use the Go version from `go.mod`, so the pipeline and the local toolchain never drift apart.
+
+Code: `.github/workflows/ci.yml`.

@@ -1,0 +1,1 @@
+{"schema":1,"opId":"45ec1347-b79e-40b7-bad1-4db926f757d0","seq":15,"ts":"2026-08-20T20:56:21Z","actor":"carol","type":"ticket.moved","ticket":"T-5","payload":{"from":"todo","to":"in-progress"}}
