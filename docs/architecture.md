@@ -100,16 +100,28 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 
 ## The CI pipeline
 
-`.github/workflows/ci.yml` runs four jobs on every push and every pull request:
+`.github/workflows/ci.yml` runs five jobs on every push and every pull request:
 
 - **Lint** — `gofmt -l .` must print nothing, then `go vet ./...` must pass.
 - **Test** — `go test -race ./...`.
 - **Build** — `go build ./...`.
 - **Render check** — builds the CLI and runs `hexdeck render --check --dir docs/demo`. The committed demo board must match its ops. A hand-edited or stale projection fails the job.
+- **Coverage badge** — runs only on pushes to `main`. It runs `go test -coverprofile=coverage.out ./...`, reads the total from `go tool cover -func`, and writes `coverage.json` — a shields.io endpoint badge file. If the number changed, it commits and pushes the file. The README badge reads it through `img.shields.io/endpoint`.
 
 The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline and the local toolchain never drift apart.
 
 The demo board in `docs/demo/` is the repo's own dogfood: it is a real board (config, ops, and the three committed projections) that CI checks on every run. Its claim timeout is ten years, so the committed projections never change with the wall clock — the check fails only on real drift.
+
+## The README badges
+
+Two badges sit under the README title:
+
+- **CI** — a shields.io GitHub Actions badge for the `ci.yml` workflow on `main`. It shows the state of the last run. No account needed.
+- **Coverage** — a shields.io endpoint badge. It reads `coverage.json` from the repo. The coverage job in CI writes that file after every push to `main`, so the badge always shows the real number.
+
+The coverage number is the honest total across both packages. The CLI's end-to-end tests run the binary as a subprocess, so Go's coverage tool cannot see them — the number is lower than the real test coverage. The badge shows the measured value, not a prettier one.
+
+The contract is tested: `ci_test.go` reads the real workflow, badge file, and README, and fails if the coverage job, the badge schema, or the badge links are missing.
 
 ## What is built so far
 
@@ -121,9 +133,10 @@ The demo board in `docs/demo/` is the repo's own dogfood: it is a real board (co
 - Phase 3: concurrency hardening — the merge matrix (18 scenarios, two writers in two clones, zero conflicts, identical projections after merge), the claim-race rule (first claim by `(seq, opId)` wins, second renders a warning), and claim expiry (stale claims marked in the projection, shown in the renders, pickable by `pick`).
 - Phase 3.5 chunk 1: the CI pipeline — `ci.yml` with three jobs (lint, test, build) on every push and PR.
 - Phase 3.5 chunk 2: `render --check` in CI — a fourth job checks the committed demo board against its ops. `RenderCheck` now covers `board.svg` too, and `--dir` accepts a bare board dir.
+- Phase 3.5 chunk 3: README badges — a CI badge (shields.io GitHub Actions) and a coverage badge (shields.io endpoint over `coverage.json`, written by a fifth CI job on pushes to `main`). The contract is tested in `ci_test.go`.
 
 ## What comes next
 
-- Phase 3.5 chunk 3: README badges.
+- Phase 4: dogfood — run hexdeck on a real project, with the board as the progress tracker.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

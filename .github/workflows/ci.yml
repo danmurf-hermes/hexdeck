@@ -59,3 +59,33 @@ jobs:
         run: go build -o hexdeck ./cmd/hexdeck
       - name: hexdeck render --check
         run: ./hexdeck render --check --dir docs/demo
+
+  coverage:
+    name: Coverage badge
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: go test with coverage
+        run: go test -coverprofile=coverage.out ./...
+      - name: write coverage.json
+        run: |
+          total=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | tr -d '%')
+          color=$(awk -v t="$total" 'BEGIN { if (t >= 80) print "green"; else if (t >= 60) print "yellow"; else print "red" }')
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"%s"}\n' "$total" "$color" > coverage.json
+      - name: commit and push the badge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- coverage.json; then
+            echo "coverage.json unchanged"
+            exit 0
+          fi
+          git add coverage.json
+          git commit -m "chore: update coverage badge"
+          git push
