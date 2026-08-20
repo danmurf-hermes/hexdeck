@@ -16,6 +16,7 @@ type Config struct {
 	Schema       int      `json:"schema"`
 	Board        string   `json:"board"`
 	Columns      []string `json:"columns"`
+	TicketPrefix string   `json:"ticketPrefix"`
 	ClaimTimeout string   `json:"claimTimeout"`
 	AutoPush     bool     `json:"autoPush"`
 }
@@ -29,22 +30,25 @@ type Comment struct {
 
 // Ticket is one unit of work. Built by folding the ops about it.
 type Ticket struct {
-	ID          string    `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	Status      string    `json:"status"`
-	Comments    []Comment `json:"comments"`
-	Created     time.Time `json:"created"`
-	ClaimedBy   string    `json:"claimedBy,omitempty"`
-	Archived    bool      `json:"archived"`
+	ID          string     `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	Status      string     `json:"status"`
+	Comments    []Comment  `json:"comments"`
+	Created     time.Time  `json:"created"`
+	ClaimedBy   string     `json:"claimedBy,omitempty"`
+	ClaimedAt   *time.Time `json:"claimedAt,omitempty"`
+	Archived    bool       `json:"archived"`
 }
 
 // BoardState is the board after the fold. The projection of the ops.
 type BoardState struct {
-	Name     string            `json:"name"`
-	Columns  []string          `json:"columns"`
-	Tickets  map[string]Ticket `json:"tickets"`
-	Warnings []string          `json:"warnings"`
+	Name         string            `json:"name"`
+	Columns      []string          `json:"columns"`
+	Prefix       string            `json:"prefix"`
+	ClaimTimeout string            `json:"claimTimeout"`
+	Tickets      map[string]Ticket `json:"tickets"`
+	Warnings     []string          `json:"warnings"`
 	// Updated is display-only — the fold never reads it.
 	Updated time.Time `json:"updated"`
 }
@@ -54,6 +58,7 @@ type BoardState struct {
 func Project(dir string) (BoardState, error) {
 	state := BoardState{
 		Columns:  append([]string(nil), DefaultColumns...),
+		Prefix:   DefaultPrefix,
 		Tickets:  map[string]Ticket{},
 		Warnings: []string{},
 	}
@@ -67,6 +72,12 @@ func Project(dir string) (BoardState, error) {
 		}
 		if len(config.Columns) > 0 {
 			state.Columns = append([]string(nil), config.Columns...)
+		}
+		if config.TicketPrefix != "" {
+			state.Prefix = config.TicketPrefix
+		}
+		if config.ClaimTimeout != "" {
+			state.ClaimTimeout = config.ClaimTimeout
 		}
 	}
 	ops, warnings, err := ReadOpsDir(filepath.Join(dir, "ops"))
@@ -199,6 +210,8 @@ func apply(op Op, state *BoardState) {
 			return
 		}
 		ticket.ClaimedBy = p.By
+		claimedAt := op.TS
+		ticket.ClaimedAt = &claimedAt
 		state.Tickets[op.Ticket] = ticket
 	case OpTicketReleased:
 		ticket, ok := state.Tickets[op.Ticket]
@@ -207,6 +220,7 @@ func apply(op Op, state *BoardState) {
 			return
 		}
 		ticket.ClaimedBy = ""
+		ticket.ClaimedAt = nil
 		state.Tickets[op.Ticket] = ticket
 	case OpTicketArchived:
 		ticket, ok := state.Tickets[op.Ticket]

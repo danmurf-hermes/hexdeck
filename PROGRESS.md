@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 0 | Decisions (stack, board dir, columns, claims) | ✅ done | — | Decided Aug 20 2026: Go, `.kanban/`, 4 columns, claims yes. Dogfood target: hexdeck itself |
 | 1 | Core library (ops, projection, renders) | ✅ done | `6113c2d` | All four chunks done |
-| 2 | CLI (all commands, git staging) | ⏳ pending | — | |
+| 2 | CLI (all commands, git staging) | ✅ done | `9a1f2c3` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ⏳ pending | — | |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ⏳ pending | — | Added Aug 20 2026 — before dogfood needs the gates |
 | 4 | Dogfood on a real project | ⏳ pending | — | Target decided: hexdeck itself. Migrate PROGRESS.md into the board once the CLI works |
@@ -40,4 +40,5 @@
 - Chunk 1.2 done (`c63cc87`): the fold — apply ops in order to build the board state. Golden tests for every op type, seq collisions, duplicate ticket ids, missing tickets, and unparseable ops.
 - Chunk 1.3 done (`caf3516`): the renders — `board.md` (human-readable) and `board.json` (machine view) from the board state. Deterministic: the `Updated:` line uses the newest op ts, never the wall clock. Golden tests for both renders over every fixture board.
 - Chunk 1.4 done (`6113c2d`): the board image — `board.svg` from the board state. Deterministic by construction: fixed layout and palette, no external fonts, no random ids, XML-escaped text. The canvas grows with the board (width with the column count, height with the longest column). Golden tests over every fixture board, byte for byte, plus determinism, well-formedness, and escaping tests. **Phase 1 complete.** Phase 2 (the CLI) is next.
+- Phase 2 done: the CLI — all commands (`init`, `create`, `move`, `comment`, `show`, `log`, `pick`, `release`, `render`), git staging, `--commit`, pull before append. E2E tests in temp git repos cover the full command matrix. The library grew the write path (`write.go`: `InitBoard`, `AppendOp`, `NextTicketID`, `RenderAll`, `RenderCheck`), the configurable ticket prefix (spec change from upstream, Aug 20), and the claim timestamp. Phase 3 (concurrency hardening) is next.
 - CI added to the plan (Aug 20): Phase 3.5 — GitHub Actions pipeline (gofmt, vet, tests, build, `render --check`) + README badges for CI passing and coverage. It runs after concurrency hardening, before dogfood.

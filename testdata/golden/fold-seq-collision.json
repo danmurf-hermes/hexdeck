@@ -6,6 +6,8 @@
     "review",
     "done"
   ],
+  "prefix": "T",
+  "claimTimeout": "4h",
   "tickets": {
     "T-1": {
       "id": "T-1",

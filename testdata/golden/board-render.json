@@ -6,6 +6,8 @@
     "review",
     "done"
   ],
+  "prefix": "T",
+  "claimTimeout": "4h",
   "tickets": {
     "T-1": {
       "id": "T-1",
@@ -26,6 +28,7 @@
       ],
       "created": "2026-08-20T14:01:00Z",
       "claimedBy": "claude-a",
+      "claimedAt": "2026-08-20T14:08:00Z",
       "archived": false
     },
     "T-10": {
@@ -45,6 +48,7 @@
       "comments": [],
       "created": "2026-08-20T14:02:00Z",
       "claimedBy": "codex-1",
+      "claimedAt": "2026-08-20T14:12:00Z",
       "archived": false
     },
     "T-3": {
