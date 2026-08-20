@@ -129,6 +129,9 @@ Every change to the board is an **op** — a small JSON file appended to
 `.kanban/ops/`. Never edit or delete existing ops. The board is always
 rebuilt from the ops, so the ops are the truth.
 
+## Where the project is up to
+Read board.md — the committed board view. No CLI needed.
+
 ## Commands (preferred)
 board create "Title" [-d "description"]   # new ticket
 board move T-12 in-progress               # change column
