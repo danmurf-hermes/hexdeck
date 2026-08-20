@@ -53,6 +53,10 @@ Code: `merge_test.go`.
 
 ## The CI pipeline
 
-The quality gates. `.github/workflows/ci.yml` runs three jobs on every push and every pull request: lint (`gofmt` + `go vet`), test (`go test -race ./...`), and build (`go build ./...`). The jobs use the Go version from `go.mod`, so the pipeline and the local toolchain never drift apart.
+The quality gates. `.github/workflows/ci.yml` runs four jobs on every push and every pull request: lint (`gofmt` + `go vet`), test (`go test -race ./...`), build (`go build ./...`), and render check (`hexdeck render --check --dir docs/demo` — the committed demo board must match its ops). The jobs use the Go version from `go.mod`, so the pipeline and the local toolchain never drift apart.
 
 Code: `.github/workflows/ci.yml`.
+
+## The demo board
+
+A real board in `docs/demo/` — config, ops, and the three committed projections (`board.md`, `board.json`, `board.svg`). The README embeds its SVG. CI runs `render --check` on it, so the demo is the repo's own dogfood: a hand-edited or stale projection fails the build. Its claim timeout is ten years, so the projections never change with the wall clock — the check fails only on real drift.

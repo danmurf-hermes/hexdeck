@@ -317,6 +317,60 @@ func TestRenderCheck(t *testing.T) {
 	}
 }
 
+// TestRenderCheckSVG checks that RenderCheck covers board.svg too: a
+// fresh render passes, a hand-edited SVG fails with the file named.
+func TestRenderCheckSVG(t *testing.T) {
+	dir := t.TempDir()
+	if err := InitBoard(dir, "my-project", "T", "claude-a"); err != nil {
+		t.Fatalf("InitBoard: %v", err)
+	}
+	boardDir := filepath.Join(dir, ".kanban")
+	if err := RenderAll(boardDir, true); err != nil {
+		t.Fatalf("RenderAll: %v", err)
+	}
+	if err := RenderCheck(boardDir); err != nil {
+		t.Fatalf("RenderCheck after fresh render: %v", err)
+	}
+
+	svgPath := filepath.Join(boardDir, "board.svg")
+	f, err := os.OpenFile(svgPath, os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		t.Fatalf("open board.svg: %v", err)
+	}
+	if _, err := f.WriteString("\n<!-- hand-edited -->\n"); err != nil {
+		t.Fatalf("edit board.svg: %v", err)
+	}
+	f.Close()
+
+	err = RenderCheck(boardDir)
+	if err == nil {
+		t.Fatalf("RenderCheck after SVG hand-edit: expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "board.svg") {
+		t.Errorf("error = %q, want it to name board.svg", err)
+	}
+}
+
+// TestRenderCheckMissingFile checks that RenderCheck fails when a
+// committed board file is missing — the check must not silently pass.
+func TestRenderCheckMissingFile(t *testing.T) {
+	dir := t.TempDir()
+	if err := InitBoard(dir, "my-project", "T", "claude-a"); err != nil {
+		t.Fatalf("InitBoard: %v", err)
+	}
+	boardDir := filepath.Join(dir, ".kanban")
+	if err := os.Remove(filepath.Join(boardDir, "board.json")); err != nil {
+		t.Fatalf("remove board.json: %v", err)
+	}
+	err := RenderCheck(boardDir)
+	if err == nil {
+		t.Fatalf("RenderCheck with missing board.json: expected error, got nil")
+	}
+	if !strings.Contains(err.Error(), "board.json") {
+		t.Errorf("error = %q, want it to name board.json", err)
+	}
+}
+
 // TestRenderAllSVG checks that RenderAll with the svg flag writes
 // board.svg too.
 func TestRenderAllSVG(t *testing.T) {

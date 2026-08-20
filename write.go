@@ -269,7 +269,8 @@ func RenderAll(boardDir string, svg bool) error {
 
 // RenderCheck compares the committed board files to a fresh render of
 // the ops. It returns an error naming the first file that drifted. CI
-// runs it to catch hand-edited projections.
+// runs it to catch hand-edited projections. board.svg is checked only
+// when it exists — it is opt-in via `render --svg`.
 func RenderCheck(boardDir string) error {
 	state, err := Project(boardDir)
 	if err != nil {
@@ -289,6 +290,12 @@ func RenderCheck(boardDir string) error {
 		file string
 		got  []byte
 	}{"board.json", data})
+	if _, err := os.Stat(filepath.Join(boardDir, "board.svg")); err == nil {
+		checks = append(checks, struct {
+			file string
+			got  []byte
+		}{"board.svg", RenderSVG(state)})
+	}
 	for _, check := range checks {
 		want, err := os.ReadFile(filepath.Join(boardDir, check.file))
 		if err != nil {

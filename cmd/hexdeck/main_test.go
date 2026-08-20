@@ -376,6 +376,20 @@ func TestE2EShowJSON(t *testing.T) {
 	}
 }
 
+// TestE2ERenderCheckDemo checks that render --check passes on the
+// committed demo board in docs/demo — the same board CI checks. The
+// demo board is the repo's own dogfood: if it drifts, CI must fail.
+func TestE2ERenderCheckDemo(t *testing.T) {
+	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatalf("repo root: %v", err)
+	}
+	out, code := runHexdeck(t, repoRoot, "render", "--check", "--dir", "docs/demo")
+	if code != 0 {
+		t.Fatalf("render --check on docs/demo: exit %d\n%s", code, out)
+	}
+}
+
 // runGitOut runs a git command and returns its output, failing the test
 // on error.
 func runGitOut(t *testing.T, dir string, args ...string) string {
