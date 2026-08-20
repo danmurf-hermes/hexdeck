@@ -183,7 +183,7 @@ func TestReadOpsDirGolden(t *testing.T) {
 	cases := []string{"basic", "seq-collision", "unparseable"}
 	for _, name := range cases {
 		t.Run(name, func(t *testing.T) {
-			dir := filepath.Join("testdata", "ops", name)
+			dir := filepath.Join("testdata", "ops", name, "ops")
 			ops, warnings, err := ReadOpsDir(dir)
 			if err != nil {
 				t.Fatalf("ReadOpsDir: %v", err)

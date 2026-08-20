@@ -1,0 +1,7 @@
+{
+  "schema": 1,
+  "board": "my-project",
+  "columns": ["todo", "in-progress", "review", "done"],
+  "claimTimeout": "4h",
+  "autoPush": false
+}

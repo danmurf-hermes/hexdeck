@@ -1,0 +1,41 @@
+{
+  "name": "my-project",
+  "columns": [
+    "todo",
+    "in-progress",
+    "review",
+    "done"
+  ],
+  "tickets": {
+    "T-1": {
+      "id": "T-1",
+      "title": "From codex",
+      "description": "",
+      "status": "in-progress",
+      "comments": [
+        {
+          "ts": "2026-08-20T14:02:00Z",
+          "actor": "claude-a",
+          "text": "same seq and opId as the next file"
+        },
+        {
+          "ts": "2026-08-20T14:02:00Z",
+          "actor": "claude-a",
+          "text": "same seq and opId as the next file"
+        }
+      ],
+      "created": "2026-08-20T14:00:30Z",
+      "archived": false
+    },
+    "T-2": {
+      "id": "T-2",
+      "title": "From claude",
+      "description": "",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-20T14:01:00Z",
+      "archived": false
+    }
+  },
+  "warnings": []
+}
