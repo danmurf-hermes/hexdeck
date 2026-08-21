@@ -159,8 +159,23 @@
       ],
       "created": "2026-08-21T10:59:38Z",
       "archived": false
+    },
+    "T-9": {
+      "id": "T-9",
+      "title": "Phase 5 chunk 2: local web view",
+      "description": "hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T12:01:45Z",
+          "actor": "danmurf-hermes",
+          "text": "TDD: web_test.go pinned first (red) — golden page, state, move, comment, changes, commit, errors, E2E over HTTP. Then web.go: the embedded page, the API, the changes panel. Docs updated in the same commit."
+        }
+      ],
+      "created": "2026-08-21T12:01:45Z",
+      "archived": false
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T11:53:13Z"
+  "updated": "2026-08-21T12:01:45Z"
 }

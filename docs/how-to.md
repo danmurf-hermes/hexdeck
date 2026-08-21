@@ -114,6 +114,25 @@ workflow:
 A hand-edited or stale projection fails the build. The board is always
 honest.
 
+## Use the web view
+
+```
+hexdeck web
+```
+
+Opens `http://127.0.0.1:8080` in your browser. The page shows the
+board. Drag a ticket to another column to move it. Type in the box on
+a ticket to comment.
+
+Every change is an op, staged in git, and listed in the changes panel
+on the right — with the staged diff and the suggested commit message.
+Edit the message if you want, then press Commit. The changes land in
+one commit.
+
+The web view writes through the same path as the CLI, so the two can
+never disagree about the board. It binds to 127.0.0.1 only — it is a
+local tool, not a service.
+
 ## Write ops by hand
 
 The CLI is the preferred way. If it is unavailable, write the op file

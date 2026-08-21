@@ -75,13 +75,14 @@ The core library. Seven files:
 
 ### CLI package (`github.com/danmurf/hexdeck/cmd/hexdeck`)
 
-The `hexdeck` binary. One file, `main.go`, plus `main_test.go` with
-end-to-end tests in temp git repos. The CLI is a thin shell over the
-library: it parses flags, resolves the board dir and the actor name,
-and calls the library. It never touches the board files directly.
+The `hexdeck` binary. `main.go` plus `main_test.go` with end-to-end
+tests in temp git repos, and `web.go` plus `web_test.go` for the web
+view. The CLI is a thin shell over the library: it parses flags,
+resolves the board dir and the actor name, and calls the library. It
+never touches the board files directly.
 
 The commands: `init`, `create`, `move`, `comment`, `show`, `log`,
-`pick`, `release`, `render`.
+`pick`, `release`, `render`, `web`.
 
 The CLI owns the git behaviour: it stages the op and the board files
 after every change, prints the suggested commit message, and commits
@@ -328,9 +329,37 @@ if the committed image drifted. The contract is pinned:
 `TestBoardSVGInWorkflow` checks the workflow has the honesty step, and
 `TestReadmeEmbedsBoardSVG` checks the README embeds the image.
 
+## The web view
+
+`hexdeck web` serves the local web view at `http://127.0.0.1:8080`.
+One HTML page, no build step, no external assets. The page shows the
+board; drag a ticket to move it, type in the box on a ticket to
+comment. A changes panel lists every change, shows the staged diff,
+and holds the suggested commit message — edit it and press Commit.
+
+The page is a render, like `board.md` and `board.svg`: it is embedded
+in the binary as one deterministic HTML file, pinned by a golden test
+(`TestWebPageGolden`). The page never touches the board files itself —
+it talks to the API endpoints the server exposes:
+
+- `GET /api/state` — the projection.
+- `POST /api/move` — move a ticket. Body: `{"ticket": "T-1", "to":
+  "in-progress"}`.
+- `POST /api/comment` — add a comment. Body: `{"ticket": "T-1",
+  "text": "on it"}`.
+- `GET /api/changes` — the changes panel: the list, the staged diff,
+  the suggested message.
+- `POST /api/commit` — commit the staged changes. Optional body:
+  `{"message": "..."}` — the message the user edited.
+
+Every write goes through the same path as the CLI — `AppendOp`,
+`RenderAll`, git staging, pull before append — so the web view and the
+CLI can never disagree about the board. The changes panel is the
+GitHub Desktop pattern: diff → suggested message → commit. The server
+binds to 127.0.0.1 only; it is a local tool, not a service.
+
 ## What comes next
 
-V1.1 — only if V1 earns it: local web view, MCP server, snapshot
-checkpointing.
+V1.1 — only if V1 earns it: MCP server, snapshot checkpointing.
 
 Full plan: `docs/BUILD-SPEC.md`.

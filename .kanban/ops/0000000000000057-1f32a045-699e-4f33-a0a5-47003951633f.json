@@ -1,0 +1,1 @@
+{"schema":1,"opId":"1f32a045-699e-4f33-a0a5-47003951633f","seq":57,"ts":"2026-08-21T12:01:45Z","actor":"danmurf-hermes","type":"ticket.created","ticket":"T-9","payload":{"title":"Phase 5 chunk 2: local web view","description":"hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit)."}}

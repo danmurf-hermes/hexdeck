@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T11:53:13Z · 1 todo · 0 in-progress · 0 review · 7 done
+Updated: 2026-08-21T12:01:45Z · 1 todo · 0 in-progress · 1 review · 7 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -9,6 +9,9 @@ Updated: 2026-08-21T11:53:13Z · 1 todo · 0 in-progress · 0 review · 7 done
 ## in-progress
 
 ## review
+- T-9 Phase 5 chunk 2: local web view · 1 comment
+  hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).
+  - 2026-08-21T12:01:45Z danmurf-hermes: TDD: web_test.go pinned first (red) — golden page, state, move, comment, changes, commit, errors, E2E over HTTP. Then web.go: the embedded page, the API, the changes panel. Docs updated in the same commit.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment

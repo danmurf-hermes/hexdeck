@@ -15,6 +15,7 @@ hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
 hexdeck pick --as <actor> [--commit]
 hexdeck release <ticket> --as <actor> [--commit]
 hexdeck render [--svg] [--check]
+hexdeck web [--port 8080] [--no-pull]
 ```
 
 Common flags:
@@ -73,6 +74,16 @@ Rebuilds `board.md` and `board.json` from the ops. `--svg` also
 rebuilds `board.svg`. `--check` re-renders and compares to the
 committed files — it fails if they drifted. `board.svg` is checked
 too, once it exists.
+
+### web
+
+Serves the local web view at `http://127.0.0.1:8080` (change the port
+with `--port`). The page shows the board; drag a ticket to move it,
+type in the box on a ticket to comment. Every change is an op, staged
+in git, and listed in the changes panel with the staged diff and the
+suggested commit message. Edit the message and press Commit — the
+changes land in one commit. The web view writes through the same path
+as the CLI, so the two can never disagree about the board.
 
 ## Op types
 
