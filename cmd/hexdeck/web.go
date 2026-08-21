@@ -281,10 +281,10 @@ func (s *webServer) handleMove(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, fmt.Errorf("column %q does not exist — columns: %s", body.To, strings.Join(state.Columns, ", ")))
 		return
 	}
-	payload, err := json.Marshal(struct {
-		From string `json:"from"`
-		To   string `json:"to"`
-	}{ticket.Status, body.To})
+	payload, err := json.Marshal(hexdeck.TicketMovedPayload{
+		From: ticket.Status,
+		To:   body.To,
+	})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return
@@ -326,9 +326,7 @@ func (s *webServer) handleComment(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, fmt.Errorf("ticket %s does not exist", body.Ticket))
 		return
 	}
-	payload, err := json.Marshal(struct {
-		Text string `json:"text"`
-	}{body.Text})
+	payload, err := json.Marshal(hexdeck.CommentAddedPayload{Text: body.Text})
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err)
 		return

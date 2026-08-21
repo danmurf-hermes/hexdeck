@@ -56,9 +56,10 @@ rebuilt from the ops. The ops are the truth; the board is a projection.
 
 The core library. Seven files:
 
-- `op.go` — the op schema. Defines the op types, parses op files from
-  a directory, validates them, and sorts them in a deterministic
-  order.
+- `op.go` — the op schema. Defines the op types, the payload shapes
+  (one named type per op type — `TicketCreatedPayload`,
+  `TicketMovedPayload`, and so on), parses op files from a directory,
+  validates them, and sorts them in a deterministic order.
 - `fold.go` — the fold. Applies ops in order to build the board state.
   Also reads the board config.
 - `render.go` — the renders. Turns a `BoardState` into `board.md`

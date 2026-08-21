@@ -117,32 +117,68 @@ func ParseOp(data []byte) (Op, error) {
 	return op, nil
 }
 
+// Payload shapes — one named type per op type. The CLI marshals these,
+// ParseOp unmarshals into them, and validatePayload checks them. A
+// shape is defined once and used everywhere.
+type (
+	// BoardCreatedPayload is the payload for board.created.
+	BoardCreatedPayload struct {
+		Name string `json:"name"`
+	}
+
+	// TicketCreatedPayload is the payload for ticket.created.
+	TicketCreatedPayload struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
+
+	// TicketMovedPayload is the payload for ticket.moved.
+	TicketMovedPayload struct {
+		From string `json:"from"`
+		To   string `json:"to"`
+	}
+
+	// TicketUpdatedPayload is the payload for ticket.updated. Both
+	// fields are optional; at least one must be set.
+	TicketUpdatedPayload struct {
+		Title       *string `json:"title"`
+		Description *string `json:"description"`
+	}
+
+	// CommentAddedPayload is the payload for comment.added.
+	CommentAddedPayload struct {
+		Text string `json:"text"`
+	}
+
+	// TicketClaimedPayload is the payload for ticket.claimed and
+	// ticket.released.
+	TicketClaimedPayload struct {
+		By string `json:"by"`
+	}
+
+	// TicketArchivedPayload is the payload for ticket.archived. It is
+	// always empty.
+	TicketArchivedPayload struct{}
+)
+
 // validatePayload checks the payload shape for the op type.
 func validatePayload(op Op) error {
 	var err error
 	switch op.Type {
 	case OpBoardCreated:
-		var p struct {
-			Name string `json:"name"`
-		}
+		var p BoardCreatedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil && p.Name == "" {
 			err = fmt.Errorf("name is required")
 		}
 	case OpTicketCreated:
-		var p struct {
-			Title       string `json:"title"`
-			Description string `json:"description"`
-		}
+		var p TicketCreatedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil && p.Title == "" {
 			err = fmt.Errorf("title is required")
 		}
 	case OpTicketMoved:
-		var p struct {
-			From string `json:"from"`
-			To   string `json:"to"`
-		}
+		var p TicketMovedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil {
 			if p.From == "" {
@@ -152,26 +188,19 @@ func validatePayload(op Op) error {
 			}
 		}
 	case OpTicketUpdated:
-		var p struct {
-			Title       *string `json:"title"`
-			Description *string `json:"description"`
-		}
+		var p TicketUpdatedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil && p.Title == nil && p.Description == nil {
 			err = fmt.Errorf("at least one of title or description is required")
 		}
 	case OpCommentAdded:
-		var p struct {
-			Text string `json:"text"`
-		}
+		var p CommentAddedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil && p.Text == "" {
 			err = fmt.Errorf("text is required")
 		}
 	case OpTicketClaimed, OpTicketReleased:
-		var p struct {
-			By string `json:"by"`
-		}
+		var p TicketClaimedPayload
 		err = json.Unmarshal(op.Payload, &p)
 		if err == nil && p.By == "" {
 			err = fmt.Errorf("by is required")
