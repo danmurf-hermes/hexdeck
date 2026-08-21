@@ -47,6 +47,9 @@ stays in `todo`. The board shows the claim. A claim is a cooperative
 lock, not a security boundary — it tells others who is working on the
 ticket.
 
+A ticket whose blocker is not in `done` is not pickable — `pick` skips
+it and takes the next pickable ticket.
+
 A board that wants an `in-progress` column adds it to
 `.kanban/config.json`; `pick` then moves the ticket there. The column is
 opt-in for work that spans multiple PRs.
@@ -59,6 +62,37 @@ hexdeck release T-2 --as your-name
 
 A claim older than the claim timeout is stale. The board marks it
 `(stale claim)`, and `pick` takes the ticket anyway.
+
+## Link tickets
+
+```
+hexdeck link T-1 blocks T-3
+hexdeck link T-1 related T-4
+```
+
+`blocks` says the ticket must come first: T-3 cannot be picked until
+T-1 is in `done`. `related` says the tickets are connected but neither
+must come first. `pick` considers the links — a blocked ticket is
+skipped.
+
+The ticket view shows the links on both sides:
+
+```
+$ hexdeck show T-1
+T-1 Fix the auth service
+status: todo
+blocks: T-3
+related: T-4
+created: 2026-08-21T10:23:50Z
+```
+
+Remove a link with `--remove`:
+
+```
+hexdeck link T-1 blocks T-3 --remove
+```
+
+A ticket can never link to itself.
 
 ## Render the board image
 

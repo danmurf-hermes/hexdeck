@@ -41,7 +41,7 @@ var mcpTools = []mcpTool{
 	},
 	{
 		Name:        "board_show_ticket",
-		Description: "Show one ticket: its title, description, status, claim, and comments.",
+		Description: "Show one ticket: its title, description, status, links, claim, and comments.",
 		InputSchema: map[string]any{
 			"type": "object",
 			"properties": map[string]any{

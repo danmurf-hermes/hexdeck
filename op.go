@@ -23,26 +23,30 @@ type OpType string
 
 // The complete list of V1 op types.
 const (
-	OpBoardCreated   OpType = "board.created"
-	OpTicketCreated  OpType = "ticket.created"
-	OpTicketMoved    OpType = "ticket.moved"
-	OpTicketUpdated  OpType = "ticket.updated"
-	OpCommentAdded   OpType = "comment.added"
-	OpTicketClaimed  OpType = "ticket.claimed"
-	OpTicketReleased OpType = "ticket.released"
-	OpTicketArchived OpType = "ticket.archived"
+	OpBoardCreated      OpType = "board.created"
+	OpTicketCreated     OpType = "ticket.created"
+	OpTicketMoved       OpType = "ticket.moved"
+	OpTicketUpdated     OpType = "ticket.updated"
+	OpCommentAdded      OpType = "comment.added"
+	OpTicketClaimed     OpType = "ticket.claimed"
+	OpTicketReleased    OpType = "ticket.released"
+	OpTicketArchived    OpType = "ticket.archived"
+	OpTicketLinkAdded   OpType = "ticket.link.added"
+	OpTicketLinkRemoved OpType = "ticket.link.removed"
 )
 
 // validOpTypes is the set of op types the parser accepts.
 var validOpTypes = map[OpType]bool{
-	OpBoardCreated:   true,
-	OpTicketCreated:  true,
-	OpTicketMoved:    true,
-	OpTicketUpdated:  true,
-	OpCommentAdded:   true,
-	OpTicketClaimed:  true,
-	OpTicketReleased: true,
-	OpTicketArchived: true,
+	OpBoardCreated:      true,
+	OpTicketCreated:     true,
+	OpTicketMoved:       true,
+	OpTicketUpdated:     true,
+	OpCommentAdded:      true,
+	OpTicketClaimed:     true,
+	OpTicketReleased:    true,
+	OpTicketArchived:    true,
+	OpTicketLinkAdded:   true,
+	OpTicketLinkRemoved: true,
 }
 
 // Op is one event from the board log. One op = one JSON file in ops/.
@@ -169,7 +173,23 @@ type (
 	// TicketArchivedPayload is the payload for ticket.archived. It is
 	// always empty.
 	TicketArchivedPayload struct{}
+
+	// TicketLinkPayload is the payload for ticket.link.added and
+	// ticket.link.removed. Kind is "blocks" or "related"; to is the
+	// target ticket id.
+	TicketLinkPayload struct {
+		Kind string `json:"kind"`
+		To   string `json:"to"`
+	}
 )
+
+// LinkKindBlocks is the blocks link kind: the ticket must come before
+// the target.
+const LinkKindBlocks = "blocks"
+
+// LinkKindRelated is the related link kind: the tickets are connected
+// but neither must come first.
+const LinkKindRelated = "related"
 
 // validatePayload checks the payload shape for the op type.
 func validatePayload(op Op) error {
@@ -218,6 +238,20 @@ func validatePayload(op Op) error {
 	case OpTicketArchived:
 		if !isJSONEmptyObject(op.Payload) {
 			err = fmt.Errorf("archived payload must be empty")
+		}
+	case OpTicketLinkAdded, OpTicketLinkRemoved:
+		var p TicketLinkPayload
+		err = decodePayload(op.Payload, &p)
+		if err == nil {
+			if p.Kind == "" {
+				err = fmt.Errorf("kind is required")
+			} else if p.Kind != LinkKindBlocks && p.Kind != LinkKindRelated {
+				err = fmt.Errorf("kind must be %q or %q", LinkKindBlocks, LinkKindRelated)
+			} else if p.To == "" {
+				err = fmt.Errorf("to is required")
+			} else if p.To == op.Ticket {
+				err = fmt.Errorf("cannot link a ticket to itself")
+			}
 		}
 	}
 	if err != nil {

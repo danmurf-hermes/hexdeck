@@ -10,6 +10,7 @@ hexdeck init [--prefix T] [--name <board>] [--as <actor>]
 hexdeck create "Title" [-d "description"] [--as <actor>] [--commit]
 hexdeck move <ticket> <column> [--as <actor>] [--commit]
 hexdeck comment <ticket> "text" [--as <actor>] [--commit]
+hexdeck link <ticket> <kind> <target> [--remove] [--as <actor>] [--commit]
 hexdeck show [<ticket>] [--json]
 hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
 hexdeck pick --as <actor> [--commit]
@@ -49,12 +50,23 @@ defaults are `backlog`, `todo`, `done`.
 
 Adds a comment to a ticket. Comments are part of the ticket's history.
 
+### link
+
+Links two tickets. `kind` is `blocks` or `related`. `blocks` means the
+ticket must come first: the target cannot be picked until the ticket is
+in `done`. `related` means the tickets are connected but neither must
+come first. The ticket view shows the links on both sides. `--remove`
+removes the link. A ticket can never link to itself.
+
+Links are considered by `pick`: a `todo` ticket whose blocker is not in
+`done` is not pickable.
+
 ### show
 
 Prints the board as markdown: each ticket's id, title, claim, and
-description. With a ticket id, prints one ticket — fields, comments,
-and history. Comments live on the ticket view, not the board view.
-`--json` prints the machine view (`board.json`).
+description. With a ticket id, prints one ticket — fields, links,
+comments, and history. Comments and links live on the ticket view, not
+the board view. `--json` prints the machine view (`board.json`).
 
 ### log
 
@@ -67,7 +79,8 @@ Claims the next `todo` ticket. The default flow has no `in-progress`
 column — the claim alone marks the pick, and the ticket stays in
 `todo`. A board with an `in-progress` column in its config gets the
 move too. A stale claim does not block — `pick` takes the ticket
-anyway.
+anyway. A ticket whose blocker is not in `done` is not pickable —
+`pick` skips it and takes the next pickable ticket.
 
 ### release
 
@@ -124,6 +137,8 @@ One op = one JSON file in `.kanban/ops/`. Fields: `schema`, `opId`,
 | `ticket.claimed` | `{"by": "..."}` | Sets the claim. |
 | `ticket.released` | `{"by": "..."}` | Clears the claim. |
 | `ticket.archived` | `{}` | Hides the ticket from the default board. |
+| `ticket.link.added` | `{"kind": "blocks"\|"related", "to": "..."}` | Links the ticket to another. |
+| `ticket.link.removed` | `{"kind": "blocks"\|"related", "to": "..."}` | Removes a link. |
 
 Ops sort by `(seq, opId)` — never by file order, never by timestamp.
 Two writers can produce the same seq; the opId breaks the tie.
@@ -185,6 +200,11 @@ be regenerated from the ops alone.
   `(stale claim)`, and `pick` takes the ticket anyway.
 - Two claims on the same ticket: the first claim by `(seq, opId)`
   wins, the second renders a warning.
+- A blocks link from A to B means B is not pickable until A is in
+  `done`. The fold keeps the mirror lists (`blocks` on A, `blocked by`
+  on B) in sync — a link is one op, and removing it clears both sides.
+- A link to a ticket that does not exist is skipped with a warning —
+  a stale link never blocks a pick.
 - Ops about a ticket that was never created are skipped with a
   warning. The board must always build.
 - Unparseable op files are skipped with a warning, never fatal. An op

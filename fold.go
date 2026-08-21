@@ -46,6 +46,16 @@ type Ticket struct {
 	// display and for pick.
 	ClaimStale bool `json:"claimStale,omitempty"`
 	Archived   bool `json:"archived"`
+	// Blocks is the ids of the tickets this ticket blocks, in the
+	// order the links were added.
+	Blocks []string `json:"blocks,omitempty"`
+	// BlockedBy is the ids of the tickets that block this ticket, in
+	// the order the links were added. It is the mirror of Blocks: a
+	// blocks link from A to B lands in A.Blocks and B.BlockedBy.
+	BlockedBy []string `json:"blockedBy,omitempty"`
+	// Related is the ids of the tickets linked as related, in the
+	// order the links were added.
+	Related []string `json:"related,omitempty"`
 }
 
 // BoardState is the board after the fold. The projection of the ops.
@@ -303,5 +313,83 @@ func apply(op Op, state *BoardState) {
 		}
 		ticket.Archived = true
 		state.Tickets[op.Ticket] = ticket
+	case OpTicketLinkAdded:
+		ticket, ok := state.Tickets[op.Ticket]
+		if !ok {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
+			return
+		}
+		var p TicketLinkPayload
+		if err := json.Unmarshal(op.Payload, &p); err != nil {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
+			return
+		}
+		target, ok := state.Tickets[p.To]
+		if !ok {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: target %s does not exist, skipping", op.Type, op.Ticket, p.To))
+			return
+		}
+		switch p.Kind {
+		case LinkKindBlocks:
+			if contains(ticket.Blocks, p.To) {
+				state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: %s already blocks %s, skipping the duplicate", op.Type, op.Ticket, op.Ticket, p.To))
+				return
+			}
+			ticket.Blocks = append(ticket.Blocks, p.To)
+			target.BlockedBy = append(target.BlockedBy, op.Ticket)
+		case LinkKindRelated:
+			if contains(ticket.Related, p.To) {
+				state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: %s already related to %s, skipping the duplicate", op.Type, op.Ticket, op.Ticket, p.To))
+				return
+			}
+			ticket.Related = append(ticket.Related, p.To)
+			target.Related = append(target.Related, op.Ticket)
+		}
+		state.Tickets[op.Ticket] = ticket
+		state.Tickets[p.To] = target
+	case OpTicketLinkRemoved:
+		ticket, ok := state.Tickets[op.Ticket]
+		if !ok {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
+			return
+		}
+		var p TicketLinkPayload
+		if err := json.Unmarshal(op.Payload, &p); err != nil {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
+			return
+		}
+		switch p.Kind {
+		case LinkKindBlocks:
+			if !removeString(&ticket.Blocks, p.To) {
+				state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: no blocks link from %s to %s, skipping", op.Type, op.Ticket, op.Ticket, p.To))
+				return
+			}
+			if target, ok := state.Tickets[p.To]; ok {
+				removeString(&target.BlockedBy, op.Ticket)
+				state.Tickets[p.To] = target
+			}
+		case LinkKindRelated:
+			if !removeString(&ticket.Related, p.To) {
+				state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: no related link from %s to %s, skipping", op.Type, op.Ticket, op.Ticket, p.To))
+				return
+			}
+			if target, ok := state.Tickets[p.To]; ok {
+				removeString(&target.Related, op.Ticket)
+				state.Tickets[p.To] = target
+			}
+		}
+		state.Tickets[op.Ticket] = ticket
 	}
+}
+
+// removeString removes the first occurrence of s from list. It reports
+// whether s was found.
+func removeString(list *[]string, s string) bool {
+	for i, item := range *list {
+		if item == s {
+			*list = append((*list)[:i], (*list)[i+1:]...)
+			return true
+		}
+	}
+	return false
 }
