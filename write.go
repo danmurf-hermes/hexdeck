@@ -63,6 +63,7 @@ todo → in-progress → review → done   (see config.json)
 - A ticket is done only when moved to done. No other signal counts.
 - A claim older than the claim timeout is stale — ` + "`hexdeck pick`" + `
   takes the ticket anyway. The board marks it "(stale claim)".
+- snapshot.json is a local cache. Never commit it — it is gitignored.
 `
 
 // agentsHook is the one line appended to AGENTS.md at init. Every major
@@ -87,6 +88,11 @@ func InitBoard(dir, name, prefix, actor string) error {
 	}
 	if err := os.WriteFile(filepath.Join(boardDir, "README.md"), []byte(primer), 0o644); err != nil {
 		return fmt.Errorf("write primer: %w", err)
+	}
+	// The snapshot cache must never be committed. The .gitignore ships
+	// with the board from day one.
+	if err := os.WriteFile(filepath.Join(boardDir, ".gitignore"), []byte(snapshotGitignore), 0o644); err != nil {
+		return fmt.Errorf("write .gitignore: %w", err)
 	}
 	config := Config{
 		Schema:       SchemaVersion,
@@ -243,9 +249,11 @@ func NextTicketID(state BoardState) string {
 
 // RenderAll rebuilds every committed board file from the ops: board.md
 // and board.json, plus board.svg when svg is true. The files are
-// disposable — the ops are the truth.
+// disposable — the ops are the truth. The fold here is always cold:
+// the snapshot cache is never trusted for the committed projections,
+// so the rendered files can never diverge from the ops.
 func RenderAll(boardDir string, svg bool) error {
-	state, err := Project(boardDir)
+	state, err := projectAt(boardDir, time.Now())
 	if err != nil {
 		return err
 	}
@@ -270,9 +278,10 @@ func RenderAll(boardDir string, svg bool) error {
 // RenderCheck compares the committed board files to a fresh render of
 // the ops. It returns an error naming the first file that drifted. CI
 // runs it to catch hand-edited projections. board.svg is checked only
-// when it exists — it is opt-in via `render --svg`.
+// when it exists — it is opt-in via `render --svg`. The fold is always
+// cold — the honesty gate never trusts the snapshot cache.
 func RenderCheck(boardDir string) error {
-	state, err := Project(boardDir)
+	state, err := projectAt(boardDir, time.Now())
 	if err != nil {
 		return err
 	}

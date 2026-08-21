@@ -54,7 +54,7 @@ rebuilt from the ops. The ops are the truth; the board is a projection.
 
 ### Root package (`github.com/danmurf/hexdeck`)
 
-The core library. Seven files:
+The core library. Eight files:
 
 - `op.go` — the op schema. Defines the op types, the payload shapes
   (one named type per op type — `TicketCreatedPayload`,
@@ -62,6 +62,10 @@ The core library. Seven files:
   validates them, and sorts them in a deterministic order.
 - `fold.go` — the fold. Applies ops in order to build the board state.
   Also reads the board config.
+- `snapshot.go` — the replay cache. `Project` folds once and reuses the
+  folded state while the ops and config are unchanged. The snapshot is
+  a disposable local cache — `snapshot.json` in the board dir,
+  gitignored, never committed, never trusted by the renders or CI.
 - `render.go` — the renders. Turns a `BoardState` into `board.md`
   (markdown) and `board.json` (JSON).
 - `svg.go` — the board image. Turns a `BoardState` into `board.svg`.
@@ -70,9 +74,10 @@ The core library. Seven files:
   the board files (`RenderAll`), and checks them for drift
   (`RenderCheck`).
 - `op_test.go`, `fold_test.go`, `render_test.go`, `svg_test.go`,
-  `write_test.go`, `merge_test.go` — table-driven tests plus golden
-  files for the projection and the renders, and the merge matrix: two
-  writers in two git clones, merged with zero conflicts.
+  `write_test.go`, `snapshot_test.go`, `merge_test.go` — table-driven
+  tests plus golden files for the projection and the renders, and the
+  merge matrix: two writers in two git clones, merged with zero
+  conflicts.
 
 ### CLI package (`github.com/danmurf/hexdeck/cmd/hexdeck`)
 

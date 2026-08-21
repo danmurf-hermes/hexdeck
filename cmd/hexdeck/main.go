@@ -192,7 +192,7 @@ func runInit(args []string) error {
 		return err
 	}
 	boardDir := filepath.Join(dir, ".kanban")
-	stageGit(dir, boardDir, "README.md", "config.json", "board.md", "board.json")
+	stageGit(dir, boardDir, "README.md", ".gitignore", "config.json", "board.md", "board.json")
 	stageGit(dir, dir, "AGENTS.md")
 	fmt.Printf("board %q created in %s\n", *name, boardDir)
 	fmt.Printf("suggested commit: board: init %s\n", *name)

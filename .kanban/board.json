@@ -28,7 +28,7 @@
       "id": "T-10",
       "title": "Phase 5 chunk 3: MCP server",
       "description": "hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T12:56:17Z",
@@ -119,12 +119,17 @@
       "id": "T-5",
       "title": "V1.1: web view, MCP, snapshots",
       "description": "Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.",
-      "status": "todo",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
           "actor": "hermes",
           "text": "Deferred until V1 earns it."
+        },
+        {
+          "ts": "2026-08-21T15:26:43Z",
+          "actor": "danmurf-hermes",
+          "text": "Snapshot checkpointing done — snapshot.json is a disposable local replay cache (digest-validated, gitignored, never committed; renders and CI always fold cold). TDD: snapshot_test.go pinned reuse, invalidation (new op, config change), corrupt-cache fallback, RenderCheck cold-fold honesty, gitignore. Closes the last V1.1 item — the board is now all done."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
@@ -179,7 +184,7 @@
       "id": "T-9",
       "title": "Phase 5 chunk 2: local web view",
       "description": "hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T12:01:45Z",
@@ -192,5 +197,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T12:56:17Z"
+  "updated": "2026-08-21T15:26:44Z"
 }

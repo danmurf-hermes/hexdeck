@@ -159,6 +159,9 @@ error.
 - `.kanban/board.svg` — the board image. Opt-in via `render --svg`.
 - `.kanban/README.md` — the manual, written at `init`.
 - `.kanban/config.json` — the config.
+- `.kanban/snapshot.json` — the replay cache. A local speed-up only:
+  it is gitignored, never committed, and never trusted. Delete it and
+  the board rebuilds from the ops.
 
 The board files are projections. They are disposable — every view can
 be regenerated from the ops alone.
