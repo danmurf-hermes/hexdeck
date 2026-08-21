@@ -38,6 +38,15 @@
       "created": "2026-08-21T12:56:13Z",
       "archived": false
     },
+    "T-11": {
+      "id": "T-11",
+      "title": "Default columns: backlog → todo → done",
+      "description": "The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-21T17:59:44Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
@@ -207,5 +216,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T15:26:44Z"
+  "updated": "2026-08-21T17:59:44Z"
 }
