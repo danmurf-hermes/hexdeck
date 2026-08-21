@@ -340,8 +340,9 @@ and holds the suggested commit message — edit it and press Commit.
 
 The page is a render, like `board.md` and `board.svg`: it is embedded
 in the binary as one deterministic HTML file, pinned by a golden test
-(`TestWebPageGolden`). The page never touches the board files itself —
-it talks to the API endpoints the server exposes:
+(`TestWebPageGolden`). Cards show id, title and badges; a click on the
+title expands the description and comments. The page never touches the
+board files itself — it talks to the API endpoints the server exposes:
 
 - `GET /api/state` — the projection.
 - `POST /api/move` — move a ticket. Body: `{"ticket": "T-1", "to":

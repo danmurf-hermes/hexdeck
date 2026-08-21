@@ -70,6 +70,11 @@ as the CLI.
 
 ![The board in the browser](docs/web-board.png)
 
+Cards show the id, title and badges. Click a title to expand the
+description and comments:
+
+![Expanded card](docs/web-card-expanded.png)
+
 Type a comment on a ticket to add it to the board:
 
 ![Adding a comment](docs/web-comment-typed.png)

@@ -19,7 +19,7 @@ main { display:flex; gap:16px; padding:16px; align-items:flex-start; }
 .card { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:8px; cursor:grab; }
 .card.dragging { opacity:.5; }
 .card .id { font-size:11px; color:var(--accent); font-weight:600; }
-.card .title { margin:2px 0; }
+.card .title { margin:2px 0; cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
 .card .desc { color:var(--meta); font-size:12px; margin:2px 0; }
 .card .meta { font-size:11px; color:var(--meta); }
 .card .badge { display:inline-block; border-radius:10px; padding:0 6px; margin-right:4px; font-size:11px; }
@@ -79,13 +79,21 @@ function cardHTML(t) {
   return '<div class="card" draggable="true" data-id="' + esc(t.id) + '">' +
     '<div class="id">' + esc(t.id) + '</div>' +
     '<div class="title">' + esc(t.title) + '</div>' +
-    (t.description ? '<div class="desc">' + esc(t.description) + '</div>' : "") +
     (badges.length ? '<div class="meta">' + badges.join("") + '</div>' : "") +
-    (comments ? '<div class="comments">' + comments + '</div>' : "") +
+    (t.description || comments ? '<div class="details" hidden>' +
+      (t.description ? '<div class="desc">' + esc(t.description) + '</div>' : "") +
+      (comments ? '<div class="comments">' + comments + '</div>' : "") +
+      '</div>' : "") +
     '<form class="comment-form" data-id="' + esc(t.id) + '">' +
     '<input placeholder="comment…"><button>Add</button></form>' +
     '</div>';
 }
+document.addEventListener("click", e => {
+  const title = e.target.closest(".card .title");
+  if (!title) return;
+  const details = title.parentElement.querySelector(".details");
+  if (details) details.hidden = !details.hidden;
+});
 function render() {
   const b = state.board;
   if (!b) return;
