@@ -106,6 +106,82 @@ func TestRenderMarkdownStaleClaim(t *testing.T) {
 	}
 }
 
+// TestRenderMarkdownDescription checks that a ticket's description
+// renders under its title, indented, and that a ticket without a
+// description renders no extra line.
+func TestRenderMarkdownDescription(t *testing.T) {
+	state := BoardState{
+		Name:    "desc",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "with description", Description: "what it is about", Status: "todo", Comments: []Comment{}},
+			"T-2": {ID: "T-2", Title: "without description", Status: "todo", Comments: []Comment{}},
+		},
+	}
+	md := string(RenderMarkdown(state))
+	if !strings.Contains(md, "- T-1 with description\n  what it is about\n") {
+		t.Errorf("board.md does not render the description under the title:\n%s", md)
+	}
+	if strings.Contains(md, "without description\n  ") {
+		t.Errorf("board.md renders a description line for a ticket without one:\n%s", md)
+	}
+}
+
+// TestRenderMarkdownComments checks that comments render under the
+// ticket as nested bullets with the ts, actor, and text, oldest first.
+func TestRenderMarkdownComments(t *testing.T) {
+	ts1 := time.Date(2026, 8, 20, 14, 4, 0, 0, time.UTC)
+	ts2 := time.Date(2026, 8, 20, 14, 5, 0, 0, time.UTC)
+	state := BoardState{
+		Name:    "comments",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "with comments", Status: "todo", Comments: []Comment{
+				{TS: ts1, Actor: "claude-a", Text: "on it"},
+				{TS: ts2, Actor: "codex-1", Text: "fixed"},
+			}},
+			"T-2": {ID: "T-2", Title: "no comments", Status: "todo", Comments: []Comment{}},
+		},
+	}
+	md := string(RenderMarkdown(state))
+	for _, want := range []string{
+		"- T-1 with comments · 2 comments\n",
+		"  - 2026-08-20T14:04:00Z claude-a: on it\n",
+		"  - 2026-08-20T14:05:00Z codex-1: fixed\n",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("board.md missing %q:\n%s", want, md)
+		}
+	}
+	if strings.Contains(md, "no comments\n  - ") {
+		t.Errorf("board.md renders comments for a ticket without any:\n%s", md)
+	}
+}
+
+// TestRenderMarkdownMultiline checks that multi-line descriptions and
+// comments render with every line indented.
+func TestRenderMarkdownMultiline(t *testing.T) {
+	ts := time.Date(2026, 8, 20, 14, 4, 0, 0, time.UTC)
+	state := BoardState{
+		Name:    "multi",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "multi", Description: "line one\nline two", Status: "todo", Comments: []Comment{
+				{TS: ts, Actor: "claude-a", Text: "first line\nsecond line"},
+			}},
+		},
+	}
+	md := string(RenderMarkdown(state))
+	for _, want := range []string{
+		"  line one\n  line two\n",
+		"  - 2026-08-20T14:04:00Z claude-a: first line\n    second line\n",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("board.md missing %q:\n%s", want, md)
+		}
+	}
+}
+
 // TestRenderJSONDeterministic renders the same state twice and checks the
 // bytes are identical. The render must never depend on map order.
 func TestRenderJSONDeterministic(t *testing.T) {

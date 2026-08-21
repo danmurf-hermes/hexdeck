@@ -6,6 +6,8 @@ Updated: 2026-08-20T14:02:00Z · 1 todo · 1 in-progress · 0 review · 0 done
 
 ## in-progress
 - T-1 From codex · 2 comments
+  - 2026-08-20T14:02:00Z claude-a: same seq and opId as the next file
+  - 2026-08-20T14:02:00Z claude-a: same seq and opId as the next file
 
 ## review
 

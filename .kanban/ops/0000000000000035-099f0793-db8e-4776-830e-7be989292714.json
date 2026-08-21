@@ -1,0 +1,1 @@
+{"schema":1,"opId":"099f0793-db8e-4776-830e-7be989292714","seq":35,"ts":"2026-08-21T07:52:21Z","actor":"hermes","type":"ticket.moved","ticket":"T-3","payload":{"from":"in-progress","to":"review"}}

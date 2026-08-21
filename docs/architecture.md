@@ -77,7 +77,7 @@ Staleness is computed at projection time from the wall clock. The fold itself ne
 
 Three functions turn a `BoardState` into the committed board files. All are deterministic: same state, same bytes, always.
 
-- `RenderMarkdown(state)` — `board.md`, the human-readable view. A header with the board name, an `Updated:` line with the newest op ts and the ticket count per column, then one section per column. Tickets sort by id within a column, numerically — T-2 comes before T-10. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing section named after the column. A stale claim renders `(stale claim)` after the claim.
+- `RenderMarkdown(state)` — `board.md`, the human-readable view. A header with the board name, an `Updated:` line with the newest op ts and the ticket count per column, then one section per column. Tickets sort by id within a column, numerically — T-2 comes before T-10. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing section named after the column. A stale claim renders `(stale claim)` after the claim. The ticket's description renders under its title, indented, and its comments render as nested bullets with the ts, actor, and text — so the board carries the story on its own, not just the titles.
 - `RenderJSON(state)` — `board.json`, the machine view. The full `BoardState`, indented, with a trailing newline.
 - `RenderSVG(state)` — `board.svg`, the board image for the README. A header with the board name and the `Updated:` line, then one column per configured column, side by side. Each ticket is a card: the id, the title, and small badges for the claim and the comment count. Archived tickets are hidden. A ticket in a column that is not in the config renders in a trailing column named after the column. A stale claim renders `(stale)` in the claim badge.
 
@@ -144,9 +144,11 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 3.5 chunk 3: README badges — a CI badge (shields.io GitHub Actions) and a coverage badge (shields.io endpoint over `coverage.json`, written by a fifth CI job on pushes to `main`). The contract is tested in `ci_test.go`.
 - Phase 4 chunk 1: the dogfood board — `hexdeck init` in the hexdeck repo, the phase table migrated into tickets, and a second render check in CI for `.kanban/`. The board is the build tracker now.
 - Phase 4 chunk 2: the build worker runs against the board — the contribution guide (`docs/contributing.md`) replaced the worker runbook, and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
+- Phase 4 chunk 3: the acceptance read — `board.md` now renders ticket descriptions and comments, so the board carries the story on its own. The dogfood board answers "where is the project up to" without opening anything else, and `ci_test.go` pins that contract.
+- Phase 4 chunk 4: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. The report is `docs/cold-start.md`; the acceptance is pinned in `ci_test.go`.
 
 ## What comes next
 
-- Phase 4 chunk 3: the dogfood acceptance — a human reads `board.md` and can answer "where is the project up to" without opening anything else.
+- Phase 5: V1.1 — only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

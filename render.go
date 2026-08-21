@@ -19,6 +19,8 @@ import (
 //
 //	## <column>
 //	- T-1 Title — claimed by claude-a · 2 comments
+//	  the description, indented
+//	  - 2026-08-20T14:04:00Z claude-a: on it
 //
 // Tickets sort by id within a column, numerically (T-2 before T-10).
 // Archived tickets are hidden. Tickets in a column that is not in the
@@ -56,9 +58,31 @@ func RenderMarkdown(state BoardState) []byte {
 				}
 			}
 			b.WriteString("\n")
+			if ticket.Description != "" {
+				writeIndented(&b, ticket.Description, "  ")
+			}
+			for _, comment := range ticket.Comments {
+				lines := strings.Split(comment.Text, "\n")
+				fmt.Fprintf(&b, "  - %s %s: %s\n", comment.TS.UTC().Format("2006-01-02T15:04:05Z"), comment.Actor, lines[0])
+				for _, line := range lines[1:] {
+					b.WriteString("    ")
+					b.WriteString(line)
+					b.WriteString("\n")
+				}
+			}
 		}
 	}
 	return b.Bytes()
+}
+
+// writeIndented writes text with every line prefixed by indent. The
+// text keeps its line breaks; the last line always ends with a newline.
+func writeIndented(b *bytes.Buffer, text, indent string) {
+	for _, line := range strings.Split(text, "\n") {
+		b.WriteString(indent)
+		b.WriteString(line)
+		b.WriteString("\n")
+	}
 }
 
 // RenderJSON renders the board as board.json — the machine view. It is
