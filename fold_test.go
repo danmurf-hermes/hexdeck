@@ -134,7 +134,7 @@ func TestFoldMissingConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
-	want := []string{"todo", "in-progress", "review", "done"}
+	want := []string{"backlog", "todo", "done"}
 	if len(state.Columns) != len(want) {
 		t.Fatalf("columns = %v, want %v", state.Columns, want)
 	}
@@ -359,7 +359,7 @@ func TestFoldMissingConfigNoSnapshotCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
-	if state1.Name != "" || len(state1.Columns) != 4 {
+	if state1.Name != "" || len(state1.Columns) != 3 {
 		t.Fatalf("state = %+v, want defaults for a config-less board", state1)
 	}
 	// The snapshot must exist (written by the first Project).

@@ -33,7 +33,7 @@ Read board.md — the committed board view. No CLI needed.
 
 ## Commands (preferred)
 hexdeck create "Title" [-d "description"]   # new ticket
-hexdeck move T-12 in-progress               # change column
+hexdeck move T-12 todo                      # change column
 hexdeck comment T-12 "text"                 # add a comment
 hexdeck show                                # print the board (compact)
 hexdeck show T-12                           # print one ticket
@@ -45,7 +45,7 @@ Create ` + "`.kanban/ops/<seq>-<uuid>.json`" + `:
 { "schema": 1, "opId": "<uuid>", "seq": <next number>,
   "ts": "<ISO time>", "actor": "<your name>",
   "type": "ticket.moved", "ticket": "T-12",
-  "payload": { "from": "todo", "to": "in-progress" } }
+  "payload": { "from": "backlog", "to": "todo" } }
 
 Op types: ticket.created, ticket.moved, ticket.updated,
 comment.added, ticket.claimed, ticket.released, ticket.archived.
@@ -54,7 +54,12 @@ Ticket ids are <prefix>-<number>, prefix from config.json
 (default T, e.g. T-12).
 
 ## Columns
-todo → in-progress → review → done   (see config.json)
+backlog → todo → done   (see config.json)
+
+New tickets start in backlog. Move a ticket to todo when it is ready
+to pick up, and to done when it is finished. Add more columns in
+config.json when the work needs them — in-progress is opt-in for work
+that spans multiple PRs.
 
 ## Rules
 - One op per file. Never modify an op after it's committed.

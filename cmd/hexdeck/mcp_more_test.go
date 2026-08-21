@@ -53,6 +53,9 @@ func TestMCPShowTicketRich(t *testing.T) {
 	if out, code := runHexdeck(t, dir, "comment", "T-1", "on it", "--as", "claude-a", "--no-pull"); code != 0 {
 		t.Fatalf("comment: exit %d\n%s", code, out)
 	}
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a", "--no-pull"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
 	if out, code := runHexdeck(t, dir, "pick", "--as", "claude-a", "--no-pull"); code != 0 {
 		t.Fatalf("pick: exit %d\n%s", code, out)
 	}

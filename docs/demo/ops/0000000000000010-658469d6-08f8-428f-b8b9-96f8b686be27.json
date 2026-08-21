@@ -1,1 +1,1 @@
-{"schema":1,"opId":"658469d6-08f8-428f-b8b9-96f8b686be27","seq":10,"ts":"2026-08-20T20:56:20Z","actor":"bob","type":"ticket.moved","ticket":"T-2","payload":{"from":"todo","to":"done"}}
+{"schema":1,"opId":"658469d6-08f8-428f-b8b9-96f8b686be27","seq":10,"ts":"2026-08-20T20:56:20Z","actor":"bob","type":"comment.added","ticket":"T-1","payload":{"text":"google scope question — see PR"}}

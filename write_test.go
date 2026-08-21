@@ -162,8 +162,8 @@ func TestInitBoard(t *testing.T) {
 	if config.TicketPrefix != "T" {
 		t.Errorf("config ticketPrefix = %q, want %q", config.TicketPrefix, "T")
 	}
-	if len(config.Columns) != 4 {
-		t.Errorf("config columns = %v, want 4 default columns", config.Columns)
+	if len(config.Columns) != 3 {
+		t.Errorf("config columns = %v, want 3 default columns", config.Columns)
 	}
 
 	state, err := Project(boardDir)
@@ -231,7 +231,7 @@ func TestProjectPrefix(t *testing.T) {
 	if err := os.Mkdir(opsDir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	config := `{"schema":1,"board":"p","columns":["todo","in-progress","review","done"],"ticketPrefix":"HDX","claimTimeout":"4h","autoPush":false}`
+	config := `{"schema":1,"board":"p","columns":["backlog","todo","done"],"ticketPrefix":"HDX","claimTimeout":"4h","autoPush":false}`
 	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}

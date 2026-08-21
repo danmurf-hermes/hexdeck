@@ -78,9 +78,10 @@ func opTimeline(boardDir, ticket, actor, since string) (string, []string, error)
 // ticket. The second return value reports whether one exists. Shared by
 // `hexdeck pick` and the MCP board_next tool.
 func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
+	column := pickColumn(state)
 	var candidates []hexdeck.Ticket
 	for _, ticket := range state.Tickets {
-		if ticket.Archived || ticket.Status != state.Columns[0] {
+		if ticket.Archived || ticket.Status != column {
 			continue
 		}
 		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
@@ -95,4 +96,30 @@ func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
 		return hexdeck.TicketIDLess(state.Prefix, candidates[i].ID, candidates[j].ID)
 	})
 	return candidates[0], true
+}
+
+// pickColumn returns the column pick takes from: the column named
+// "todo" when the board has one, else the first column. The default
+// flow is backlog → todo → done — a ticket becomes pickable when it
+// moves to todo, not when it is created.
+func pickColumn(state hexdeck.BoardState) string {
+	for _, column := range state.Columns {
+		if column == "todo" {
+			return column
+		}
+	}
+	return state.Columns[0]
+}
+
+// pickTarget returns the column pick moves a ticket to: in-progress
+// when the board has one, else empty — the claim alone marks the pick
+// and the ticket stays in todo. A move from todo to todo would be
+// noise in the log.
+func pickTarget(state hexdeck.BoardState) string {
+	for _, column := range state.Columns {
+		if column == "in-progress" {
+			return column
+		}
+	}
+	return ""
 }

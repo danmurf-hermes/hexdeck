@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T18:13:05Z · 4 backlog · 1 todo · 10 done
+Updated: 2026-08-21T19:24:45Z · 4 backlog · 1 todo · 10 done
 
 ## backlog
 - T-12 Comments live on the ticket, not the board view
@@ -12,8 +12,9 @@ Updated: 2026-08-21T18:13:05Z · 4 backlog · 1 todo · 10 done
   A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## todo
-- T-11 Default columns: backlog → todo → done
+- T-11 Default columns: backlog → todo → done — claimed by danmurf-hermes · 1 comment
   The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.
+  - 2026-08-21T19:24:45Z danmurf-hermes: Working on it: default columns become backlog → todo → done. InitBoard defaults, the primer, pick (claim without move unless in-progress exists), the demo board, docs, and the BUILD-SPEC decision. TDD: pick rules pinned first.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment

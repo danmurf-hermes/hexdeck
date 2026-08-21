@@ -13,8 +13,8 @@ import (
 )
 
 // newMCPTestServer builds an MCP session over a fresh temp repo with a
-// board holding two tickets, and returns the session and its output
-// buffer.
+// board holding two todo tickets, and returns the session and its
+// output buffer.
 func newMCPTestServer(t *testing.T) (*mcpSession, *bytes.Buffer) {
 	t.Helper()
 	dir := initRepo(t)
@@ -26,6 +26,14 @@ func newMCPTestServer(t *testing.T) (*mcpSession, *bytes.Buffer) {
 	}
 	if out, code := runHexdeck(t, dir, "create", "Two", "--as", "claude-a"); code != 0 {
 		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	// New tickets start in backlog — move them to todo so the board
+	// has pickable work.
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "move", "T-2", "todo", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
 	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)

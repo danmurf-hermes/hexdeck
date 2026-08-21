@@ -1,1 +1,1 @@
-{"schema":1,"opId":"5eb26dfe-3892-453a-84db-329e2e7093f9","seq":12,"ts":"2026-08-20T20:56:21Z","actor":"carol","type":"comment.added","ticket":"T-4","payload":{"text":"indexing plan drafted"}}
+{"schema":1,"opId":"5eb26dfe-3892-453a-84db-329e2e7093f9","seq":12,"ts":"2026-08-20T20:56:21Z","actor":"carol","type":"ticket.moved","ticket":"T-4","payload":{"from":"backlog","to":"todo"}}

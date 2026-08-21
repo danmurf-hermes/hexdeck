@@ -43,8 +43,16 @@
       "title": "Default columns: backlog → todo → done",
       "description": "The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.",
       "status": "todo",
-      "comments": [],
+      "comments": [
+        {
+          "ts": "2026-08-21T19:24:45Z",
+          "actor": "danmurf-hermes",
+          "text": "Working on it: default columns become backlog → todo → done. InitBoard defaults, the primer, pick (claim without move unless in-progress exists), the demo board, docs, and the BUILD-SPEC decision. TDD: pick rules pinned first."
+        }
+      ],
       "created": "2026-08-21T17:59:44Z",
+      "claimedBy": "danmurf-hermes",
+      "claimedAt": "2026-08-21T19:24:45Z",
       "archived": false
     },
     "T-12": {
@@ -252,5 +260,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T18:13:05Z"
+  "updated": "2026-08-21T19:24:45Z"
 }

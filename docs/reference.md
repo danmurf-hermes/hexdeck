@@ -37,13 +37,13 @@ Fails if the board already exists.
 
 ### create
 
-Creates a ticket in `todo`. Prints the new id. `-d` sets the
-description.
+Creates a ticket in `backlog` — the first column. Prints the new id.
+`-d` sets the description.
 
 ### move
 
 Moves a ticket to a column. The columns come from the config; the
-defaults are `todo`, `in-progress`, `review`, `done`.
+defaults are `backlog`, `todo`, `done`.
 
 ### comment
 
@@ -62,8 +62,11 @@ like `2d` or `3h`), `--ticket`, `--actor`.
 
 ### pick
 
-Claims the next `todo` ticket and moves it to `in-progress`. A stale
-claim does not block — `pick` takes the ticket anyway.
+Claims the next `todo` ticket. The default flow has no `in-progress`
+column — the claim alone marks the pick, and the ticket stays in
+`todo`. A board with an `in-progress` column in its config gets the
+move too. A stale claim does not block — `pick` takes the ticket
+anyway.
 
 ### release
 
@@ -130,7 +133,7 @@ Two writers can produce the same seq; the opId breaks the tie.
 {
   "schema": 1,
   "board": "demo",
-  "columns": ["todo", "in-progress", "review", "done"],
+  "columns": ["backlog", "todo", "done"],
   "ticketPrefix": "T",
   "claimTimeout": "4h",
   "autoPush": false
@@ -138,8 +141,9 @@ Two writers can produce the same seq; the opId breaks the tie.
 ```
 
 - `board` — the board name.
-- `columns` — the columns, in order. Default: `todo`, `in-progress`,
-  `review`, `done`.
+- `columns` — the columns, in order. Default: `backlog`, `todo`,
+  `done`. Add more columns when the work needs them — `in-progress` is
+  opt-in for work that spans multiple PRs.
 - `ticketPrefix` — the ticket id prefix. Default: `T`.
 - `claimTimeout` — a claim older than this is stale. Default: `4h`.
 - `autoPush` — reserved for V1.1. Always `false` in V1.
@@ -192,5 +196,4 @@ be regenerated from the ops alone.
   `web`, and the API, never in the committed files.
 - Concurrency is safe by construction: an op write is exclusive, so
   two agents appending at once get distinct `seq`s. `pick` writes its
-  two ops together — a failure can never leave a claimed ticket
-  stuck in `todo`.
+  ops together — a failure can never leave a half-pick.

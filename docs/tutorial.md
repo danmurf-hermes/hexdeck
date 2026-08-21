@@ -42,36 +42,35 @@ T-1
 suggested commit: board: create T-1
 ```
 
-The ticket starts in `todo`. The description is optional.
+The ticket starts in `backlog`. The description is optional.
 
-## 5. Move it and comment
+## 5. Move it to todo and comment
 
 ```
-$ hexdeck move T-1 in-progress
-suggested commit: board: move T-1 → in-progress
+$ hexdeck move T-1 todo
+suggested commit: board: move T-1 → todo
 
 $ hexdeck comment T-1 "reproduced it — the bug is in the password check"
 suggested commit: board: comment on T-1
 ```
 
-Every command prints a suggested commit message. Commit the op and the
-board files together — the commit is the evidence.
+A ticket becomes pickable when it moves to `todo`. Every command prints
+a suggested commit message. Commit the op and the board files together
+— the commit is the evidence.
 
 ## 6. Look at the board
 
 ```
 $ hexdeck show
 # Board — demo
-Updated: 2026-08-21T10:23:50Z · 0 todo · 1 in-progress · 0 review · 0 done
+Updated: 2026-08-21T10:23:50Z · 0 backlog · 1 todo · 0 done
+
+## backlog
 
 ## todo
-
-## in-progress
 - T-1 Fix login bug · 1 comment
   The login form rejects valid passwords.
   - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
-
-## review
 
 ## done
 ```
@@ -84,7 +83,7 @@ render under the ticket — the board carries the story on its own.
 ```
 $ hexdeck show T-1
 T-1 Fix login bug
-status: in-progress
+status: todo
 description: The login form rejects valid passwords.
 created: 2026-08-21T10:23:50Z
 comments:
@@ -98,28 +97,30 @@ $ hexdeck create "Add dark mode"
 T-2
 suggested commit: board: create T-2
 
+$ hexdeck move T-2 todo
+suggested commit: board: move T-2 → todo
+
 $ hexdeck pick --as you
 picked T-2 Add dark mode
 suggested commit: board: pick T-2
 ```
 
-`pick` claims the next `todo` ticket and moves it to `in-progress`. The
-board shows the claim:
+`pick` claims the next `todo` ticket. The default flow has no
+`in-progress` column — the claim alone marks the pick, and the ticket
+stays in `todo`. The board shows the claim:
 
 ```
 $ hexdeck show
 # Board — demo
-Updated: 2026-08-21T10:23:51Z · 0 todo · 2 in-progress · 0 review · 0 done
+Updated: 2026-08-21T10:23:51Z · 0 backlog · 2 todo · 0 done
+
+## backlog
 
 ## todo
-
-## in-progress
 - T-1 Fix login bug · 1 comment
   The login form rejects valid passwords.
   - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
 - T-2 Add dark mode — claimed by you
-
-## review
 
 ## done
 ```
@@ -143,8 +144,8 @@ $ hexdeck log
 2026-08-21T10:23:50Z you ticket.moved T-1
 2026-08-21T10:23:50Z you comment.added T-1
 2026-08-21T10:23:51Z you ticket.created T-2
-2026-08-21T10:23:51Z you ticket.claimed T-2
 2026-08-21T10:23:51Z you ticket.moved T-2
+2026-08-21T10:23:51Z you ticket.claimed T-2
 2026-08-21T10:23:51Z you ticket.released T-2
 ```
 

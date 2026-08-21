@@ -422,12 +422,13 @@ func runLog(args []string) error {
 	return nil
 }
 
-// runPick claims and moves the next todo ticket. Both ops go through
-// one writeOp — one pull, one render — so a failure in the common
-// path (pull, render, staging) cannot leave a half-pick. If the move
-// op itself fails to append after the claim landed, the board is left
-// with a claimed todo ticket; the fold tolerates it and the next pick
-// skips the fresh claim.
+// runPick claims the next todo ticket and, when the board has an
+// in-progress column, moves it there. Both ops go through one writeOp
+// — one pull, one render — so a failure in the common path (pull,
+// render, staging) cannot leave a half-pick. If the move op itself
+// fails to append after the claim landed, the board is left with a
+// claimed todo ticket; the fold tolerates it and the next pick skips
+// the fresh claim.
 func runPick(args []string) error {
 	fs := flag.NewFlagSet("pick", flag.ExitOnError)
 	var cf commonFlags
@@ -451,8 +452,8 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(state.Columns) < 2 {
-		return fmt.Errorf("pick needs at least two columns, this board has %d", len(state.Columns))
+	if len(state.Columns) < 1 {
+		return fmt.Errorf("pick needs at least one column, this board has none")
 	}
 	ticket, ok := nextTodo(state)
 	if !ok {
@@ -463,24 +464,28 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	movePayload, err := json.Marshal(hexdeck.TicketMovedPayload{
-		From: ticket.Status,
-		To:   state.Columns[1],
-	})
-	if err != nil {
-		return err
-	}
-	if _, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, hexdeck.Op{
+	ops := []hexdeck.Op{{
 		Type:    hexdeck.OpTicketClaimed,
 		Ticket:  ticket.ID,
 		Actor:   actor,
 		Payload: claimPayload,
-	}, hexdeck.Op{
-		Type:    hexdeck.OpTicketMoved,
-		Ticket:  ticket.ID,
-		Actor:   actor,
-		Payload: movePayload,
-	}); err != nil {
+	}}
+	if target := pickTarget(state); target != "" {
+		movePayload, err := json.Marshal(hexdeck.TicketMovedPayload{
+			From: ticket.Status,
+			To:   target,
+		})
+		if err != nil {
+			return err
+		}
+		ops = append(ops, hexdeck.Op{
+			Type:    hexdeck.OpTicketMoved,
+			Ticket:  ticket.ID,
+			Actor:   actor,
+			Payload: movePayload,
+		})
+	}
+	if _, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, ops...); err != nil {
 		return err
 	}
 	fmt.Printf("picked %s %s\n", ticket.ID, ticket.Title)

@@ -15,14 +15,13 @@ that.
 1. Read `.kanban/README.md` — the board manual: how ops work, the
    commands, the columns.
 2. Pick a ticket: `hexdeck pick --as <your-name>` claims the next
-   todo ticket and moves it to `in-progress`. Or move a specific one:
-   `hexdeck move <ticket> in-progress`.
+   todo ticket. Or move a specific one: `hexdeck move <ticket> todo`.
 3. Do the work. Comment at milestones worth remembering:
    `hexdeck comment <ticket> "what just happened"`. Comments are part
    of the ticket's history; the next person reads them to pick up
    context.
-4. When the work is done, move the ticket to `review`:
-   `hexdeck move <ticket> review` — in the same commit as your last
+4. When the work is done, move the ticket to `done`:
+   `hexdeck move <ticket> done` — in the same commit as your last
    change.
 5. Open a pull request. A ticket is done when its PR merges — the
    merge rule. Never open a PR whose only purpose is closing a ticket.

@@ -1,9 +1,8 @@
 {
   "name": "hd-demo",
   "columns": [
+    "backlog",
     "todo",
-    "in-progress",
-    "review",
     "done"
   ],
   "prefix": "T",
@@ -13,7 +12,7 @@
       "id": "T-1",
       "title": "Add login with Google",
       "description": "OAuth 2.0 flow, refresh tokens",
-      "status": "in-progress",
+      "status": "todo",
       "comments": [
         {
           "ts": "2026-08-20T20:56:20Z",
@@ -37,7 +36,7 @@
       "id": "T-3",
       "title": "Fix checkout race condition",
       "description": "",
-      "status": "review",
+      "status": "todo",
       "comments": [],
       "created": "2026-08-20T20:56:16Z",
       "archived": false
@@ -46,7 +45,7 @@
       "id": "T-4",
       "title": "Add search to docs site",
       "description": "",
-      "status": "in-progress",
+      "status": "todo",
       "comments": [
         {
           "ts": "2026-08-20T20:56:21Z",
@@ -66,11 +65,20 @@
       "id": "T-5",
       "title": "Ship v1.0",
       "description": "",
-      "status": "in-progress",
+      "status": "todo",
       "comments": [],
       "created": "2026-08-20T20:56:16Z",
       "claimedBy": "carol",
       "claimedAt": "2026-08-20T20:56:21Z",
+      "archived": false
+    },
+    "T-6": {
+      "id": "T-6",
+      "title": "Add keyboard shortcuts",
+      "description": "",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-20T20:56:16Z",
       "archived": false
     }
   },

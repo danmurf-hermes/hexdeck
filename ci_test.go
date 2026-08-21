@@ -380,9 +380,9 @@ func TestReadmeRealExample(t *testing.T) {
 		"board \"demo\" created in .kanban",
 		"suggested commit: board: init demo",
 		"hexdeck create \"Fix login bug\"",
-		"hexdeck move T-1 in-progress",
+		"hexdeck move T-1 todo",
 		"hexdeck comment T-1 \"reproduced it\"",
-		"## in-progress",
+		"## todo",
 		"- T-1 Fix login bug",
 	} {
 		if !strings.Contains(readme, want) {

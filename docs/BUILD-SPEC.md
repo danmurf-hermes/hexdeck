@@ -43,7 +43,7 @@ The ubiquitous language. Code, docs, CLI, and the primer use these exact words �
 |---|---|
 | **Board** | The kanban view of a project's work: columns of tickets. |
 | **Ticket** | One unit of work. Has a title, a description, a column, comments, and a claim. |
-| **Column** | A stage of work. Default: `todo`, `in-progress`, `review`, `done`. |
+| **Column** | A stage of work. Default: `backlog`, `todo`, `done`. |
 | **Op** | One event. One JSON file in `.kanban/ops/`. The only way the board changes. Ops are never edited or deleted. |
 | **Actor** | The writer of an op — an agent or a human. Each actor has a stable name. |
 | **Claim** | A mark on a ticket saying one actor is working on it. Claims expire. |
@@ -93,7 +93,7 @@ Filename: `%016d-seq-<opId>.json` — zero-padded seq sorts lexicographically = 
   "actor": "claude-a",
   "type": "ticket.moved",
   "ticket": "T-12",
-  "payload": { "from": "todo", "to": "in-progress" }
+  "payload": { "from": "backlog", "to": "todo" }
 }
 ```
 
@@ -108,7 +108,7 @@ Filename: `%016d-seq-<opId>.json` — zero-padded seq sorts lexicographically = 
 |---|---|---|
 | `board.created` | `{ "name": "..." }` | once, at init |
 | `ticket.created` | `{ "title": "...", "description": "..." }` | new ticket; `ticket` field = its id |
-| `ticket.moved` | `{ "from": "todo", "to": "in-progress" }` | column change |
+| `ticket.moved` | `{ "from": "backlog", "to": "todo" }` | column change |
 | `ticket.updated` | `{ "title"?: "...", "description"?: "..." }` | rare — title/description edits |
 | `comment.added` | `{ "text": "..." }` | a comment on the ticket |
 | `ticket.claimed` | `{ "by": "claude-a" }` | cooperative lock (see §3.6) |
@@ -134,7 +134,7 @@ Read board.md — the committed board view. No CLI needed.
 
 ## Commands (preferred)
 board create "Title" [-d "description"]   # new ticket
-board move T-12 in-progress               # change column
+board move T-12 todo                      # change column
 board comment T-12 "text"                 # add a comment
 board show                                # print the board (compact)
 board show T-12                           # print one ticket
@@ -146,7 +146,7 @@ Create `.kanban/ops/<seq>-<uuid>.json`:
 { "schema": 1, "opId": "<uuid>", "seq": <next number>,
   "ts": "<ISO time>", "actor": "<your name>",
   "type": "ticket.moved", "ticket": "T-12",
-  "payload": { "from": "todo", "to": "in-progress" } }
+  "payload": { "from": "backlog", "to": "todo" } }
 
 Op types: ticket.created, ticket.moved, ticket.updated,
 comment.added, ticket.claimed, ticket.released, ticket.archived.
@@ -155,7 +155,12 @@ Ticket ids are <prefix>-<number>, prefix from config.json
 (default T, e.g. T-12).
 
 ## Columns
-todo → in-progress → review → done   (see config.json)
+backlog → todo → done   (see config.json)
+
+New tickets start in backlog. Move a ticket to todo when it is ready
+to pick up, and to done when it is finished. Add more columns in
+config.json when the work needs them — in-progress is opt-in for work
+that spans multiple PRs.
 
 ## Rules
 - One op per file. Never modify an op after it's committed.
@@ -182,7 +187,7 @@ An agent that has never heard of the tool must find it, learn it, and use it cor
 {
   "schema": 1,
   "board": "my-project",
-  "columns": ["todo", "in-progress", "review", "done"],
+  "columns": ["backlog", "todo", "done"],
   "ticketPrefix": "T",
   "claimTimeout": "4h",
   "autoPush": false
@@ -191,7 +196,7 @@ An agent that has never heard of the tool must find it, learn it, and use it cor
 
 ### 3.6 Claims (multi-agent safety)
 
-`board pick --as claude-a` atomically finds the next unclaimed `todo` ticket and appends `ticket.claimed` + `ticket.moved` (to `in-progress`). A claim older than `claimTimeout` is **stale**: `pick` skips it, and the projection marks it `(stale claim)`. This is kanban-md's proven pattern — cooperative locking, not a security boundary. Two agents can never pick the same ticket because each pick is its own op file; the projection resolves any race deterministically (first claim by `(seq, opId)` wins, second renders a warning).
+`board pick --as claude-a` atomically finds the next unclaimed `todo` ticket and appends `ticket.claimed` — plus `ticket.moved` (to `in-progress`) when the board has that column. A claim older than `claimTimeout` is **stale**: `pick` skips it, and the projection marks it `(stale claim)`. This is kanban-md's proven pattern — cooperative locking, not a security boundary. Two agents can never pick the same ticket because each pick is its own op file; the projection resolves any race deterministically (first claim by `(seq, opId)` wins, second renders a warning).
 
 ---
 
@@ -232,18 +237,16 @@ apply(op, state):
 
 ```markdown
 # Board — my-project
-Updated: 2026-08-20T14:03:00Z · 3 todo · 2 in-progress · 1 review · 5 done
+Updated: 2026-08-20T14:03:00Z · 3 backlog · 2 todo · 5 done
 
-## todo
+## backlog
 - T-14 Fix login race condition
 - T-15 Add sound settings
+- T-16 Juice pass 2
 
-## in-progress
+## todo
 - T-12 Add payment webhook — claimed by claude-a · 2 comments
 - T-13 Refactor level loader — claimed by codex-1
-
-## review
-- T-11 Juice pass 2
 
 ## done
 - T-10 Munitions (4 types)
@@ -292,7 +295,7 @@ Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's 
 |---|---|
 | `board init [--prefix T]` | create `.kanban/` (README, config, `board.created` op), write `ticketPrefix`, stage, suggest commit |
 | `board create "Title" [-d "desc"]` | append `ticket.created`, stage, print ticket id |
-| `board move T-12 in-progress` | append `ticket.moved`, stage |
+| `board move T-12 todo` | append `ticket.moved`, stage |
 | `board comment T-12 "text"` | append `comment.added`, stage |
 | `board show` | print the board — compact, one line per ticket (token-efficient for agents) |
 | `board show T-12` | print one ticket: fields + comments + history |
@@ -305,12 +308,12 @@ Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's 
 | `board render --check` | exit 1 if committed `board.md`/`board.json` don't match the ops (for CI) |
 
 **Git behaviour (the same-commit rule):**
-- Every command writes the op file and **stages it**, then prints the suggested commit message (`board: move T-12 → in-progress`). Nothing is committed implicitly.
+- Every command writes the op file and **stages it**, then prints the suggested commit message (`board: move T-12 → todo`). Nothing is committed implicitly.
 - `--commit` commits immediately with the suggested message (for board-only work).
 - Agents doing code work run `board move ...` (staged), then commit code + op together — the commit IS the evidence.
 - Before appending, the CLI runs `git pull --rebase` (skipped if `--no-pull`).
 
-**The merge rule (project decision, Aug 20 2026):** a ticket in `review` is done when its PR is merged. The agent that opened the PR moves the ticket to `done` the moment the merge lands — as an ops-only commit straight to main (no PR, no review, same as a `chore` commit). Rationale: `review` means "waiting on a human". The human's verdict is the merge. No extra PR should be needed to close a ticket.
+**The merge rule (project decision, Aug 20 2026):** a ticket in `todo` is done when its PR is merged. The agent that opened the PR moves the ticket to `done` the moment the merge lands — as an ops-only commit straight to main (no PR, no review, same as a `chore` commit). Rationale: the human's verdict is the merge. No extra PR should be needed to close a ticket.
 
 ---
 
@@ -418,7 +421,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 - [x] **Stack** — DECIDED (Aug 20 2026): **Go** (spec recommendation; veto via PR comment).
 - [x] **Board dir** — DECIDED (Aug 20 2026): `.kanban/` (hidden, out of the way).
-- [x] **Columns** — DECIDED (Aug 20 2026): `todo / in-progress / review / done`.
+- [x] **Columns** — DECIDED (Aug 20 2026): `todo / in-progress / review / done`. **REVISED (Aug 21 2026, T-11):** `backlog / todo / done` — plan in backlog, bring into todo when ready to pick up, done when finished. `in-progress` is opt-in for work that spans multiple PRs.
 - [x] **Claims in V1** — DECIDED (Aug 20 2026): yes — the multi-agent safety.
 - [x] **Dogfood target** — DECIDED (Aug 20 2026): **hexdeck itself**. Once the CLI works (Phase 2), `hexdeck init` in the hexdeck repo, migrate PROGRESS.md's phase table into tickets, and the build worker uses the board instead of PROGRESS.md. The tool tracks its own build.
 - [x] **Name** — DECIDED (Aug 20 2026): **hexdeck**. hexdeck.com free; no same-category collisions (Steam game + termux theme, both different fields); Companies House clean.

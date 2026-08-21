@@ -2,9 +2,8 @@
   "schema": 1,
   "board": "hd-demo",
   "columns": [
+    "backlog",
     "todo",
-    "in-progress",
-    "review",
     "done"
   ],
   "ticketPrefix": "T",
