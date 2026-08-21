@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T20:12:10Z · 3 backlog · 1 todo · 11 done
+Updated: 2026-08-21T20:43:07Z · 3 backlog · 0 todo · 12 done
 
 ## backlog
 - T-13 Ticket relationships: blocks, related-to
@@ -10,8 +10,6 @@ Updated: 2026-08-21T20:12:10Z · 3 backlog · 1 todo · 11 done
   A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## todo
-- T-12 Comments live on the ticket, not the board view — claimed by danmurf-hermes
-  The board shows ticket id and title only. Comments are for the ticket view: hexdeck show <ticket> and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.
 
 ## done
 - T-1 Migrate the build tracker into the board
@@ -36,3 +34,5 @@ Updated: 2026-08-21T20:12:10Z · 3 backlog · 1 todo · 11 done
   hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.
 - T-11 Default columns: backlog → todo → done — claimed by danmurf-hermes
   The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.
+- T-12 Comments live on the ticket, not the board view — claimed by danmurf-hermes
+  The board shows ticket id and title only. Comments are for the ticket view: hexdeck show <ticket> and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.
