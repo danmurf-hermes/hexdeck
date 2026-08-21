@@ -134,7 +134,7 @@
       "id": "T-7",
       "title": "Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7",
       "description": "Docs reassessment",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T10:28:42Z",
@@ -162,5 +162,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T10:59:44Z"
+  "updated": "2026-08-21T11:19:54Z"
 }
