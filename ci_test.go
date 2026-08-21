@@ -243,6 +243,64 @@ func TestReadmeEmbedsBoardSVG(t *testing.T) {
 	}
 }
 
+// TestWebViewDocumented checks the Phase 5 chunk 2 contract: the web
+// view ships with its docs. The reference documents the command, the
+// how-to shows the workflow, and the README quick start names it. A
+// feature ships with its doc line in the same commit — no
+// undocumented features.
+func TestWebViewDocumented(t *testing.T) {
+	checks := []struct {
+		path string
+		want []string
+	}{
+		{"docs/reference.md", []string{"hexdeck web", "changes panel", "suggested commit message"}},
+		{"docs/how-to.md", []string{"hexdeck web", "Drag a ticket", "changes panel"}},
+		{"docs/architecture.md", []string{"hexdeck web", "/api/move", "/api/comment", "/api/commit"}},
+		{"README.md", []string{"hexdeck web"}},
+	}
+	for _, c := range checks {
+		data, err := os.ReadFile(c.path)
+		if err != nil {
+			t.Fatalf("read %s: %v", c.path, err)
+		}
+		text := string(data)
+		for _, want := range c.want {
+			if !strings.Contains(text, want) {
+				t.Errorf("%s is missing %q — the web view is not documented", c.path, want)
+			}
+		}
+	}
+}
+
+// TestMCPDocumented checks the Phase 5 chunk 3 contract: the MCP
+// server ships with its docs. The reference documents the command and
+// the tools, the how-to shows the workflow, the architecture explains
+// the protocol, and the README quick start names it. A feature ships
+// with its doc line in the same commit — no undocumented features.
+func TestMCPDocumented(t *testing.T) {
+	checks := []struct {
+		path string
+		want []string
+	}{
+		{"docs/reference.md", []string{"hexdeck mcp", "board_show", "board_show_ticket", "board_log", "board_next", "read-only"}},
+		{"docs/how-to.md", []string{"hexdeck mcp", "board_show", "board_next"}},
+		{"docs/architecture.md", []string{"hexdeck mcp", "2025-06-18", "tools/list", "tools/call", "TestMCPToolsListGolden"}},
+		{"README.md", []string{"hexdeck mcp"}},
+	}
+	for _, c := range checks {
+		data, err := os.ReadFile(c.path)
+		if err != nil {
+			t.Fatalf("read %s: %v", c.path, err)
+		}
+		text := string(data)
+		for _, want := range c.want {
+			if !strings.Contains(text, want) {
+				t.Errorf("%s is missing %q — the MCP server is not documented", c.path, want)
+			}
+		}
+	}
+}
+
 // TestDocsDiataxis checks the docs follow the Diataxis structure:
 // tutorials, how-to guides, reference, explanation. The README links
 // all four, and the old components doc is folded into the reference.

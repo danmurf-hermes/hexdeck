@@ -5,7 +5,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: V1.** The board, the CLI, and the CI pipeline are built, and hexdeck tracks its own build in `.kanban/`. V1.1 (web view, MCP, snapshots) comes only if V1 earns it.
+**Status: V1.** The board, the CLI, the CI pipeline, the local web view, and the MCP server are built, and hexdeck tracks its own build in `.kanban/`. V1.1 (snapshots) comes only if V1 earns it.
 
 ## Quick start
 
@@ -20,6 +20,8 @@ hexdeck show                         # print the board
 hexdeck log --since 2d               # what happened recently
 hexdeck pick --as your-name          # claim the next todo ticket
 hexdeck render --check               # CI: board files match the ops
+hexdeck web                          # local web view: drag, comment, commit
+hexdeck mcp                          # MCP server: agents ask the board questions
 ```
 
 Every change stages the op and the board files and prints a suggested commit message. `--commit` commits it. The board lives in `.kanban/` — read `.kanban/README.md` for the full manual.
@@ -59,6 +61,31 @@ Updated: 2026-08-21T10:22:30Z · 0 todo · 1 in-progress · 0 review · 0 done
 ```
 
 The board is the projection of the ops. Nothing is stored twice.
+
+## The web view
+
+`hexdeck web` serves the board in your browser: drag tickets between
+columns, comment, and commit the staged changes — same ops, same rules
+as the CLI.
+
+![The board in the browser](docs/web-board.png)
+
+Cards show the id, title and badges. Click a title to expand the
+description and comments:
+
+![Expanded card](docs/web-card-expanded.png)
+
+Type a comment on a ticket to add it to the board:
+
+![Adding a comment](docs/web-comment-typed.png)
+
+Drag a ticket to another column. The changes panel shows what is
+staged, the diff, and the suggested commit message:
+
+![Drag and commit](docs/web-drag-changes.png)
+
+Run `hexdeck web` in a project with a board, then open
+<http://localhost:8080>.
 
 ## Key concepts
 

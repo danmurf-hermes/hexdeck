@@ -30,6 +30,8 @@ Usage:
   hexdeck pick --as <actor> [--commit]
   hexdeck release <ticket> --as <actor> [--commit]
   hexdeck render [--svg] [--check]
+  hexdeck web [--port 8080] [--no-pull]
+  hexdeck mcp
 
 Every change is an op file in .kanban/ops/. Ops are never edited or
 deleted. The board is always rebuilt from the ops.
@@ -68,6 +70,10 @@ func main() {
 		err = runRelease(args)
 	case "render":
 		err = runRender(args)
+	case "web":
+		err = runWeb(args)
+	case "mcp":
+		err = runMCP(args)
 	case "help", "-h", "--help":
 		fmt.Print(usage)
 		return

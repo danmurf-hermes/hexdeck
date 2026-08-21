@@ -15,6 +15,8 @@ hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
 hexdeck pick --as <actor> [--commit]
 hexdeck release <ticket> --as <actor> [--commit]
 hexdeck render [--svg] [--check]
+hexdeck web [--port 8080] [--no-pull]
+hexdeck mcp
 ```
 
 Common flags:
@@ -73,6 +75,33 @@ Rebuilds `board.md` and `board.json` from the ops. `--svg` also
 rebuilds `board.svg`. `--check` re-renders and compares to the
 committed files — it fails if they drifted. `board.svg` is checked
 too, once it exists.
+
+### web
+
+Serves the local web view at `http://127.0.0.1:8080` (change the port
+with `--port`). The page shows the board; drag a ticket to move it,
+type in the box on a ticket to comment. Every change is an op, staged
+in git, and listed in the changes panel with the staged diff and the
+suggested commit message. Edit the message and press Commit — the
+changes land in one commit. The web view writes through the same path
+as the CLI, so the two can never disagree about the board.
+
+### mcp
+
+Serves the board as an MCP server over stdio. An MCP client (an agent
+harness) starts `hexdeck mcp` and asks the board questions without the
+CLI. The server speaks the MCP protocol (version 2025-06-18) and
+exposes four tools:
+
+- `board_show` — the whole board as markdown.
+- `board_show_ticket` — one ticket. Argument: `ticket`.
+- `board_log` — the op timeline. Optional arguments: `ticket`,
+  `actor`, `since` (a duration like `2d`).
+- `board_next` — the next todo ticket to pick.
+
+The server is read-only: every tool answers from the projection, and
+nothing writes to the board. Stdout carries the protocol; the board
+dir is printed to stderr.
 
 ## Op types
 

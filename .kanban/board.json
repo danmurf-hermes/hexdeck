@@ -24,6 +24,21 @@
       "created": "2026-08-20T22:20:19Z",
       "archived": false
     },
+    "T-10": {
+      "id": "T-10",
+      "title": "Phase 5 chunk 3: MCP server",
+      "description": "hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T12:56:17Z",
+          "actor": "danmurf-hermes",
+          "text": "TDD: mcp_test.go pinned first (red) — handshake, ping, tools/list golden, four tools, error paths, E2E over stdio. Then mcp.go: the JSON-RPC session, the four read-only tools, the golden tool list. Docs updated in the same commit. Coverage back above 80% (82.6%) with new CLI error-path tests."
+        }
+      ],
+      "created": "2026-08-21T12:56:13Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
@@ -149,7 +164,7 @@
       "id": "T-8",
       "title": "Phase 5 chunk 1: board.svg CI render + README embed",
       "description": "CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T10:59:41Z",
@@ -159,8 +174,23 @@
       ],
       "created": "2026-08-21T10:59:38Z",
       "archived": false
+    },
+    "T-9": {
+      "id": "T-9",
+      "title": "Phase 5 chunk 2: local web view",
+      "description": "hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T12:01:45Z",
+          "actor": "danmurf-hermes",
+          "text": "TDD: web_test.go pinned first (red) — golden page, state, move, comment, changes, commit, errors, E2E over HTTP. Then web.go: the embedded page, the API, the changes panel. Docs updated in the same commit."
+        }
+      ],
+      "created": "2026-08-21T12:01:45Z",
+      "archived": false
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T11:19:54Z"
+  "updated": "2026-08-21T12:56:17Z"
 }

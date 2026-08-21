@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
+Updated: 2026-08-21T12:56:17Z · 1 todo · 0 in-progress · 2 review · 7 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -9,9 +9,12 @@ Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
 ## in-progress
 
 ## review
-- T-8 Phase 5 chunk 1: board.svg CI render + README embed · 1 comment
-  CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.
-  - 2026-08-21T10:59:41Z danmurf-hermes: TDD: TestBoardSVGInWorkflow and TestReadmeEmbedsBoardSVG pinned first (red), then the workflow honesty step (render --svg, cmp, git diff --exit-code), the root board.svg, and the README embed. E2E tests gained render --svg and render --check SVG coverage. Docs updated in the same commit.
+- T-9 Phase 5 chunk 2: local web view · 1 comment
+  hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).
+  - 2026-08-21T12:01:45Z danmurf-hermes: TDD: web_test.go pinned first (red) — golden page, state, move, comment, changes, commit, errors, E2E over HTTP. Then web.go: the embedded page, the API, the changes panel. Docs updated in the same commit.
+- T-10 Phase 5 chunk 3: MCP server · 1 comment
+  hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.
+  - 2026-08-21T12:56:17Z danmurf-hermes: TDD: mcp_test.go pinned first (red) — handshake, ping, tools/list golden, four tools, error paths, E2E over stdio. Then mcp.go: the JSON-RPC session, the four read-only tools, the golden tool list. Docs updated in the same commit. Coverage back above 80% (82.6%) with new CLI error-path tests.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment
@@ -37,3 +40,6 @@ Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
 - T-7 Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7 · 1 comment
   Docs reassessment
   - 2026-08-21T10:28:42Z danmurf-hermes: Docs restructured into the Diataxis set: tutorial (a real session), how-to (one task, one guide), reference (commands, op types, config, rules), explanation (architecture). README rewritten: quick start, a real session with real output, key concepts, mermaid flowchart. Process narrative stripped from README and docs; components.md folded into the reference. Pinned in ci_test.go: TestDocsDiataxis, TestDocsDescribeTheApp, TestReadmeRealExample, TestMermaidFences.
+- T-8 Phase 5 chunk 1: board.svg CI render + README embed · 1 comment
+  CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.
+  - 2026-08-21T10:59:41Z danmurf-hermes: TDD: TestBoardSVGInWorkflow and TestReadmeEmbedsBoardSVG pinned first (red), then the workflow honesty step (render --svg, cmp, git diff --exit-code), the root board.svg, and the README embed. E2E tests gained render --svg and render --check SVG coverage. Docs updated in the same commit.
