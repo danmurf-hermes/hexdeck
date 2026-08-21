@@ -97,7 +97,7 @@ function render() {
     return '<div class="column" data-column="' + esc(col) + '"><h2>' + esc(col) + '</h2>' +
       '<div class="cards">' + tickets.map(cardHTML).join("") + '</div></div>';
   }).join("");
-  $("changes").innerHTML = state.changes.map(c =>
+  $("changes").innerHTML = (state.changes || []).map(c =>
     '<li>' + esc(c.ticket) + ' ' + esc(c.type) + '<div class="msg">' + esc(c.message) + '</div></li>'
   ).join("");
   $("diff").textContent = state.diff || "";

@@ -62,6 +62,26 @@ Updated: 2026-08-21T10:22:30Z · 0 todo · 1 in-progress · 0 review · 0 done
 
 The board is the projection of the ops. Nothing is stored twice.
 
+## The web view
+
+`hexdeck web` serves the board in your browser: drag tickets between
+columns, comment, and commit the staged changes — same ops, same rules
+as the CLI.
+
+![The board in the browser](docs/web-board.png)
+
+Type a comment on a ticket to add it to the board:
+
+![Adding a comment](docs/web-comment-typed.png)
+
+Drag a ticket to another column. The changes panel shows what is
+staged, the diff, and the suggested commit message:
+
+![Drag and commit](docs/web-drag-changes.png)
+
+Run `hexdeck web` in a project with a board, then open
+<http://localhost:8080>.
+
 ## Key concepts
 
 These words describe the board as a project management tool. This is the language you use day to day.

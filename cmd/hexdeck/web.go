@@ -117,7 +117,7 @@ function render() {
     return '<div class="column" data-column="' + esc(col) + '"><h2>' + esc(col) + '</h2>' +
       '<div class="cards">' + tickets.map(cardHTML).join("") + '</div></div>';
   }).join("");
-  $("changes").innerHTML = state.changes.map(c =>
+  $("changes").innerHTML = (state.changes || []).map(c =>
     '<li>' + esc(c.ticket) + ' ' + esc(c.type) + '<div class="msg">' + esc(c.message) + '</div></li>'
   ).join("");
   $("diff").textContent = state.diff || "";
@@ -350,11 +350,15 @@ func (s *webServer) handleChanges(w http.ResponseWriter, r *http.Request) {
 	if len(s.changes) > 0 {
 		message = s.changes[len(s.changes)-1].Message
 	}
+	changes := s.changes
+	if changes == nil {
+		changes = []webChange{}
+	}
 	writeJSON(w, struct {
 		Changes []webChange `json:"changes"`
 		Diff    string      `json:"diff"`
 		Message string      `json:"message"`
-	}{s.changes, diff, message})
+	}{changes, diff, message})
 }
 
 // handleCommit commits the staged changes. The optional body is

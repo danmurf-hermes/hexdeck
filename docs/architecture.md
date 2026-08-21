@@ -349,7 +349,8 @@ it talks to the API endpoints the server exposes:
 - `POST /api/comment` — add a comment. Body: `{"ticket": "T-1",
   "text": "on it"}`.
 - `GET /api/changes` — the changes panel: the list, the staged diff,
-  the suggested message.
+  the suggested message. On a fresh server the list is an empty array,
+  never null — the page renders an empty panel (`TestWebChangesEmpty`).
 - `POST /api/commit` — commit the staged changes. Optional body:
   `{"message": "..."}` — the message the user edited.
 

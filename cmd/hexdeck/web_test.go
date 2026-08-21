@@ -227,6 +227,28 @@ func TestWebChanges(t *testing.T) {
 	}
 }
 
+// TestWebChangesEmpty checks GET /api/changes on a fresh server: the
+// changes list is an empty array, not null. A null list crashes the
+// page's render loop (state.changes.map) — the panel must stay usable
+// before anything is staged.
+func TestWebChangesEmpty(t *testing.T) {
+	s, _ := newWebTestServer(t)
+	rec := doJSON(t, s, "GET", "/api/changes", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("changes: status %d\n%s", rec.Code, rec.Body.String())
+	}
+	var resp struct {
+		Changes []webChange `json:"changes"`
+	}
+	decodeJSON(t, rec, &resp)
+	if resp.Changes == nil {
+		t.Fatal("changes is null, want an empty array — the page crashes on a null list")
+	}
+	if len(resp.Changes) != 0 {
+		t.Fatalf("changes = %d, want 0 on a fresh server", len(resp.Changes))
+	}
+}
+
 // TestWebCommit checks POST /api/commit: the staged changes land in a
 // commit with the suggested message, the working tree is clean, and
 // the changes list empties.
