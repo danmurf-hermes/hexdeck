@@ -5,7 +5,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is done: lint, test, build, and `render --check` gates run on every push and PR, and the README badges show CI status and code coverage. Phase 4 (dogfood) is in progress: hexdeck tracks its own build in `.kanban/`.
+**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is done: lint, test, build, and `render --check` gates run on every push and PR, and the README badges show CI status and code coverage. Phase 4 (dogfood) is in progress: hexdeck tracks its own build in `.kanban/`, and `board.md` now renders ticket descriptions and comments — the board answers "where is the project up to" on its own.
 
 ## Board language
 
@@ -80,7 +80,7 @@ Every change stages the op and the board files and prints a suggested commit mes
 
 ## What comes next
 
-- Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else.
+- Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
 
 ## Docs
 

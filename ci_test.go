@@ -75,6 +75,33 @@ func TestDogfoodBoardInWorkflow(t *testing.T) {
 	}
 }
 
+// TestDogfoodBoardAnswersTheQuestion checks the Phase 4 chunk 3
+// acceptance: a human reads .kanban/board.md and can answer "where is
+// the project up to" without opening anything else. The committed board
+// must carry the story on its own: the done column with the phase
+// history, the todo column with what is next, and the ticket
+// descriptions and comments that explain them.
+func TestDogfoodBoardAnswersTheQuestion(t *testing.T) {
+	data, err := os.ReadFile(".kanban/board.md")
+	if err != nil {
+		t.Fatalf("read .kanban/board.md: %v", err)
+	}
+	board := string(data)
+	for _, want := range []string{
+		"## done",
+		"## todo",
+		"Phases 1-3.5 complete",  // the phase history, in T-1's comment
+		"T-3 Dogfood acceptance", // what is next
+		"T-4 Cold-start test",
+		"T-5 V1.1: web view, MCP, snapshots",
+		"A human reads board.md and can answer the question", // T-3's description, rendered
+	} {
+		if !strings.Contains(board, want) {
+			t.Errorf(".kanban/board.md is missing %q — the board does not answer \"where is the project up to\"", want)
+		}
+	}
+}
+
 func TestReadmeBadges(t *testing.T) {
 	data, err := os.ReadFile("README.md")
 	if err != nil {

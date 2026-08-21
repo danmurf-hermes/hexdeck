@@ -1,0 +1,1 @@
+{"schema":1,"opId":"32f98d8a-37ef-42ad-a6ed-c4fdb4c318fd","seq":34,"ts":"2026-08-21T07:52:21Z","actor":"hermes","type":"comment.added","ticket":"T-3","payload":{"text":"board.md now renders descriptions and comments — the board answers the question on its own. The acceptance is pinned in ci_test.go."}}

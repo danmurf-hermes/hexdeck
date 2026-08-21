@@ -55,7 +55,7 @@
       "id": "T-3",
       "title": "Dogfood acceptance: board.md answers where the project is up to",
       "description": "A human reads board.md and can answer the question without opening anything else.",
-      "status": "todo",
+      "status": "review",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
@@ -66,9 +66,16 @@
           "ts": "2026-08-21T06:53:49Z",
           "actor": "hermes",
           "text": "Back to todo: no PR has delivered the acceptance test yet. Chunk 2 delivers the worker runbook."
+        },
+        {
+          "ts": "2026-08-21T07:52:21Z",
+          "actor": "hermes",
+          "text": "board.md now renders descriptions and comments — the board answers the question on its own. The acceptance is pinned in ci_test.go."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
+      "claimedBy": "hermes",
+      "claimedAt": "2026-08-21T07:52:21Z",
       "archived": false
     },
     "T-4": {
@@ -103,5 +110,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T07:15:42Z"
+  "updated": "2026-08-21T07:52:21Z"
 }

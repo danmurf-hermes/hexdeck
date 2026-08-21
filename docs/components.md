@@ -23,7 +23,7 @@ Code: `fold.go`.
 
 Three views over the same `BoardState`, all deterministic:
 
-- `board.md` — the human-readable view. Committed, diffable in PRs. A stale claim renders `(stale claim)`.
+- `board.md` — the human-readable view. Committed, diffable in PRs. A stale claim renders `(stale claim)`. Ticket descriptions render under their titles, and comments render as nested bullets with the ts, actor, and text — the board carries the story on its own.
 - `board.json` — the machine view. The full state, for UIs and agents.
 - `board.svg` — the board image for the README. Fixed layout and palette, no external fonts, no random ids. A stale claim renders `(stale)` in the claim badge.
 
