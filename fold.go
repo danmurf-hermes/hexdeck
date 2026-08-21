@@ -8,8 +8,11 @@ import (
 	"time"
 )
 
-// DefaultColumns are the board columns when config.json is missing.
-var DefaultColumns = []string{"todo", "in-progress", "review", "done"}
+// DefaultColumns are the board columns when config.json is missing:
+// backlog for planned work, todo for work ready to pick up, done for
+// finished work. in-progress is opt-in — a board that wants it adds it
+// to config.json.
+var DefaultColumns = []string{"backlog", "todo", "done"}
 
 // Config is the board config from .kanban/config.json.
 type Config struct {

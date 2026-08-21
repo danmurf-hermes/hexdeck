@@ -168,19 +168,20 @@ and the archived flag.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> todo: ticket.created
-    state "in-progress" as in_progress
-    todo --> in_progress: ticket.moved
-    in_progress --> review: ticket.moved
-    review --> done: ticket.moved
-    in_progress --> todo: ticket.moved
-    review --> in_progress: ticket.moved
-    todo --> in_progress: pick (claim + move)
-    in_progress --> in_progress: comment.added
-    in_progress --> in_progress: ticket.updated
-    in_progress --> in_progress: release (clear claim)
+    [*] --> backlog: ticket.created
+    backlog --> todo: ticket.moved
+    todo --> done: ticket.moved
+    todo --> todo: pick (claim)
+    todo --> todo: comment.added
+    todo --> todo: ticket.updated
+    todo --> todo: release (clear claim)
     done --> [*]: ticket.archived
 ```
+
+The default flow is `backlog → todo → done`: plan work in backlog,
+bring it into todo when it is ready to pick up, move it to done when it
+is finished. `in-progress` is opt-in — a board that wants it adds it to
+`config.json`, and `pick` then moves the ticket there.
 
 ## Claims
 
@@ -307,13 +308,13 @@ honesty gate as the demo board. Its claim timeout is ten years, for
 the same reason: the committed projections never change with the wall
 clock.
 
-The merge rule applies to the dogfood board: a ticket in `review` is
+The merge rule applies to the dogfood board: a ticket in `todo` is
 done when its PR merges. The worker moves it to `done` as an ops-only
 commit straight to main — no second PR.
 
 `docs/contributing.md` is the contribution guide — for humans and
 agents alike. It describes how the board is used (`pick` a ticket,
-`comment` at milestones, `move <ticket> review` at the end, the
+`comment` at milestones, `move <ticket> done` at the end, the
 same-commit rule), the quality bar, and the rules. A fresh agent with
 zero context reads it once and can run a piece of work.
 
@@ -369,7 +370,7 @@ board files itself — it talks to the API endpoints the server exposes:
 
 - `GET /api/state` — the projection.
 - `POST /api/move` — move a ticket. Body: `{"ticket": "T-1", "to":
-  "in-progress"}`.
+  "todo"}`.
 - `POST /api/comment` — add a comment. Body: `{"ticket": "T-1",
   "text": "on it"}`.
 - `GET /api/changes` — the changes panel: the list, the staged diff,

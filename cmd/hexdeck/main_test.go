@@ -131,7 +131,7 @@ func TestE2E(t *testing.T) {
 		t.Errorf("create output missing ticket id:\n%s", out)
 	}
 
-	out, code = runHexdeck(t, dir, "move", "T-1", "in-progress", "--as", "claude-a")
+	out, code = runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a")
 	if code != 0 {
 		t.Fatalf("move: exit %d\n%s", code, out)
 	}
@@ -148,7 +148,7 @@ func TestE2E(t *testing.T) {
 	if !strings.Contains(out, "Fix login bug") || !strings.Contains(out, "Add sound settings") {
 		t.Errorf("show output missing tickets:\n%s", out)
 	}
-	if !strings.Contains(out, "claimed by") && !strings.Contains(out, "in-progress") {
+	if !strings.Contains(out, "claimed by") && !strings.Contains(out, "todo") {
 		t.Errorf("show output missing the moved ticket:\n%s", out)
 	}
 
@@ -197,16 +197,17 @@ func TestE2E(t *testing.T) {
 		t.Errorf("tickets = %d, want 2", len(state.Tickets))
 	}
 	t1 := state.Tickets["T-1"]
-	if t1.Status != "in-progress" {
-		t.Errorf("T-1 status = %q, want in-progress", t1.Status)
+	if t1.Status != "todo" {
+		t.Errorf("T-1 status = %q, want todo", t1.Status)
 	}
 	if len(t1.Comments) != 1 || t1.Comments[0].Text != "on it" {
 		t.Errorf("T-1 comments = %v, want one comment", t1.Comments)
 	}
 }
 
-// TestE2EPickSingleColumn checks the guard: pick on a board with fewer
-// than two columns fails with a clear error instead of panicking.
+// TestE2EPickSingleColumn checks pick on a board with one column: the
+// claim lands and the ticket stays put — no in-progress column, no
+// move.
 func TestE2EPickSingleColumn(t *testing.T) {
 	dir := initRepo(t)
 	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
@@ -218,7 +219,7 @@ func TestE2EPickSingleColumn(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read config: %v", err)
 	}
-	one := strings.Replace(string(data), "\"todo\",\n    \"in-progress\",\n    \"review\",\n    \"done\"", "\"todo\"", 1)
+	one := strings.Replace(string(data), "\"backlog\",\n    \"todo\",\n    \"done\"", "\"todo\"", 1)
 	if one == string(data) {
 		t.Fatalf("config replace did not match:\n%s", data)
 	}
@@ -229,11 +230,22 @@ func TestE2EPickSingleColumn(t *testing.T) {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
 	out, code := runHexdeck(t, dir, "pick", "--as", "claude-a")
-	if code == 0 {
-		t.Fatalf("pick on a one-column board succeeded, want an error:\n%s", out)
+	if code != 0 {
+		t.Fatalf("pick on a one-column board: exit %d\n%s", code, out)
 	}
-	if !strings.Contains(out, "at least two columns") {
-		t.Errorf("pick error = %q, want it to name the column requirement", out)
+	if !strings.Contains(out, "T-1") {
+		t.Errorf("pick output = %q, want T-1", out)
+	}
+	state, err := hexdeck.Project(filepath.Join(dir, ".kanban"))
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	t1 := state.Tickets["T-1"]
+	if t1.ClaimedBy != "claude-a" {
+		t.Errorf("T-1 claimedBy = %q, want claude-a", t1.ClaimedBy)
+	}
+	if t1.Status != "todo" {
+		t.Errorf("T-1 status = %q, want todo — no in-progress column, no move", t1.Status)
 	}
 }
 
@@ -268,7 +280,7 @@ func TestE2EStaged(t *testing.T) {
 	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
-	if out, code := runHexdeck(t, dir, "move", "T-1", "in-progress", "--as", "claude-a"); code != 0 {
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a"); code != 0 {
 		t.Fatalf("move: exit %d\n%s", code, out)
 	}
 	out := runGitOut(t, dir, "status", "--porcelain")
@@ -304,8 +316,10 @@ func TestE2ECustomPrefix(t *testing.T) {
 	}
 }
 
-// TestE2EPickRelease checks pick: it claims and moves the next todo
-// ticket, and release clears the claim.
+// TestE2EPickRelease checks pick on the default flow: a ticket starts
+// in backlog, becomes pickable when moved to todo, and pick claims it
+// without moving it — the claim alone marks the pick. Release clears
+// the claim.
 func TestE2EPickRelease(t *testing.T) {
 	dir := initRepo(t)
 	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
@@ -317,7 +331,21 @@ func TestE2EPickRelease(t *testing.T) {
 	if out, code := runHexdeck(t, dir, "create", "Two", "--as", "claude-a"); code != 0 {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
+	// A ticket in backlog is not pickable — it must move to todo first.
 	out, code := runHexdeck(t, dir, "pick", "--as", "codex-1")
+	if code != 0 {
+		t.Fatalf("pick: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "no todo tickets to pick") {
+		t.Errorf("pick on a backlog-only board = %q, want the empty answer", out)
+	}
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "move", "T-2", "todo", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
+	out, code = runHexdeck(t, dir, "pick", "--as", "codex-1")
 	if code != 0 {
 		t.Fatalf("pick: exit %d\n%s", code, out)
 	}
@@ -332,8 +360,8 @@ func TestE2EPickRelease(t *testing.T) {
 	if t1.ClaimedBy != "codex-1" {
 		t.Errorf("T-1 claimedBy = %q, want codex-1", t1.ClaimedBy)
 	}
-	if t1.Status != "in-progress" {
-		t.Errorf("T-1 status = %q, want in-progress", t1.Status)
+	if t1.Status != "todo" {
+		t.Errorf("T-1 status = %q, want todo — the default flow has no in-progress column", t1.Status)
 	}
 	if t1.ClaimedAt == nil {
 		t.Errorf("T-1 claimedAt is nil")
@@ -491,6 +519,9 @@ func TestE2EShowClaimed(t *testing.T) {
 	if out, code := runHexdeck(t, dir, "create", "One", "-d", "the details", "--as", "claude-a"); code != 0 {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
 	if out, code := runHexdeck(t, dir, "pick", "--as", "codex-1"); code != 0 {
 		t.Fatalf("pick: exit %d\n%s", code, out)
 	}
@@ -498,7 +529,7 @@ func TestE2EShowClaimed(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("show T-1: exit %d\n%s", code, out)
 	}
-	for _, want := range []string{"claimed by: codex-1", "description: the details", "status: in-progress"} {
+	for _, want := range []string{"claimed by: codex-1", "description: the details", "status: todo"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("show T-1 missing %q:\n%s", want, out)
 		}
@@ -564,7 +595,7 @@ func TestE2ESVGFreshAfterWrite(t *testing.T) {
 		t.Fatalf("read board.svg: %v", err)
 	}
 	// A write that changes the board must refresh the SVG.
-	if out, code := runHexdeck(t, dir, "move", "T-1", "in-progress", "--as", "claude-a"); code != 0 {
+	if out, code := runHexdeck(t, dir, "move", "T-1", "todo", "--as", "claude-a"); code != 0 {
 		t.Fatalf("move: exit %d\n%s", code, out)
 	}
 	after, err := os.ReadFile(filepath.Join(boardDir, "board.svg"))

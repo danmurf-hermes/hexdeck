@@ -1,1 +1,1 @@
-{"schema":1,"opId":"11c581b0-325b-4c9b-b46e-d54ef1833d8c","seq":7,"ts":"2026-08-20T20:56:20Z","actor":"alice","type":"ticket.moved","ticket":"T-1","payload":{"from":"todo","to":"in-progress"}}
+{"schema":1,"opId":"11c581b0-325b-4c9b-b46e-d54ef1833d8c","seq":7,"ts":"2026-08-20T20:56:16Z","actor":"demo","type":"ticket.created","ticket":"T-6","payload":{"title":"Add keyboard shortcuts","description":""}}

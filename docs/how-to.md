@@ -22,14 +22,14 @@ Options:
 
 ```
 hexdeck create "Fix login bug" -d "The login form rejects valid passwords."
-hexdeck move T-1 in-progress
+hexdeck move T-1 todo
 hexdeck comment T-1 "reproduced it"
-hexdeck move T-1 review
+hexdeck move T-1 done
 ```
 
-A ticket starts in `todo`. Move it through the columns as the work
-moves. Comment at milestones worth remembering — comments are part of
-the ticket's history.
+A ticket starts in `backlog`. Move it to `todo` when it is ready to
+pick up, and to `done` when it is finished. Comment at milestones worth
+remembering — comments are part of the ticket's history.
 
 Every command stages the op and the board files and prints a suggested
 commit message. Commit them together with your code — the commit is the
@@ -41,9 +41,15 @@ evidence. Or pass `--commit` and the CLI commits for you.
 hexdeck pick --as your-name
 ```
 
-`pick` claims the next `todo` ticket and moves it to `in-progress`. The
-board shows the claim. A claim is a cooperative lock, not a security
-boundary — it tells others who is working on the ticket.
+`pick` claims the next `todo` ticket. The default flow has no
+`in-progress` column — the claim alone marks the pick, and the ticket
+stays in `todo`. The board shows the claim. A claim is a cooperative
+lock, not a security boundary — it tells others who is working on the
+ticket.
+
+A board that wants an `in-progress` column adds it to
+`.kanban/config.json`; `pick` then moves the ticket there. The column is
+opt-in for work that spans multiple PRs.
 
 ```
 hexdeck release T-2 --as your-name
@@ -161,7 +167,7 @@ yourself. Create `.kanban/ops/<seq>-<uuid>.json`:
 { "schema": 1, "opId": "<uuid>", "seq": <next number>,
   "ts": "<ISO time>", "actor": "<your name>",
   "type": "ticket.moved", "ticket": "T-12",
-  "payload": { "from": "todo", "to": "in-progress" } }
+  "payload": { "from": "backlog", "to": "todo" } }
 ```
 
 One op per file. Never modify an op after it is committed. Then run

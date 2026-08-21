@@ -13,8 +13,8 @@ A kanban board stored in git, built for AI agents. Tickets, columns, comments, a
 go install github.com/danmurf/hexdeck/cmd/hexdeck@latest
 cd your-project
 hexdeck init --as your-name          # create the board
-hexdeck create "Fix login bug"       # new ticket
-hexdeck move T-1 in-progress         # change column
+hexdeck create "Fix login bug"       # new ticket (starts in backlog)
+hexdeck move T-1 todo                # ready to pick up
 hexdeck comment T-1 "on it"          # add a comment
 hexdeck show                         # print the board
 hexdeck log --since 2d               # what happened recently
@@ -39,23 +39,21 @@ $ hexdeck create "Fix login bug"
 T-1
 suggested commit: board: create T-1
 
-$ hexdeck move T-1 in-progress
-suggested commit: board: move T-1 → in-progress
+$ hexdeck move T-1 todo
+suggested commit: board: move T-1 → todo
 
 $ hexdeck comment T-1 "reproduced it"
 suggested commit: board: comment on T-1
 
 $ hexdeck show
 # Board — demo
-Updated: 2026-08-21T10:22:30Z · 0 todo · 1 in-progress · 0 review · 0 done
+Updated: 2026-08-21T10:22:30Z · 0 backlog · 1 todo · 0 done
+
+## backlog
 
 ## todo
-
-## in-progress
 - T-1 Fix login bug · 1 comment
   - 2026-08-21T10:22:30Z you: reproduced it
-
-## review
 
 ## done
 ```
@@ -91,10 +89,10 @@ Run `hexdeck web` in a project with a board, then open
 
 These words describe the board as a project management tool. This is the language you use day to day.
 
-- **Board** — the whole kanban. It has four columns: `todo`, `in-progress`, `review`, `done`.
+- **Board** — the whole kanban. It has three columns by default: `backlog`, `todo`, `done`.
 - **Ticket** — one unit of work. Each ticket has an id like `T-1` and a title.
 - **Column** — where a ticket sits. A ticket is in exactly one column at a time.
-- **Move** — change a ticket's column. `hexdeck move T-1 in-progress`.
+- **Move** — change a ticket's column. `hexdeck move T-1 todo`.
 - **Claim** — mark a ticket as yours. `hexdeck pick --as your-name` claims the next `todo` ticket. A claim shows who is working on the ticket.
 - **Release** — clear a claim. The ticket goes back to being unclaimed.
 - **Comment** — a note on a ticket. Comments are part of the ticket's history.

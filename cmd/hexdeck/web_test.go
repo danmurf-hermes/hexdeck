@@ -112,8 +112,8 @@ func TestWebState(t *testing.T) {
 	if len(state.Tickets) != 2 {
 		t.Errorf("tickets = %d, want 2", len(state.Tickets))
 	}
-	if state.Tickets["T-1"].Status != "todo" {
-		t.Errorf("T-1 status = %q, want todo", state.Tickets["T-1"].Status)
+	if state.Tickets["T-1"].Status != "backlog" {
+		t.Errorf("T-1 status = %q, want backlog — new tickets start there", state.Tickets["T-1"].Status)
 	}
 }
 
@@ -122,7 +122,7 @@ func TestWebState(t *testing.T) {
 // state and the suggested commit message.
 func TestWebMove(t *testing.T) {
 	s, dir := newWebTestServer(t)
-	rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "in-progress"})
+	rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "todo"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
 	}
@@ -131,10 +131,10 @@ func TestWebMove(t *testing.T) {
 		Message string             `json:"message"`
 	}
 	decodeJSON(t, rec, &resp)
-	if resp.State.Tickets["T-1"].Status != "in-progress" {
-		t.Errorf("T-1 status = %q, want in-progress", resp.State.Tickets["T-1"].Status)
+	if resp.State.Tickets["T-1"].Status != "todo" {
+		t.Errorf("T-1 status = %q, want todo", resp.State.Tickets["T-1"].Status)
 	}
-	if resp.Message != "board: move T-1 → in-progress" {
+	if resp.Message != "board: move T-1 → todo" {
 		t.Errorf("message = %q, want the suggested commit message", resp.Message)
 	}
 	// The op landed on disk and the projection agrees.
@@ -142,8 +142,8 @@ func TestWebMove(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
-	if state.Tickets["T-1"].Status != "in-progress" {
-		t.Errorf("projected T-1 status = %q, want in-progress", state.Tickets["T-1"].Status)
+	if state.Tickets["T-1"].Status != "todo" {
+		t.Errorf("projected T-1 status = %q, want todo", state.Tickets["T-1"].Status)
 	}
 	// The op and the board files are staged — the same-commit rule.
 	out := runGitOut(t, dir, "status", "--porcelain")
@@ -191,7 +191,7 @@ func TestWebComment(t *testing.T) {
 // last change's message).
 func TestWebChanges(t *testing.T) {
 	s, _ := newWebTestServer(t)
-	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "in-progress"}); rec.Code != http.StatusOK {
+	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "todo"}); rec.Code != http.StatusOK {
 		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
 	}
 	if rec := doJSON(t, s, "POST", "/api/comment", map[string]string{"ticket": "T-2", "text": "later"}); rec.Code != http.StatusOK {
@@ -255,7 +255,7 @@ func TestWebChangesEmpty(t *testing.T) {
 // the changes list empties.
 func TestWebCommit(t *testing.T) {
 	s, dir := newWebTestServer(t)
-	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "in-progress"}); rec.Code != http.StatusOK {
+	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "todo"}); rec.Code != http.StatusOK {
 		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
 	}
 	rec := doJSON(t, s, "POST", "/api/commit", nil)
@@ -271,7 +271,7 @@ func TestWebCommit(t *testing.T) {
 		t.Error("committed = false, want true")
 	}
 	out := runGitOut(t, dir, "log", "--oneline", "-1")
-	if !strings.Contains(out, "board: move T-1 → in-progress") {
+	if !strings.Contains(out, "board: move T-1 → todo") {
 		t.Errorf("last commit = %q, want the suggested message", out)
 	}
 	out = runGitOut(t, dir, "status", "--porcelain")
@@ -292,15 +292,15 @@ func TestWebCommit(t *testing.T) {
 // user edited in the panel when one is sent.
 func TestWebCommitCustomMessage(t *testing.T) {
 	s, dir := newWebTestServer(t)
-	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "review"}); rec.Code != http.StatusOK {
+	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "done"}); rec.Code != http.StatusOK {
 		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
 	}
-	rec := doJSON(t, s, "POST", "/api/commit", map[string]string{"message": "board: T-1 is ready for review"})
+	rec := doJSON(t, s, "POST", "/api/commit", map[string]string{"message": "board: T-1 is done"})
 	if rec.Code != http.StatusOK {
 		t.Fatalf("commit: status %d\n%s", rec.Code, rec.Body.String())
 	}
 	out := runGitOut(t, dir, "log", "--oneline", "-1")
-	if !strings.Contains(out, "board: T-1 is ready for review") {
+	if !strings.Contains(out, "board: T-1 is done") {
 		t.Errorf("last commit = %q, want the edited message", out)
 	}
 }
@@ -366,7 +366,7 @@ func TestWebCommitLeavesForeignStaged(t *testing.T) {
 	}
 	runGitOut(t, dir, "add", "notes.txt")
 	// Move through the web server so the changes panel is populated.
-	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "in-progress"}); rec.Code != http.StatusOK {
+	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "todo"}); rec.Code != http.StatusOK {
 		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
 	}
 	rec := doJSON(t, s, "POST", "/api/commit", nil)
@@ -402,7 +402,7 @@ func TestWebConcurrentWrites(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": fmt.Sprintf("T-%d", i+1), "to": "in-progress"})
+			rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": fmt.Sprintf("T-%d", i+1), "to": "todo"})
 			codes[i] = rec.Code
 		}(i)
 	}
@@ -431,14 +431,14 @@ func TestWebConcurrentWrites(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
-	inProgress := 0
+	moved := 0
 	for _, ticket := range state.Tickets {
-		if ticket.Status == "in-progress" {
-			inProgress++
+		if ticket.Status == "todo" {
+			moved++
 		}
 	}
-	if inProgress != n {
-		t.Errorf("in-progress tickets = %d, want %d", inProgress, n)
+	if moved != n {
+		t.Errorf("todo tickets = %d, want %d", moved, n)
 	}
 }
 
@@ -513,7 +513,7 @@ func TestE2EWeb(t *testing.T) {
 		t.Errorf("GET /: status %d, page does not look like the web view", resp.StatusCode)
 	}
 	// A move over HTTP lands as an op.
-	data, _ := json.Marshal(map[string]string{"ticket": "T-1", "to": "in-progress"})
+	data, _ := json.Marshal(map[string]string{"ticket": "T-1", "to": "todo"})
 	resp, err = http.Post(base+"/api/move", "application/json", bytes.NewReader(data))
 	if err != nil {
 		t.Fatalf("POST /api/move: %v", err)
@@ -526,7 +526,7 @@ func TestE2EWeb(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
-	if state.Tickets["T-1"].Status != "in-progress" {
-		t.Errorf("T-1 status = %q, want in-progress", state.Tickets["T-1"].Status)
+	if state.Tickets["T-1"].Status != "todo" {
+		t.Errorf("T-1 status = %q, want todo", state.Tickets["T-1"].Status)
 	}
 }

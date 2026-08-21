@@ -263,7 +263,7 @@ func (s *webServer) handleState(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleMove moves a ticket. The body is {"ticket": "T-1", "to":
-// "in-progress"}.
+// "todo"}.
 func (s *webServer) handleMove(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeError(w, http.StatusMethodNotAllowed, fmt.Errorf("move takes POST"))
