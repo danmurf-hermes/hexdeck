@@ -13,7 +13,7 @@
       "id": "T-1",
       "title": "Migrate the build tracker into the board",
       "description": "PROGRESS.md's phase table becomes tickets. The board is the tracker.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
@@ -86,5 +86,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-20T22:20:36Z"
+  "updated": "2026-08-21T06:52:35Z"
 }
