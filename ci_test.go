@@ -3,6 +3,7 @@ package hexdeck
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -21,7 +22,8 @@ func TestCoverageJobInWorkflow(t *testing.T) {
 	workflow := string(data)
 	for _, want := range []string{
 		"coverage:",
-		"go test -coverprofile=coverage.out ./...",
+		"HEXDECK_E2E_COVER",
+		"go test -coverpkg=./... -count=1 -coverprofile=coverage.out ./...",
 		"go tool cover -func=coverage.out",
 		"coverage.json",
 		"schemaVersion",
@@ -58,6 +60,34 @@ func TestCoverageBadgeFile(t *testing.T) {
 	}
 	if badge.Color == "" {
 		t.Error("color is empty")
+	}
+}
+
+// TestCoverageBadgeHonest checks the T-6 acceptance: the badge number
+// counts the CLI's end-to-end tests too. The E2E tests run the CLI as a
+// subprocess, which go tool cover cannot see — the honest measurement
+// builds the test binaries with -cover, writes the subprocess coverage
+// through GOCOVERDIR, and merges it with go tool covdata. The number is
+// pinned at 80 or above: a future change that makes the badge dishonest
+// again fails this test.
+func TestCoverageBadgeHonest(t *testing.T) {
+	data, err := os.ReadFile("coverage.json")
+	if err != nil {
+		t.Fatalf("read coverage.json: %v", err)
+	}
+	var badge struct {
+		Message string `json:"message"`
+	}
+	if err := json.Unmarshal(data, &badge); err != nil {
+		t.Fatalf("parse coverage.json: %v", err)
+	}
+	total := strings.TrimSuffix(badge.Message, "%")
+	num, err := strconv.ParseFloat(total, 64)
+	if err != nil {
+		t.Fatalf("coverage.json message %q is not a number", badge.Message)
+	}
+	if num < 80 {
+		t.Errorf("coverage.json shows %.1f%%, want 80 or above — the badge does not count the CLI's subprocess tests", num)
 	}
 }
 

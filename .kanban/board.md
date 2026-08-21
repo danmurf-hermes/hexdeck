@@ -1,18 +1,19 @@
 # Board — hexdeck
-Updated: 2026-08-21T09:22:13Z · 3 todo · 0 in-progress · 0 review · 4 done
+Updated: 2026-08-21T09:41:13Z · 2 todo · 0 in-progress · 1 review · 4 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
   Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
   - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
-- T-6 Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest.
-  Coverage measurement fix
 - T-7 Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7
   Docs reassessment
 
 ## in-progress
 
 ## review
+- T-6 Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest. · 1 comment
+  Coverage measurement fix
+  - 2026-08-21T09:41:13Z danmurf-hermes: Honest measurement wired: HEXDECK_E2E_COVER builds the E2E binary with -cover -coverpkg=./..., and go test merges the subprocess coverage into the profile. Total 80.7% (was 44.7% — the CLI's tests did not count). Pinned in ci_test.go: the badge must stay at 80% or above.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment
