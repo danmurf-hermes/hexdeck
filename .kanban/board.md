@@ -1,11 +1,17 @@
 # Board — hexdeck
-Updated: 2026-08-21T15:26:44Z · 0 todo · 0 in-progress · 0 review · 10 done
+Updated: 2026-08-21T17:59:57Z · 4 backlog · 0 todo · 10 done
+
+## backlog
+- T-11 Default columns: backlog → todo → done
+  The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.
+- T-12 Comments live on the ticket, not the board view
+  The board shows ticket id and title only. Comments are for the ticket view: hexdeck show <ticket> and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.
+- T-13 Ticket relationships: blocks, related-to
+  Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.
+- T-14 Labels on tickets
+  A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
 
 ## todo
-
-## in-progress
-
-## review
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment

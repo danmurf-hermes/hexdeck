@@ -1,0 +1,1 @@
+{"schema":1,"opId":"2144fd10-a192-4a0c-af0d-7e1ad6c99f64","seq":74,"ts":"2026-08-21T17:59:57Z","actor":"danmurf-hermes","type":"ticket.created","ticket":"T-14","payload":{"title":"Labels on tickets","description":"A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work."}}
