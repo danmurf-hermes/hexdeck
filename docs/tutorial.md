@@ -152,6 +152,31 @@ created: 2026-08-21T10:23:52Z
 `pick` skips a blocked ticket, so it takes T-1, not T-3. Remove the
 link with `hexdeck link T-2 blocks T-3 --remove`.
 
+## 9.5 Label a ticket
+
+```sh
+$ hexdeck label T-1 bug
+suggested commit: board: label T-1 bug
+```
+
+A label is one word — a small set per ticket (e.g. `feature`, `bug`,
+`docs`, `infra`). The board card shows the labels after the claim:
+
+```sh
+$ hexdeck show
+# Board — demo
+Updated: 2026-08-21T10:23:52Z · 0 backlog · 2 todo · 0 done
+
+## backlog
+
+## todo
+- T-1 Fix login bug [bug]
+- T-2 Add dark mode — claimed by you
+```
+
+Filter the board by label with `hexdeck show --label bug`. Remove a
+label with `hexdeck label T-1 bug --remove`.
+
 ## 10. Release the claim
 
 ```

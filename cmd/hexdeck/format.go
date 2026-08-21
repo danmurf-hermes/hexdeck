@@ -29,6 +29,9 @@ func ticketText(ticket hexdeck.Ticket) string {
 	if len(ticket.Related) > 0 {
 		fmt.Fprintf(&b, "related: %s\n", strings.Join(ticket.Related, ", "))
 	}
+	if len(ticket.Labels) > 0 {
+		fmt.Fprintf(&b, "labels: %s\n", strings.Join(ticket.Labels, ", "))
+	}
 	if ticket.ClaimedBy != "" {
 		fmt.Fprintf(&b, "claimed by: %s", ticket.ClaimedBy)
 		if ticket.ClaimStale {

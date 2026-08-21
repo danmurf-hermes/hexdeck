@@ -94,6 +94,46 @@ hexdeck link T-1 blocks T-3 --remove
 
 A ticket can never link to itself.
 
+## Label tickets
+
+```sh
+hexdeck label T-1 bug
+hexdeck label T-1 docs
+```
+
+A label is one word — a small set per ticket (e.g. `feature`, `bug`,
+`docs`, `infra`). The board card shows the labels after the claim:
+
+```sh
+$ hexdeck show
+# Board — demo
+Updated: 2026-08-21T10:23:52Z · 0 backlog · 1 todo · 0 done
+
+## todo
+- T-1 Fix login bug [bug, docs]
+```
+
+The ticket view shows a `labels:` line. Filter the board by label:
+
+```sh
+$ hexdeck show --label bug
+# Board — demo
+Updated: 2026-08-21T10:23:52Z · 0 backlog · 1 todo · 0 done
+
+## todo
+- T-1 Fix login bug [bug, docs]
+```
+
+The columns stay — the filter hides tickets, never columns. Remove a
+label with `--remove`:
+
+```sh
+hexdeck label T-1 bug --remove
+```
+
+A label is one word: no spaces, no commas. A duplicate label is
+skipped with a warning — a label is a set, not a list.
+
 ## Render the board image
 
 ```

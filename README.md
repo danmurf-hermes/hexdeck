@@ -17,7 +17,9 @@ hexdeck create "Fix login bug"       # new ticket (starts in backlog)
 hexdeck move T-1 todo                # ready to pick up
 hexdeck comment T-1 "on it"          # add a comment
 hexdeck link T-1 blocks T-2          # T-2 waits until T-1 is done
+hexdeck label T-1 bug                 # add a label: one word
 hexdeck show                         # print the board
+hexdeck show --label bug              # only tickets with the label
 hexdeck log --since 2d               # what happened recently
 hexdeck pick --as your-name          # claim the next todo ticket
 hexdeck render --check               # CI: board files match the ops
@@ -59,8 +61,8 @@ Updated: 2026-08-21T10:22:30Z · 0 backlog · 1 todo · 0 done
 ```
 
 The board is the projection of the ops. Each ticket shows its id,
-title, and claim; comments live on the ticket view — `hexdeck show T-1`
-prints them. Nothing is stored twice.
+title, claim, and labels; comments live on the ticket view —
+`hexdeck show T-1` prints them. Nothing is stored twice.
 
 ## The web view
 
@@ -70,8 +72,8 @@ as the CLI.
 
 ![The board in the browser](docs/web-board.png)
 
-Cards show the id, title and the claim badge. Click a title to expand
-the description and comments — the ticket detail:
+Cards show the id, title, the claim badge, and the label badges. Click
+a title to expand the description and comments — the ticket detail:
 
 ![Expanded card](docs/web-card-expanded.png)
 
@@ -99,6 +101,7 @@ These words describe the board as a project management tool. This is the languag
 - **Release** — clear a claim. The ticket goes back to being unclaimed.
 - **Comment** — a note on a ticket. Comments are part of the ticket's history.
 - **Link** — a connection between two tickets. `blocks` says one must be done before the other; `related` says they are connected but neither comes first. `pick` skips a ticket whose blocker is not done.
+- **Label** — a one-word tag on a ticket (e.g. `feature`, `bug`, `docs`, `infra`). The board card shows the labels; `hexdeck show --label bug` filters the board to the tickets carrying the label.
 - **Log** — the timeline of everything that happened on the board, newest first.
 
 These words describe the inner workings of the app. You do not need them to use the board, but they explain why it behaves the way it does.

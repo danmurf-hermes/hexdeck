@@ -1,9 +1,14 @@
 {
   "tools": [
     {
-      "description": "Show the whole board as markdown: every column with its tickets and claims.",
+      "description": "Show the whole board as markdown: every column with its tickets and claims. Optional label filter: only tickets with that label.",
       "inputSchema": {
-        "properties": {},
+        "properties": {
+          "label": {
+            "description": "Only tickets with this label, e.g. bug.",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "name": "board_show"

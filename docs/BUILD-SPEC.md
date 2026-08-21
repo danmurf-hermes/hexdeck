@@ -116,6 +116,8 @@ Filename: `%016d-seq-<opId>.json` — zero-padded seq sorts lexicographically = 
 | `ticket.archived` | `{}` | hide from the default board (V1.1) |
 | `ticket.link.added` | `{ "kind": "blocks"\|"related", "to": "T-3" }` | link the ticket to another |
 | `ticket.link.removed` | `{ "kind": "blocks"\|"related", "to": "T-3" }` | remove a link |
+| `ticket.label.added` | `{ "label": "bug" }` | add a label — one word |
+| `ticket.label.removed` | `{ "label": "bug" }` | remove a label |
 
 **Ticket ids:** sequential `T-1`, `T-2`, … assigned by the CLI (next = max existing + 1). The prefix is **configurable** — set at `board init` time with `--prefix` (default `T`), stored in `config.json` as `ticketPrefix`. A board can pick any prefix (e.g. `HDX-1`, `KAN-1`), Jira-style. Hand-writing agents check `board show` for the next number. If two `ticket.created` ops land with the same id, the projection keeps the first and renders a warning on the second — visible, not fatal.
 
@@ -306,6 +308,7 @@ Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's 
 | `board move T-12 todo` | append `ticket.moved`, stage |
 | `board comment T-12 "text"` | append `comment.added`, stage |
 | `board link T-12 blocks T-3` | append `ticket.link.added` (kinds: `blocks`, `related`) |
+| `board label T-12 bug` | append `ticket.label.added` (one word) |
 | `board show` | print the board — compact, one line per ticket (token-efficient for agents) |
 | `board show T-12` | print one ticket: fields + comments + history |
 | `board show --json` | print `board.json` |

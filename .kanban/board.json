@@ -94,7 +94,13 @@
       "title": "Labels on tickets",
       "description": "A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.",
       "status": "todo",
-      "comments": [],
+      "comments": [
+        {
+          "ts": "2026-08-21T22:16:30Z",
+          "actor": "danmurf-hermes",
+          "text": "Working on it: labels on tickets. New ops ticket.label.added/removed (one word each), the board card shows labels after the claim, the SVG and web view render them as badges, the ticket view shows a labels: line, and show --label / MCP board_show filter the board by label. TDD: op parse + fold tests first, then the CLI, then the renders, then docs."
+        }
+      ],
       "created": "2026-08-21T17:59:57Z",
       "claimedBy": "danmurf-hermes",
       "claimedAt": "2026-08-21T21:38:12Z",
@@ -278,5 +284,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T21:38:12Z"
+  "updated": "2026-08-21T22:16:30Z"
 }

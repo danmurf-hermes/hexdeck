@@ -535,3 +535,99 @@ func TestFoldLinkMissingTicket(t *testing.T) {
 		}
 	}
 }
+
+// TestFoldLabelAdded checks the label-added rule: a label lands in the
+// ticket's Labels list, in the order the labels were added. A
+// duplicate label is skipped with a warning.
+func TestFoldLabelAdded(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"labels","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-1","payload":{"label":"bug"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-1","payload":{"label":"docs"}}`)
+	// The duplicate label must warn, not add twice.
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-1","payload":{"label":"bug"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	t1 := state.Tickets["T-1"]
+	if len(t1.Labels) != 2 || t1.Labels[0] != "bug" || t1.Labels[1] != "docs" {
+		t.Errorf("T-1 labels = %v, want [bug docs]", t1.Labels)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1 (the duplicate label)", state.Warnings)
+	}
+	if !strings.Contains(state.Warnings[0], "T-1 already has label bug") {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}
+
+// TestFoldLabelRemoved checks the label-removal rule: removing a label
+// clears it, and removing a label that is not there is skipped with a
+// warning.
+func TestFoldLabelRemoved(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"labels","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-1","payload":{"label":"bug"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.label.removed","ticket":"T-1","payload":{"label":"bug"}}`)
+	// Removing a label that is not there must warn, not fail.
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.label.removed","ticket":"T-1","payload":{"label":"bug"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	if len(state.Tickets["T-1"].Labels) != 0 {
+		t.Errorf("T-1 labels = %v, want none after removal", state.Tickets["T-1"].Labels)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1 (the double removal)", state.Warnings)
+	}
+	if !strings.Contains(state.Warnings[0], "no label bug on T-1") {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}
+
+// TestFoldLabelMissingTicket checks the missing-ticket rule for
+// labels: a label op about a ticket that was never created is skipped
+// with a warning, never fatal.
+func TestFoldLabelMissingTicket(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"labels","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-99","payload":{"label":"bug"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1", state.Warnings)
+	}
+	if state.Warnings[0] != "ticket.label.added for T-99: ticket does not exist, skipping" {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}

@@ -153,6 +153,38 @@ func TestTicketTextNoLinks(t *testing.T) {
 	}
 }
 
+// TestTicketTextLabels checks the ticket view renders the labels line.
+func TestTicketTextLabels(t *testing.T) {
+	ticket := hexdeck.Ticket{
+		ID:       "T-1",
+		Title:    "one",
+		Status:   "todo",
+		Created:  time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC),
+		Comments: []hexdeck.Comment{},
+		Labels:   []string{"bug", "docs"},
+	}
+	text := ticketText(ticket)
+	if !strings.Contains(text, "labels: bug, docs") {
+		t.Errorf("ticketText missing the labels line:\n%s", text)
+	}
+}
+
+// TestTicketTextNoLabels checks a ticket without labels renders no
+// labels line.
+func TestTicketTextNoLabels(t *testing.T) {
+	ticket := hexdeck.Ticket{
+		ID:       "T-1",
+		Title:    "one",
+		Status:   "todo",
+		Created:  time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC),
+		Comments: []hexdeck.Comment{},
+	}
+	text := ticketText(ticket)
+	if strings.Contains(text, "labels:") {
+		t.Errorf("ticketText renders a labels line for a ticket without labels:\n%s", text)
+	}
+}
+
 // TestNextTodoBlocked checks the blocking rule: a todo ticket whose
 // blocker is not done is not pickable, whatever its id. A ticket whose
 // blockers are all done is pickable. A blocks link to a missing ticket

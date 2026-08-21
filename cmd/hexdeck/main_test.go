@@ -459,6 +459,72 @@ func TestE2ELink(t *testing.T) {
 	}
 }
 
+// TestE2ELabel checks the label command end to end: it appends the
+// ticket.label.added op, the board and ticket views show the labels,
+// the board files re-render, and an invalid label is an error.
+func TestE2ELabel(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "Two", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "label", "T-1", "bug", "--as", "claude-a"); code != 0 {
+		t.Fatalf("label: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "label", "T-1", "docs", "--as", "claude-a"); code != 0 {
+		t.Fatalf("label: exit %d\n%s", code, out)
+	}
+	// The board view shows the labels on the ticket line.
+	out, code := runHexdeck(t, dir, "show")
+	if code != 0 {
+		t.Fatalf("show: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "T-1 One [bug, docs]") {
+		t.Errorf("show output missing the labels:\n%s", out)
+	}
+	// The ticket view shows the labels line.
+	out, code = runHexdeck(t, dir, "show", "T-1")
+	if code != 0 {
+		t.Fatalf("show T-1: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "labels: bug, docs") {
+		t.Errorf("show T-1 missing the labels line:\n%s", out)
+	}
+	// The board files re-rendered and pass the honesty check.
+	if out, code := runHexdeck(t, dir, "render", "--check"); code != 0 {
+		t.Errorf("render --check: exit %d\n%s", code, out)
+	}
+	// An invalid label errors: unknown ticket, empty label, multi-word.
+	if out, code := runHexdeck(t, dir, "label", "T-99", "bug", "--as", "claude-a"); code == 0 {
+		t.Errorf("label on unknown ticket succeeded, want error:\n%s", out)
+	}
+	if out, code := runHexdeck(t, dir, "label", "T-1", "", "--as", "claude-a"); code == 0 {
+		t.Errorf("label with empty name succeeded, want error:\n%s", out)
+	}
+	if out, code := runHexdeck(t, dir, "label", "T-1", "bug fix", "--as", "claude-a"); code == 0 {
+		t.Errorf("label with a space succeeded, want error:\n%s", out)
+	}
+	// The remove form clears the label from the ticket.
+	if out, code := runHexdeck(t, dir, "label", "T-1", "bug", "--remove", "--as", "claude-a"); code != 0 {
+		t.Fatalf("label --remove: exit %d\n%s", code, out)
+	}
+	out, code = runHexdeck(t, dir, "show", "T-1")
+	if code != 0 {
+		t.Fatalf("show T-1: exit %d\n%s", code, out)
+	}
+	if strings.Contains(out, "labels: bug") {
+		t.Errorf("show T-1 still carries the removed label:\n%s", out)
+	}
+	if !strings.Contains(out, "labels: docs") {
+		t.Errorf("show T-1 missing the remaining label:\n%s", out)
+	}
+}
+
 func TestE2EErrors(t *testing.T) {
 	dir := initRepo(t)
 	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
