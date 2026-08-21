@@ -405,21 +405,12 @@ func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
 }
 
 // append writes the op, re-renders the board, stages the change, and
-// records it in the changes panel. It runs git pull --rebase first
-// unless noPull is set — the same rule as the CLI.
+// records it in the changes panel. The write itself goes through the
+// shared writeOp path — the same one the CLI uses.
 func (s *webServer) append(op hexdeck.Op, message string) error {
-	if !s.noPull {
-		if err := gitPullRebase(s.repoDir); err != nil {
-			return err
-		}
-	}
-	if _, err := hexdeck.AppendOp(filepath.Join(s.boardDir, "ops"), op); err != nil {
+	if _, err := writeOp(s.boardDir, s.repoDir, s.noPull, op); err != nil {
 		return err
 	}
-	if err := hexdeck.RenderAll(s.boardDir, false); err != nil {
-		return err
-	}
-	stageGit(s.repoDir, s.boardDir, "ops", "board.md", "board.json")
 	s.changes = append(s.changes, webChange{Type: string(op.Type), Ticket: op.Ticket, Message: message})
 	return nil
 }

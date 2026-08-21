@@ -554,8 +554,15 @@ func runRender(args []string) error {
 // appendOp writes the op, re-renders the board, and stages the change.
 // It runs git pull --rebase first unless --no-pull is set.
 func appendOp(boardDir string, cf commonFlags, op hexdeck.Op) (hexdeck.Op, error) {
-	repoDir := filepath.Dir(boardDir)
-	if !cf.noPull {
+	return writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, op)
+}
+
+// writeOp is the shared write path used by both the CLI and the web
+// server: pull, append the op, re-render the board, stage the change.
+// One definition, two surfaces — the web view and the CLI cannot drift
+// apart on how a write happens.
+func writeOp(boardDir, repoDir string, noPull bool, op hexdeck.Op) (hexdeck.Op, error) {
+	if !noPull {
 		if err := gitPullRebase(repoDir); err != nil {
 			return hexdeck.Op{}, err
 		}
