@@ -13,7 +13,7 @@
 | 2 | CLI (all commands, git staging) | ✅ done | `86601f6` | All commands + E2E tests in temp repos. Library grew: write path, ticket prefix, claim timestamp |
 | 3 | Concurrency hardening (merge matrix, claims) | ✅ done | `9a6a3e2` | 18-scenario merge matrix: zero conflicts, identical projections. Claim race: first claim by (seq, opId) wins, second warns. Claim expiry: stale claims marked, shown in renders, pickable |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ✅ done | `556151a` | All three chunks done: `ci.yml` (lint, test, build), `render --check` in CI, README badges (CI + coverage). Phase 4 (dogfood) is next |
-| 4 | Dogfood on a real project | ✅ done | `5ad8b84` | Target: hexdeck itself. The board lives in `.kanban/` — it is the tracker now. Chunk 1 done: board init + migration + CI check. Chunk 2 done: the worker runs against the board, contribution guide in docs/contributing.md. Chunk 3 done: the acceptance read — board.md renders descriptions and comments, the board answers the question on its own. Chunk 4 done: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. Report: docs/cold-start.md |
+| 4 | Dogfood on a real project | ✅ done | `5677647` | Target: hexdeck itself. The board lives in `.kanban/` — it is the tracker now. Chunk 1 done: board init + migration + CI check. Chunk 2 done: the worker runs against the board, contribution guide in docs/contributing.md. Chunk 3 done: the acceptance read — board.md renders descriptions and comments, the board answers the question on its own. Chunk 4 done: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. Report: docs/cold-start.md |
 | 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
 
 ## Phase 1 chunks (Go, module github.com/danmurf/hexdeck)
@@ -40,7 +40,7 @@
 | 4.1 | `hexdeck init` in the hexdeck repo, migrate PROGRESS.md's phase table into tickets, CI checks the dogfood board. | ✅ done — `942757c` |
 | 4.2 | The worker runs against the board: creates, moves, and comments on tickets as it works. Code and ops land in the same commit. | ✅ done — `c64f7d5` |
 | 4.3 | Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else. | ✅ done — `86318e0` |
-| 4.4 | Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt. | ✅ done — `5ad8b84` |
+| 4.4 | Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt. | ✅ done — `5677647` |
 
 ## How to pick up work
 
