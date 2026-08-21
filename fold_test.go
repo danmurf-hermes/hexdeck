@@ -341,6 +341,71 @@ func TestFoldMoveFromMismatch(t *testing.T) {
 	}
 }
 
+// TestFoldMissingConfigNoSnapshotCache checks the config-less board
+// path against the snapshot cache: a board without config.json folds,
+// writes a snapshot, and the cache is reused on the next read — the
+// digest's config-presence marker must make a missing config a
+// distinct state, not collide with an empty one.
+func TestFoldMissingConfigNoSnapshotCache(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	// No config.json — the fold must use defaults.
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+
+	state1, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	if state1.Name != "" || len(state1.Columns) != 4 {
+		t.Fatalf("state = %+v, want defaults for a config-less board", state1)
+	}
+	// The snapshot must exist (written by the first Project).
+	snapPath := filepath.Join(dir, "snapshot.json")
+	if _, err := os.Stat(snapPath); err != nil {
+		t.Fatalf("snapshot.json not written for a config-less board: %v", err)
+	}
+	// Prove the cache is reused, not re-folded: corrupt the cached
+	// state and the second read must return the corrupted state.
+	data, err := os.ReadFile(snapPath)
+	if err != nil {
+		t.Fatalf("read snapshot: %v", err)
+	}
+	var snap Snapshot
+	if err := json.Unmarshal(data, &snap); err != nil {
+		t.Fatalf("parse snapshot: %v", err)
+	}
+	snap.State.Name = "cached-configless"
+	rewritten, err := json.Marshal(snap)
+	if err != nil {
+		t.Fatalf("marshal snapshot: %v", err)
+	}
+	if err := os.WriteFile(snapPath, rewritten, 0o644); err != nil {
+		t.Fatalf("write snapshot: %v", err)
+	}
+	state2, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project (second): %v", err)
+	}
+	if state2.Name != "cached-configless" {
+		t.Errorf("name = %q, want the cached name — the snapshot was not reused for a config-less board", state2.Name)
+	}
+	// A brand-new empty config.json must invalidate the cache (the
+	// presence marker), not silently serve the cached state.
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte("{}\n"), 0o644); err != nil {
+		t.Fatalf("write empty config: %v", err)
+	}
+	state3, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project (with empty config): %v", err)
+	}
+	if state3.Name == "cached-configless" {
+		t.Errorf("empty config did not invalidate the config-less snapshot — the presence marker is missing from the digest")
+	}
+}
+
 // writeOp writes one op file with the canonical name.
 func writeOp(t *testing.T, opsDir string, seq int, opID, data string) {
 	t.Helper()

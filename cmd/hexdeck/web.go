@@ -448,14 +448,17 @@ func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
 
 // append writes the op, re-renders the board, stages the change, and
 // records it in the changes panel. The write itself goes through the
-// shared writeOp path — the same one the CLI uses.
+// shared writeOp path — the same one the CLI uses. The whole sequence
+// runs under the mutex: HTTP handlers run in separate goroutines, and
+// serializing the write prevents two quick drags from interleaving
+// their pull/append/render stages or racing the seq computation.
 func (s *webServer) append(op hexdeck.Op, message string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if _, err := writeOp(s.boardDir, s.repoDir, s.noPull, op); err != nil {
 		return err
 	}
-	s.mu.Lock()
 	s.changes = append(s.changes, webChange{Type: string(op.Type), Ticket: op.Ticket, Message: message})
-	s.mu.Unlock()
 	return nil
 }
 

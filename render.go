@@ -133,13 +133,15 @@ func sortedTickets(state BoardState) []Ticket {
 		tickets = append(tickets, ticket)
 	}
 	sort.Slice(tickets, func(i, j int) bool {
-		return ticketIDLess(state.Prefix, tickets[i].ID, tickets[j].ID)
+		return TicketIDLess(state.Prefix, tickets[i].ID, tickets[j].ID)
 	})
 	return tickets
 }
 
-// ticketIDLess compares two ticket ids. T-2 < T-10 < T-11 < X-1.
-func ticketIDLess(prefix string, a, b string) bool {
+// TicketIDLess compares two ticket ids numerically: T-2 < T-10 <
+// T-11 < X-1. It is the same ordering the renders use, so every
+// surface (board view, pick, MCP next) agrees on ticket order.
+func TicketIDLess(prefix string, a, b string) bool {
 	an, aok := ticketNumber(prefix, a)
 	bn, bok := ticketNumber(prefix, b)
 	switch {

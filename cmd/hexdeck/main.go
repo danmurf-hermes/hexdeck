@@ -423,8 +423,11 @@ func runLog(args []string) error {
 }
 
 // runPick claims and moves the next todo ticket. Both ops go through
-// one writeOp — one pull, one render — so a failure cannot leave a
-// claimed ticket stuck in todo with no move.
+// one writeOp — one pull, one render — so a failure in the common
+// path (pull, render, staging) cannot leave a half-pick. If the move
+// op itself fails to append after the claim landed, the board is left
+// with a claimed todo ticket; the fold tolerates it and the next pick
+// skips the fresh claim.
 func runPick(args []string) error {
 	fs := flag.NewFlagSet("pick", flag.ExitOnError)
 	var cf commonFlags
@@ -575,6 +578,8 @@ func appendOp(boardDir string, cf commonFlags, op hexdeck.Op) (hexdeck.Op, error
 // change. One definition, all surfaces — they cannot drift apart on
 // how a write happens. Several ops written together share one pull and
 // one render, so a multi-op command can never land half-written.
+// board.svg is refreshed whenever it exists, so a board that opted
+// into the SVG render never goes stale under the write path.
 func writeOp(boardDir, repoDir string, noPull bool, ops ...hexdeck.Op) ([]hexdeck.Op, error) {
 	if !noPull {
 		if err := gitPullRebase(repoDir); err != nil {
@@ -589,10 +594,18 @@ func writeOp(boardDir, repoDir string, noPull bool, ops ...hexdeck.Op) ([]hexdec
 		}
 		written = append(written, w)
 	}
-	if err := hexdeck.RenderAll(boardDir, false); err != nil {
+	svg := false
+	if _, err := os.Stat(filepath.Join(boardDir, "board.svg")); err == nil {
+		svg = true
+	}
+	if err := hexdeck.RenderAll(boardDir, svg); err != nil {
 		return nil, err
 	}
-	stageGit(repoDir, boardDir, "ops", "board.md", "board.json")
+	paths := []string{"ops", "board.md", "board.json"}
+	if svg {
+		paths = append(paths, "board.svg")
+	}
+	stageGit(repoDir, boardDir, paths...)
 	return written, nil
 }
 
@@ -722,7 +735,8 @@ var boolFlags = map[string]bool{
 // (`hexdeck create "Title" -d "desc"`), so the CLI reorders first.
 // A `--` ends flag scanning: everything after it is positional, so a
 // positional value that starts with `-` can be passed (`hexdeck
-// comment T-1 -- "-1"`).
+// comment T-1 -- "-1"`). The marker itself is dropped — flag.Parse
+// would otherwise stop at it and count it as a positional.
 func reorderArgs(args []string) []string {
 	var flags, positionals []string
 	afterDoubleDash := false
@@ -730,8 +744,7 @@ func reorderArgs(args []string) []string {
 		arg := args[i]
 		if !afterDoubleDash && arg == "--" {
 			afterDoubleDash = true
-			positionals = append(positionals, arg)
-			continue
+			continue // drop the marker; everything after is positional
 		}
 		if !afterDoubleDash && strings.HasPrefix(arg, "-") && arg != "-" {
 			flags = append(flags, arg)

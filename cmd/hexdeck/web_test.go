@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -379,6 +380,83 @@ func TestWebCommitLeavesForeignStaged(t *testing.T) {
 	log := runGitOut(t, dir, "log", "--oneline", "-1", "--name-only")
 	if strings.Contains(log, "notes.txt") {
 		t.Errorf("foreign file landed in the board commit:\n%s", log)
+	}
+}
+
+// TestWebConcurrentWrites fires several write requests at once and
+// checks the server serializes them: every change lands on disk, the
+// changes panel shows exactly the written changes, and the board
+// reflects all of them. Run under -race this exercises the mutex.
+func TestWebConcurrentWrites(t *testing.T) {
+	s, dir := newWebTestServer(t)
+	const n = 8
+	// Create the tickets the concurrent moves will touch.
+	for i := 1; i <= n; i++ {
+		if out, code := runHexdeck(t, dir, "create", fmt.Sprintf("Ticket %d", i), "--as", "claude-a"); code != 0 {
+			t.Fatalf("create %d: exit %d\n%s", i, code, out)
+		}
+	}
+	var wg sync.WaitGroup
+	codes := make([]int, n)
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": fmt.Sprintf("T-%d", i+1), "to": "in-progress"})
+			codes[i] = rec.Code
+		}(i)
+	}
+	wg.Wait()
+	for i, code := range codes {
+		if code != http.StatusOK {
+			t.Errorf("concurrent move %d: status %d", i+1, code)
+		}
+	}
+	// The changes panel must list exactly the many moves.
+	rec := doJSON(t, s, "GET", "/api/changes", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("changes: status %d\n%s", rec.Code, rec.Body.String())
+	}
+	var panel struct {
+		Changes []webChange `json:"changes"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &panel); err != nil {
+		t.Fatalf("decode changes: %v", err)
+	}
+	if len(panel.Changes) != n {
+		t.Errorf("changes = %d, want %d — a concurrent write was lost or duplicated", len(panel.Changes), n)
+	}
+	// The board must reflect all the moves.
+	state, err := hexdeck.Project(filepath.Join(dir, ".kanban"))
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	inProgress := 0
+	for _, ticket := range state.Tickets {
+		if ticket.Status == "in-progress" {
+			inProgress++
+		}
+	}
+	if inProgress != n {
+		t.Errorf("in-progress tickets = %d, want %d", inProgress, n)
+	}
+}
+
+// TestWebBodyCap checks the 1 MiB body cap on the write endpoints: an
+// oversized body is a 400 and no op is written.
+func TestWebBodyCap(t *testing.T) {
+	s, dir := newWebTestServer(t)
+	big := strings.Repeat("x", 2<<20)
+	rec := doJSON(t, s, "POST", "/api/comment", map[string]string{"ticket": "T-1", "text": big})
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("oversized body: status %d, want 400\n%s", rec.Code, rec.Body.String())
+	}
+	state, err := hexdeck.Project(filepath.Join(dir, ".kanban"))
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	if len(state.Tickets["T-1"].Comments) != 0 {
+		t.Errorf("oversized comment landed on the board — the body cap did not stop the write")
 	}
 }
 

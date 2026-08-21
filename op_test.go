@@ -145,6 +145,21 @@ func TestParseOpInvalid(t *testing.T) {
 			wantErr: "invalid op JSON",
 		},
 		{
+			name:    "trailing data after the op",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}} {}`,
+			wantErr: "trailing data",
+		},
+		{
+			name:    "second JSON value in payload",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.created","ticket":"T-1","payload":{"title":"one"} {"title":"two"}}`,
+			wantErr: "invalid op JSON",
+		},
+		{
+			name:    "board.created with empty name",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"board.created","payload":{"name":""}}`,
+			wantErr: "name is required",
+		},
+		{
 			name:    "non-empty archived payload",
 			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.archived","ticket":"T-1","payload":{"foo":1}}`,
 			wantErr: "archived payload must be empty",

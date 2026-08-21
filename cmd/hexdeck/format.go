@@ -92,7 +92,7 @@ func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
 		return hexdeck.Ticket{}, false
 	}
 	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].ID < candidates[j].ID
+		return hexdeck.TicketIDLess(state.Prefix, candidates[i].ID, candidates[j].ID)
 	})
 	return candidates[0], true
 }

@@ -159,10 +159,13 @@ func appendAgentsHook(dir string) error {
 // schema, then writes the file with the canonical name. The op is
 // validated first — nothing is written for an invalid op.
 //
-// The write is O_EXCL, so a concurrent writer that computed the same
-// seq (the board is built for multiple agents) loses the race cleanly:
-// the file is already there, the loop re-rolls the seq, and the two ops
-// land with distinct seqs. Two ops with the same seq never exist.
+// The write is O_EXCL as a belt-and-braces guard: the filename embeds
+// a fresh random opId, so a concurrent writer that computed the same
+// seq lands a different filename — both ops exist with the same seq,
+// which the fold tolerates deterministically ((seq, opId) order). The
+// exclusive-create only ever trips on a UUID collision, in which case
+// the loop re-rolls. Seq uniqueness across writers is not promised;
+// replay order is.
 func AppendOp(opsDir string, op Op) (Op, error) {
 	op.Schema = SchemaVersion
 	op.OpID = newUUID()
