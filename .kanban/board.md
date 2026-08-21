@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
+Updated: 2026-08-21T11:53:13Z · 1 todo · 0 in-progress · 0 review · 7 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -9,9 +9,6 @@ Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
 ## in-progress
 
 ## review
-- T-8 Phase 5 chunk 1: board.svg CI render + README embed · 1 comment
-  CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.
-  - 2026-08-21T10:59:41Z danmurf-hermes: TDD: TestBoardSVGInWorkflow and TestReadmeEmbedsBoardSVG pinned first (red), then the workflow honesty step (render --svg, cmp, git diff --exit-code), the root board.svg, and the README embed. E2E tests gained render --svg and render --check SVG coverage. Docs updated in the same commit.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment
@@ -37,3 +34,6 @@ Updated: 2026-08-21T11:19:54Z · 1 todo · 0 in-progress · 1 review · 6 done
 - T-7 Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7 · 1 comment
   Docs reassessment
   - 2026-08-21T10:28:42Z danmurf-hermes: Docs restructured into the Diataxis set: tutorial (a real session), how-to (one task, one guide), reference (commands, op types, config, rules), explanation (architecture). README rewritten: quick start, a real session with real output, key concepts, mermaid flowchart. Process narrative stripped from README and docs; components.md folded into the reference. Pinned in ci_test.go: TestDocsDiataxis, TestDocsDescribeTheApp, TestReadmeRealExample, TestMermaidFences.
+- T-8 Phase 5 chunk 1: board.svg CI render + README embed · 1 comment
+  CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.
+  - 2026-08-21T10:59:41Z danmurf-hermes: TDD: TestBoardSVGInWorkflow and TestReadmeEmbedsBoardSVG pinned first (red), then the workflow honesty step (render --svg, cmp, git diff --exit-code), the root board.svg, and the README embed. E2E tests gained render --svg and render --check SVG coverage. Docs updated in the same commit.
