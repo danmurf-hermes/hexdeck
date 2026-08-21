@@ -203,3 +203,126 @@ func TestColdStartDiscoveryChain(t *testing.T) {
 		t.Error("README.md is missing the quick start")
 	}
 }
+
+// TestDocsDiataxis checks the docs follow the Diataxis structure:
+// tutorials, how-to guides, reference, explanation. The README links
+// all four, and the old components doc is folded into the reference.
+func TestDocsDiataxis(t *testing.T) {
+	for _, path := range []string{
+		"docs/tutorial.md",
+		"docs/how-to.md",
+		"docs/reference.md",
+		"docs/architecture.md",
+	} {
+		if _, err := os.Stat(path); err != nil {
+			t.Errorf("%s is missing — the docs do not follow the Diataxis structure", path)
+		}
+	}
+	if _, err := os.Stat("docs/components.md"); err == nil {
+		t.Error("docs/components.md still exists — its content belongs in docs/reference.md")
+	}
+	data, err := os.ReadFile("README.md")
+	if err != nil {
+		t.Fatalf("read README.md: %v", err)
+	}
+	readme := string(data)
+	for _, want := range []string{
+		"docs/tutorial.md",
+		"docs/how-to.md",
+		"docs/reference.md",
+		"docs/architecture.md",
+	} {
+		if !strings.Contains(readme, want) {
+			t.Errorf("README.md does not link %s", want)
+		}
+	}
+}
+
+// TestDocsDescribeTheApp checks the docs describe the app, not the
+// build process. Chunk logs, phase history, and the cold-start report
+// are process narrative — they do not belong in the README or the
+// docs.
+func TestDocsDescribeTheApp(t *testing.T) {
+	for _, path := range []string{
+		"README.md",
+		"docs/architecture.md",
+		"docs/tutorial.md",
+		"docs/how-to.md",
+		"docs/reference.md",
+		"docs/contributing.md",
+	} {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatalf("read %s: %v", path, err)
+		}
+		text := string(data)
+		for _, banned := range []string{
+			"chunk",
+			"cold-start",
+			"Phase ",
+			"What is built so far",
+			"PROGRESS.md",
+		} {
+			if strings.Contains(text, banned) {
+				t.Errorf("%s contains %q — process narrative does not belong in the docs", path, banned)
+			}
+		}
+	}
+}
+
+// TestReadmeRealExample checks the README shows a real session — real
+// commands and real output, not a sketch.
+func TestReadmeRealExample(t *testing.T) {
+	data, err := os.ReadFile("README.md")
+	if err != nil {
+		t.Fatalf("read README.md: %v", err)
+	}
+	readme := string(data)
+	for _, want := range []string{
+		"hexdeck init --name demo",
+		"board \"demo\" created in .kanban",
+		"suggested commit: board: init demo",
+		"hexdeck create \"Fix login bug\"",
+		"hexdeck move T-1 in-progress",
+		"hexdeck comment T-1 \"reproduced it\"",
+		"## in-progress",
+		"- T-1 Fix login bug",
+	} {
+		if !strings.Contains(readme, want) {
+			t.Errorf("README.md is missing %q — the real example is not real", want)
+		}
+	}
+}
+
+// TestMermaidFences checks the mermaid diagrams use correct fences so
+// GitHub renders them: the opening fence is exactly ```mermaid, the
+// block has content, and it closes with ```.
+func TestMermaidFences(t *testing.T) {
+	checks := []struct {
+		path string
+		want string // a line inside the diagram
+	}{
+		{"README.md", "flowchart"},
+		{"docs/architecture.md", "stateDiagram"},
+	}
+	for _, c := range checks {
+		data, err := os.ReadFile(c.path)
+		if err != nil {
+			t.Fatalf("read %s: %v", c.path, err)
+		}
+		text := string(data)
+		open := "```mermaid\n"
+		idx := strings.Index(text, open)
+		if idx == -1 {
+			t.Errorf("%s has no mermaid diagram with a correct fence", c.path)
+			continue
+		}
+		rest := text[idx+len(open):]
+		if !strings.Contains(rest, "```") {
+			t.Errorf("%s: the mermaid block is not closed", c.path)
+		}
+		if !strings.Contains(rest, c.want) {
+			t.Errorf("%s: the mermaid diagram does not contain %q", c.path, c.want)
+		}
+	}
+}

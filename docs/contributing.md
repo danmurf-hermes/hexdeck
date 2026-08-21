@@ -8,7 +8,6 @@ that.
 ## Where the project is up to
 
 - `.kanban/board.md` — the live board. Read this first.
-- `PROGRESS.md` — the phase and chunk tables, for humans.
 - `docs/BUILD-SPEC.md` — the full spec.
 
 ## How to work

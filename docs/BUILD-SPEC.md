@@ -367,7 +367,7 @@ Each phase = one agent run, TDD, commit at the end. Stack: **Go** (recommended �
 
 **Docs (human-facing):**
 - **Simplified technical English** — short sentences, active voice, plain words. No jargon where a plain word works. A new engineer (or agent) reads it once and understands.
-- Written **as work goes along**, not at the end: README + `docs/architecture.md` + `docs/components.md`.
+- Written **as work goes along**, not at the end: README + the Diataxis set (`docs/tutorial.md`, `docs/how-to.md`, `docs/reference.md`, `docs/architecture.md`).
 - **A feature ships with its doc line in the same commit** — no undocumented features, ever.
 
 **Phase 0 — Decisions (human, not an agent run).** Answer §11. Confirm stack.
