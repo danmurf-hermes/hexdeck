@@ -68,15 +68,15 @@ Updated: 2026-08-21T10:23:50Z · 0 backlog · 1 todo · 0 done
 ## backlog
 
 ## todo
-- T-1 Fix login bug · 1 comment
+- T-1 Fix login bug
   The login form rejects valid passwords.
-  - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
 
 ## done
 ```
 
-The board is a projection of the ops. The description and the comment
-render under the ticket — the board carries the story on its own.
+The board is a projection of the ops. Each ticket shows its id, title,
+and description. Comments live on the ticket view, not the board:
+`hexdeck show T-1` prints them.
 
 ## 7. Look at one ticket
 
@@ -117,9 +117,8 @@ Updated: 2026-08-21T10:23:51Z · 0 backlog · 2 todo · 0 done
 ## backlog
 
 ## todo
-- T-1 Fix login bug · 1 comment
+- T-1 Fix login bug
   The login form rejects valid passwords.
-  - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
 - T-2 Add dark mode — claimed by you
 
 ## done

@@ -27,7 +27,6 @@ type svgPalette struct {
 	card, cardBorder       string
 	cardText, cardMeta     string
 	claim, claimText       string
-	comment, commentText   string
 }
 
 var svgLayoutDefault = svgLayout{
@@ -44,7 +43,6 @@ var svgPaletteDefault = svgPalette{
 	card: "#ffffff", cardBorder: "#d0d7de",
 	cardText: "#1f2328", cardMeta: "#57606a",
 	claim: "#ddf4ff", claimText: "#0969da",
-	comment: "#dafbe1", commentText: "#1a7f37",
 }
 
 // RenderSVG renders the board as board.svg — the board image for the
@@ -52,10 +50,11 @@ var svgPaletteDefault = svgPalette{
 //
 // Layout: a header with the board name and the Updated line, then one
 // column per configured column, side by side. Each column shows its
-// tickets as cards: the id, the title, and small badges for the claim
-// and the comment count. Archived tickets are hidden. A ticket in a
-// column that is not in the config renders in a trailing column named
-// after the column.
+// tickets as cards: the id, the title, and a small badge for the
+// claim. Comments live on the ticket view, not on the board, so the
+// cards carry no comment badge. Archived tickets are hidden. A ticket
+// in a column that is not in the config renders in a trailing column
+// named after the column.
 //
 // The canvas grows with the board: the width with the column count, the
 // height with the longest column. Both are pure functions of the state.
@@ -135,14 +134,7 @@ func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y in
 		if ticket.ClaimStale {
 			label += " (stale)"
 		}
-		badgeX = writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.claim, palette.claimText)
-	}
-	if len(ticket.Comments) > 0 {
-		label := fmt.Sprintf("%d comment", len(ticket.Comments))
-		if len(ticket.Comments) > 1 {
-			label += "s"
-		}
-		writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.comment, palette.commentText)
+		writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.claim, palette.claimText)
 	}
 }
 

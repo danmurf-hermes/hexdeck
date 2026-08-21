@@ -33,7 +33,7 @@ type mcpTool struct {
 var mcpTools = []mcpTool{
 	{
 		Name:        "board_show",
-		Description: "Show the whole board as markdown: every column with its tickets, claims, and comment counts.",
+		Description: "Show the whole board as markdown: every column with its tickets and claims.",
 		InputSchema: map[string]any{
 			"type":       "object",
 			"properties": map[string]any{},

@@ -16,8 +16,6 @@
 <text x="262" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Fix login race condition</text>
 <rect x="262" y="158" width="126" height="14" rx="7" fill="#ddf4ff"/>
 <text x="268" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0969da">claimed by claude-a</text>
-<rect x="394" y="158" width="72" height="14" rx="7" fill="#dafbe1"/>
-<text x="400" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#1a7f37">2 comments</text>
 <rect x="252" y="184" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-2</text>
 <text x="262" y="222" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add sound settings</text>
@@ -31,8 +29,6 @@
 <rect x="488" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="498" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-3</text>
 <text x="498" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Refactor level loader</text>
-<rect x="498" y="158" width="66" height="14" rx="7" fill="#dafbe1"/>
-<text x="504" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#1a7f37">1 comment</text>
 <rect x="724" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
 <text x="734" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">done</text>
 <rect x="724" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>

@@ -245,12 +245,16 @@ Updated: 2026-08-20T14:03:00Z · 3 backlog · 2 todo · 5 done
 - T-16 Juice pass 2
 
 ## todo
-- T-12 Add payment webhook — claimed by claude-a · 2 comments
+- T-12 Add payment webhook — claimed by claude-a
 - T-13 Refactor level loader — claimed by codex-1
 
 ## done
 - T-10 Munitions (4 types)
 ```
+
+Each ticket line shows the id, title, claim, and description. Comments
+live on the ticket view (`board show T-12`), not on the board — the
+board is for scanning, the ticket view is for the detail.
 
 **`board.json`** — the machine view: the full `BoardState` (tickets with comments, claims, transitions). For UIs, MCP, and agents that want structure.
 

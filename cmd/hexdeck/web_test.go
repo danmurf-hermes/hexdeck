@@ -100,6 +100,26 @@ func TestWebPageGolden(t *testing.T) {
 	}
 }
 
+// TestWebPageNoCommentBadge checks the T-12 contract: the board cards
+// carry no comment-count badge — comments live on the ticket view, and
+// the page still renders them in the expanded card detail.
+func TestWebPageNoCommentBadge(t *testing.T) {
+	page := string(webPage)
+	for _, banned := range []string{
+		`badge comment`,
+		`' comment'`,
+		`comments.length + ' comment'`,
+		`badge.comment`,
+	} {
+		if strings.Contains(page, banned) {
+			t.Errorf("web page still has the comment badge (%q) — comments live on the ticket view", banned)
+		}
+	}
+	if !strings.Contains(page, `class="comments"`) {
+		t.Errorf("web page lost the expanded comment detail — comments belong to the ticket view")
+	}
+}
+
 // TestWebState checks GET /api/state returns the projection.
 func TestWebState(t *testing.T) {
 	s, _ := newWebTestServer(t)

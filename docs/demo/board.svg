@@ -14,16 +14,12 @@
 <rect x="252" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-1</text>
 <text x="262" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add login with Google</text>
-<rect x="262" y="158" width="66" height="14" rx="7" fill="#dafbe1"/>
-<text x="268" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#1a7f37">1 comment</text>
 <rect x="252" y="184" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-3</text>
 <text x="262" y="222" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Fix checkout race condition</text>
 <rect x="252" y="256" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-4</text>
 <text x="262" y="294" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add search to docs site</text>
-<rect x="262" y="302" width="72" height="14" rx="7" fill="#dafbe1"/>
-<text x="268" y="312" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#1a7f37">2 comments</text>
 <rect x="252" y="328" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="350" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-5</text>
 <text x="262" y="366" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Ship v1.0</text>

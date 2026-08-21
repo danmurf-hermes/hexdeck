@@ -110,7 +110,8 @@ func TestDogfoodBoardInWorkflow(t *testing.T) {
 // the project up to" without opening anything else. The committed board
 // must carry the story on its own: the done column with the phase
 // history, the todo column with what is next, and the ticket
-// descriptions and comments that explain them.
+// descriptions that explain them. Comments live on the ticket view
+// (T-12), so the board's story comes from titles and descriptions.
 func TestDogfoodBoardAnswersTheQuestion(t *testing.T) {
 	data, err := os.ReadFile(".kanban/board.md")
 	if err != nil {
@@ -120,8 +121,8 @@ func TestDogfoodBoardAnswersTheQuestion(t *testing.T) {
 	for _, want := range []string{
 		"## done",
 		"## todo",
-		"Phases 1-3.5 complete",  // the phase history, in T-1's comment
-		"T-3 Dogfood acceptance", // what is next
+		"T-1 Migrate the build tracker into the board", // the phase history
+		"T-3 Dogfood acceptance",                       // what is next
 		"T-4 Cold-start test",
 		"T-5 V1.1: web view, MCP, snapshots",
 		"A human reads board.md and can answer the question", // T-3's description, rendered
