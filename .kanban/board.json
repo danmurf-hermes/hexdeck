@@ -144,8 +144,23 @@
       ],
       "created": "2026-08-21T09:03:57Z",
       "archived": false
+    },
+    "T-8": {
+      "id": "T-8",
+      "title": "Phase 5 chunk 1: board.svg CI render + README embed",
+      "description": "CI re-renders the demo board's SVG and fails if the committed image drifted. The README embeds the image at the repo root, so GitHub shows the live board on the homepage.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T10:59:41Z",
+          "actor": "danmurf-hermes",
+          "text": "TDD: TestBoardSVGInWorkflow and TestReadmeEmbedsBoardSVG pinned first (red), then the workflow honesty step (render --svg, cmp, git diff --exit-code), the root board.svg, and the README embed. E2E tests gained render --svg and render --check SVG coverage. Docs updated in the same commit."
+        }
+      ],
+      "created": "2026-08-21T10:59:38Z",
+      "archived": false
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T10:31:01Z"
+  "updated": "2026-08-21T10:59:44Z"
 }

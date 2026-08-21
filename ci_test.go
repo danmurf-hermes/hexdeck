@@ -204,6 +204,45 @@ func TestColdStartDiscoveryChain(t *testing.T) {
 	}
 }
 
+// TestBoardSVGInWorkflow checks the Phase 5 chunk 1 contract: CI
+// renders the demo board's SVG and fails if the committed image
+// drifted. The README embeds that image, so the board on the repo
+// homepage is always the projection of the ops.
+func TestBoardSVGInWorkflow(t *testing.T) {
+	data, err := os.ReadFile(".github/workflows/ci.yml")
+	if err != nil {
+		t.Fatalf("read ci.yml: %v", err)
+	}
+	workflow := string(data)
+	for _, want := range []string{
+		"render --svg --dir docs/demo",
+		"git diff --exit-code -- docs/demo/board.svg",
+		"cmp docs/demo/board.svg board.svg",
+	} {
+		if !strings.Contains(workflow, want) {
+			t.Errorf("ci.yml is missing %q — the board image is not checked in CI", want)
+		}
+	}
+}
+
+// TestReadmeEmbedsBoardSVG checks the README embeds the board image
+// from the repo root, so GitHub shows the live board on the homepage.
+func TestReadmeEmbedsBoardSVG(t *testing.T) {
+	data, err := os.ReadFile("README.md")
+	if err != nil {
+		t.Fatalf("read README.md: %v", err)
+	}
+	readme := string(data)
+	for _, want := range []string{
+		"![Board](board.svg)",
+		"board.svg",
+	} {
+		if !strings.Contains(readme, want) {
+			t.Errorf("README.md is missing %q — the board image is not embedded", want)
+		}
+	}
+}
+
 // TestDocsDiataxis checks the docs follow the Diataxis structure:
 // tutorials, how-to guides, reference, explanation. The README links
 // all four, and the old components doc is folded into the reference.
