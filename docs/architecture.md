@@ -118,6 +118,8 @@ The repo's own board lives in `.kanban/`. It is the build tracker: the phase tab
 
 The merge rule applies to the dogfood board: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.
 
+The worker's protocol is documented in `docs/worker.md` — the runbook. It describes the loop (sync, close merged tickets, check feedback, one chunk, docs, PR, stop), how the board is used (`pick` before a chunk, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), and the hard rules. A fresh agent with zero context reads the runbook once and can run a chunk.
+
 ## The README badges
 
 Two badges sit under the README title:

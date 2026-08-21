@@ -76,16 +76,18 @@ Every change stages the op and the board files and prints a suggested commit mes
 - The renders: `board.md` (human-readable), `board.json` (machine view), and `board.svg` (the board image) from the board state.
 - The CLI: all commands, git staging, `--commit`, pull before append.
 - Concurrency hardening: the merge matrix (18 scenarios, zero conflicts), the claim-race rule, claim expiry with stale-claim display.
+- The dogfood board: hexdeck tracks its own build in `.kanban/`, and the build worker's protocol is documented in `docs/worker.md`.
 
 ## What comes next
 
-- Dogfood: the build worker runs against the board — it creates, moves, and comments on tickets as it works.
+- Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else.
 
 ## Docs
 
 - `docs/BUILD-SPEC.md` — the full spec.
 - `docs/architecture.md` — how the code is built.
 - `docs/components.md` — the parts, one section each.
+- `docs/worker.md` — the runbook for the agent that builds hexdeck.
 - `PROGRESS.md` — the build tracker.
 
 ## Development

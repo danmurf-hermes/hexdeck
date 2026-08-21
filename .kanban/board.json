@@ -28,15 +28,22 @@
       "id": "T-2",
       "title": "Run the build worker against the board",
       "description": "The worker creates, moves, and comments on tickets as it works. Code and ops land in the same commit.",
-      "status": "todo",
+      "status": "review",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
           "actor": "hermes",
           "text": "This chunk: the worker runs against the board."
+        },
+        {
+          "ts": "2026-08-21T06:53:49Z",
+          "actor": "hermes",
+          "text": "The worker runbook (docs/worker.md) is written — the protocol this worker follows. Ops and docs land in the same commit."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
+      "claimedBy": "hermes",
+      "claimedAt": "2026-08-21T06:53:06Z",
       "archived": false
     },
     "T-3": {
@@ -49,6 +56,11 @@
           "ts": "2026-08-20T22:20:22Z",
           "actor": "hermes",
           "text": "The acceptance test for Phase 4."
+        },
+        {
+          "ts": "2026-08-21T06:53:49Z",
+          "actor": "hermes",
+          "text": "Back to todo: no PR has delivered the acceptance test yet. Chunk 2 delivers the worker runbook."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
@@ -86,5 +98,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T06:52:35Z"
+  "updated": "2026-08-21T06:53:49Z"
 }
