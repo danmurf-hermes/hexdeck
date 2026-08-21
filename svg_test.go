@@ -93,6 +93,32 @@ func TestRenderSVGEscapesText(t *testing.T) {
 	}
 }
 
+// TestRenderSVGTruncatesLongText checks that a long title and a long
+// claimer name are truncated with an ellipsis, so no card text can
+// overflow the fixed card width into the adjacent column.
+func TestRenderSVGTruncatesLongText(t *testing.T) {
+	claimedAt := time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC)
+	longTitle := "this is a very long ticket title that would overflow the card entirely"
+	longActor := "a-very-long-claimer-name-that-would-overflow"
+	state := BoardState{
+		Name:    "truncate",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: longTitle, Status: "todo", ClaimedBy: longActor, ClaimedAt: &claimedAt, Comments: []Comment{}},
+		},
+	}
+	svg := string(RenderSVG(state))
+	if strings.Contains(svg, longTitle) {
+		t.Errorf("svg contains the full long title, want truncation:\n%s", svg)
+	}
+	if strings.Contains(svg, longActor) {
+		t.Errorf("svg contains the full long claimer:\n%s", svg)
+	}
+	if !strings.Contains(svg, "…") {
+		t.Errorf("svg has no ellipsis — nothing was truncated:\n%s", svg)
+	}
+}
+
 // TestRenderSVGStaleClaim checks the stale-claim badge: a stale claim
 // renders "(stale)" in the badge, a fresh claim does not.
 func TestRenderSVGStaleClaim(t *testing.T) {

@@ -41,14 +41,20 @@ const snapshotGitignore = "snapshot.json\n"
 // bytes and, in sorted order, every op file's name and bytes. Any
 // change — a new op, a deleted op, an edited op, a config change —
 // changes the digest, so a matching digest means the fold is byte-for-
-// byte the same.
+// byte the same. A presence marker keeps a missing config distinct
+// from an empty one: both hash differently.
 func snapshotDigest(boardDir string) (string, error) {
 	h := sha256.New()
 	config, err := os.ReadFile(filepath.Join(boardDir, "config.json"))
 	if err != nil && !os.IsNotExist(err) {
 		return "", err
 	}
-	h.Write(config)
+	if config == nil {
+		h.Write([]byte{1}) // config missing
+	} else {
+		h.Write([]byte{0})
+		h.Write(config)
+	}
 	entries, err := os.ReadDir(filepath.Join(boardDir, "ops"))
 	if err != nil {
 		return "", err
@@ -93,13 +99,20 @@ func readSnapshot(boardDir string) (*Snapshot, bool) {
 }
 
 // writeSnapshot atomically writes the cache: temp file, then rename,
-// so a crash never leaves a half-written snapshot. It also repairs the
-// .gitignore so the cache cannot be committed. Failures are ignored —
-// the cache is disposable; a failed write just costs a re-fold.
+// so a crash never leaves a half-written snapshot. It also makes sure
+// the .gitignore hides the cache — the snapshot line is appended to
+// whatever is already there, never replacing the file, so user entries
+// are preserved. Failures are ignored — the cache is disposable; a
+// failed write just costs a re-fold.
 func writeSnapshot(boardDir, digest string, state BoardState) {
 	ignorePath := filepath.Join(boardDir, ".gitignore")
 	if data, err := os.ReadFile(ignorePath); err != nil || !containsLine(string(data), snapshotName) {
-		_ = os.WriteFile(ignorePath, []byte(snapshotGitignore), 0o644)
+		// Append the line, keeping the file's existing content.
+		line := snapshotName + "\n"
+		if len(data) > 0 && data[len(data)-1] != '\n' {
+			line = "\n" + line
+		}
+		_ = os.WriteFile(ignorePath, append(data, []byte(line)...), 0o644)
 	}
 	snap := Snapshot{Schema: SchemaVersion, Digest: digest, State: state}
 	data, err := json.MarshalIndent(snap, "", "  ")

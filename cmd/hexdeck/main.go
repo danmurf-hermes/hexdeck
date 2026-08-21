@@ -10,9 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/danmurf/hexdeck"
 )
@@ -143,12 +141,17 @@ func resolveBoardDir(cf commonFlags) (string, error) {
 	return findBoardDir()
 }
 
-// resolveActor returns the actor name from --as or git user.name.
-func resolveActor(cf commonFlags) (string, error) {
+// resolveActor returns the actor name from --as or git user.name,
+// resolved in dir so repo-local git config applies. dir is the board's
+// repo dir (or the dir being initialized — the board does not exist
+// yet there).
+func resolveActor(cf commonFlags, dir string) (string, error) {
 	if cf.actor != "" {
 		return cf.actor, nil
 	}
-	out, err := exec.Command("git", "config", "user.name").Output()
+	cmd := exec.Command("git", "config", "user.name")
+	cmd.Dir = dir
+	out, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("no --as flag and no git user.name — set one: git config user.name <your-name>")
 	}
@@ -184,7 +187,7 @@ func runInit(args []string) error {
 		}
 		*name = filepath.Base(abs)
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, dir)
 	if err != nil {
 		return err
 	}
@@ -217,7 +220,7 @@ func runCreate(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}
@@ -244,7 +247,7 @@ func runCreate(args []string) error {
 	}
 	_ = op
 	fmt.Println(id)
-	suggestCommit(cf, fmt.Sprintf("board: create %s", id))
+	suggestCommit(cf, boardDir, fmt.Sprintf("board: create %s", id))
 	return nil
 }
 
@@ -265,7 +268,7 @@ func runMove(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}
@@ -295,7 +298,7 @@ func runMove(args []string) error {
 	}); err != nil {
 		return err
 	}
-	suggestCommit(cf, fmt.Sprintf("board: move %s → %s", ticket, to))
+	suggestCommit(cf, boardDir, fmt.Sprintf("board: move %s → %s", ticket, to))
 	return nil
 }
 
@@ -316,7 +319,7 @@ func runComment(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}
@@ -339,7 +342,7 @@ func runComment(args []string) error {
 	}); err != nil {
 		return err
 	}
-	suggestCommit(cf, fmt.Sprintf("board: comment on %s", ticket))
+	suggestCommit(cf, boardDir, fmt.Sprintf("board: comment on %s", ticket))
 	return nil
 }
 
@@ -385,25 +388,7 @@ func showTicket(state hexdeck.BoardState, id string) error {
 	if !ok {
 		return fmt.Errorf("ticket %s does not exist", id)
 	}
-	fmt.Printf("%s %s\n", ticket.ID, ticket.Title)
-	fmt.Printf("status: %s\n", ticket.Status)
-	if ticket.Description != "" {
-		fmt.Printf("description: %s\n", ticket.Description)
-	}
-	if ticket.ClaimedBy != "" {
-		fmt.Printf("claimed by: %s", ticket.ClaimedBy)
-		if ticket.ClaimStale {
-			fmt.Print(" (stale claim)")
-		}
-		fmt.Println()
-	}
-	fmt.Printf("created: %s\n", ticket.Created.UTC().Format("2006-01-02T15:04:05Z"))
-	if len(ticket.Comments) > 0 {
-		fmt.Println("comments:")
-		for _, comment := range ticket.Comments {
-			fmt.Printf("  %s %s: %s\n", comment.TS.UTC().Format("2006-01-02T15:04:05Z"), comment.Actor, comment.Text)
-		}
-	}
+	fmt.Print(ticketText(ticket))
 	return nil
 }
 
@@ -426,37 +411,23 @@ func runLog(args []string) error {
 	if err != nil {
 		return err
 	}
-	ops, warnings, err := hexdeck.ReadOpsDir(filepath.Join(boardDir, "ops"))
+	text, warnings, err := opTimeline(boardDir, *ticket, *actor, *since)
 	if err != nil {
 		return err
 	}
 	for _, warning := range warnings {
 		fmt.Fprintf(os.Stderr, "warning: %s\n", warning)
 	}
-	var cutoff time.Time
-	if *since != "" {
-		d, err := time.ParseDuration(*since)
-		if err != nil {
-			return fmt.Errorf("--since: %q is not a duration like 2d or 3h", *since)
-		}
-		cutoff = time.Now().UTC().Add(-d)
-	}
-	for _, op := range ops {
-		if *ticket != "" && op.Ticket != *ticket {
-			continue
-		}
-		if *actor != "" && op.Actor != *actor {
-			continue
-		}
-		if !cutoff.IsZero() && op.TS.Before(cutoff) {
-			continue
-		}
-		fmt.Printf("%s %s %s %s\n", op.TS.UTC().Format("2006-01-02T15:04:05Z"), op.Actor, op.Type, op.Ticket)
-	}
+	fmt.Print(text)
 	return nil
 }
 
-// runPick claims and moves the next todo ticket.
+// runPick claims and moves the next todo ticket. Both ops go through
+// one writeOp — one pull, one render — so a failure in the common
+// path (pull, render, staging) cannot leave a half-pick. If the move
+// op itself fails to append after the claim landed, the board is left
+// with a claimed todo ticket; the fold tolerates it and the next pick
+// skips the fresh claim.
 func runPick(args []string) error {
 	fs := flag.NewFlagSet("pick", flag.ExitOnError)
 	var cf commonFlags
@@ -472,7 +443,7 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}
@@ -480,36 +451,16 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	var candidates []hexdeck.Ticket
-	for _, ticket := range state.Tickets {
-		if ticket.Archived || ticket.Status != state.Columns[0] {
-			continue
-		}
-		// A fresh claim blocks the ticket. A stale claim does not —
-		// the projection marks it, and pick takes the ticket.
-		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
-			continue
-		}
-		candidates = append(candidates, ticket)
+	if len(state.Columns) < 2 {
+		return fmt.Errorf("pick needs at least two columns, this board has %d", len(state.Columns))
 	}
-	if len(candidates) == 0 {
+	ticket, ok := nextTodo(state)
+	if !ok {
 		fmt.Println("no todo tickets to pick")
 		return nil
 	}
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].ID < candidates[j].ID
-	})
-	ticket := candidates[0]
 	claimPayload, err := json.Marshal(hexdeck.TicketClaimedPayload{By: actor})
 	if err != nil {
-		return err
-	}
-	if _, err := appendOp(boardDir, cf, hexdeck.Op{
-		Type:    hexdeck.OpTicketClaimed,
-		Ticket:  ticket.ID,
-		Actor:   actor,
-		Payload: claimPayload,
-	}); err != nil {
 		return err
 	}
 	movePayload, err := json.Marshal(hexdeck.TicketMovedPayload{
@@ -519,7 +470,12 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := appendOp(boardDir, cf, hexdeck.Op{
+	if _, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, hexdeck.Op{
+		Type:    hexdeck.OpTicketClaimed,
+		Ticket:  ticket.ID,
+		Actor:   actor,
+		Payload: claimPayload,
+	}, hexdeck.Op{
 		Type:    hexdeck.OpTicketMoved,
 		Ticket:  ticket.ID,
 		Actor:   actor,
@@ -528,7 +484,7 @@ func runPick(args []string) error {
 		return err
 	}
 	fmt.Printf("picked %s %s\n", ticket.ID, ticket.Title)
-	suggestCommit(cf, fmt.Sprintf("board: pick %s", ticket.ID))
+	suggestCommit(cf, boardDir, fmt.Sprintf("board: pick %s", ticket.ID))
 	return nil
 }
 
@@ -549,7 +505,7 @@ func runRelease(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}
@@ -572,7 +528,7 @@ func runRelease(args []string) error {
 	}); err != nil {
 		return err
 	}
-	suggestCommit(cf, fmt.Sprintf("board: release %s", ticket))
+	suggestCommit(cf, boardDir, fmt.Sprintf("board: release %s", ticket))
 	return nil
 }
 
@@ -608,23 +564,48 @@ func runRender(args []string) error {
 	return nil
 }
 
-// appendOp writes the op, re-renders the board, and stages the change.
-// It runs git pull --rebase first unless --no-pull is set.
+// appendOp writes one op through the shared write path.
 func appendOp(boardDir string, cf commonFlags, op hexdeck.Op) (hexdeck.Op, error) {
-	repoDir := filepath.Dir(boardDir)
-	if !cf.noPull {
-		if err := gitPullRebase(repoDir); err != nil {
-			return hexdeck.Op{}, err
-		}
-	}
-	written, err := hexdeck.AppendOp(filepath.Join(boardDir, "ops"), op)
+	written, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, op)
 	if err != nil {
 		return hexdeck.Op{}, err
 	}
-	if err := hexdeck.RenderAll(boardDir, false); err != nil {
-		return hexdeck.Op{}, err
+	return written[0], nil
+}
+
+// writeOp is the shared write path used by the CLI, the web server,
+// and pick: pull, append the op(s), re-render the board, stage the
+// change. One definition, all surfaces — they cannot drift apart on
+// how a write happens. Several ops written together share one pull and
+// one render, so a multi-op command can never land half-written.
+// board.svg is refreshed whenever it exists, so a board that opted
+// into the SVG render never goes stale under the write path.
+func writeOp(boardDir, repoDir string, noPull bool, ops ...hexdeck.Op) ([]hexdeck.Op, error) {
+	if !noPull {
+		if err := gitPullRebase(repoDir); err != nil {
+			return nil, err
+		}
 	}
-	stageGit(repoDir, boardDir, "ops", "board.md", "board.json")
+	var written []hexdeck.Op
+	for _, op := range ops {
+		w, err := hexdeck.AppendOp(filepath.Join(boardDir, "ops"), op)
+		if err != nil {
+			return nil, err
+		}
+		written = append(written, w)
+	}
+	svg := false
+	if _, err := os.Stat(filepath.Join(boardDir, "board.svg")); err == nil {
+		svg = true
+	}
+	if err := hexdeck.RenderAll(boardDir, svg); err != nil {
+		return nil, err
+	}
+	paths := []string{"ops", "board.md", "board.json"}
+	if svg {
+		paths = append(paths, "board.svg")
+	}
+	stageGit(repoDir, boardDir, paths...)
 	return written, nil
 }
 
@@ -682,32 +663,63 @@ func stageGit(repoDir, boardDir string, paths ...string) {
 }
 
 // suggestCommit prints the suggested commit message, or commits when
-// --commit is set.
-func suggestCommit(cf commonFlags, message string) {
-	if cf.commit {
-		repoDir := filepath.Dir(resolveBoardDirOrCwd(cf))
-		cmd := exec.Command("git", "commit", "-m", message)
-		cmd.Dir = repoDir
-		cmd.Stdout = os.Stderr
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "warning: git commit failed: %v\n", err)
-			return
-		}
-		fmt.Printf("committed: %s\n", message)
+// --commit is set. boardDir is the dir the op was already written to —
+// never re-resolved, so the commit can never target a different board.
+// Only staged files that belong to the board are committed (the board
+// dir plus the AGENTS.md hook staged at init) — never whatever else
+// the user has staged.
+func suggestCommit(cf commonFlags, boardDir, message string) {
+	if !cf.commit {
+		fmt.Printf("suggested commit: %s\n", message)
 		return
 	}
-	fmt.Printf("suggested commit: %s\n", message)
+	repoDir := filepath.Dir(boardDir)
+	rel, err := filepath.Rel(repoDir, boardDir)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: git commit failed: %v\n", err)
+		return
+	}
+	paths, err := stagedBoardPaths(repoDir, rel)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "warning: git commit failed: %v\n", err)
+		return
+	}
+	if len(paths) == 0 {
+		fmt.Fprintf(os.Stderr, "warning: nothing staged to commit\n")
+		return
+	}
+	cmd := exec.Command("git", append([]string{"commit", "-m", message, "--"}, paths...)...)
+	cmd.Dir = repoDir
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: git commit failed: %v\n", err)
+		return
+	}
+	fmt.Printf("committed: %s\n", message)
 }
 
-// resolveBoardDirOrCwd returns the board dir for --commit, or .kanban
-// in the current dir when the search would fail.
-func resolveBoardDirOrCwd(cf commonFlags) string {
-	boardDir, err := resolveBoardDir(cf)
+// stagedBoardPaths returns the staged files that belong to a board:
+// paths under the board's relative dir, plus AGENTS.md (the discovery
+// hook staged at init). Everything else the user staged is left alone.
+func stagedBoardPaths(repoDir, boardRel string) ([]string, error) {
+	cmd := exec.Command("git", "diff", "--cached", "--name-only")
+	cmd.Dir = repoDir
+	out, err := cmd.Output()
 	if err != nil {
-		return filepath.Join(".", ".kanban")
+		return nil, fmt.Errorf("git diff --cached failed: %w", err)
 	}
-	return boardDir
+	var paths []string
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if line == "AGENTS.md" || strings.HasPrefix(line, boardRel+"/") {
+			paths = append(paths, line)
+		}
+	}
+	return paths, nil
 }
 
 // boolFlags are the flags that take no value. Every other flag takes
@@ -721,11 +733,20 @@ var boolFlags = map[string]bool{
 // arguments. The flag package stops at the first positional argument,
 // but the spec's usage puts flags after positionals
 // (`hexdeck create "Title" -d "desc"`), so the CLI reorders first.
+// A `--` ends flag scanning: everything after it is positional, so a
+// positional value that starts with `-` can be passed (`hexdeck
+// comment T-1 -- "-1"`). The marker itself is dropped — flag.Parse
+// would otherwise stop at it and count it as a positional.
 func reorderArgs(args []string) []string {
 	var flags, positionals []string
+	afterDoubleDash := false
 	for i := 0; i < len(args); i++ {
 		arg := args[i]
-		if strings.HasPrefix(arg, "-") && arg != "-" {
+		if !afterDoubleDash && arg == "--" {
+			afterDoubleDash = true
+			continue // drop the marker; everything after is positional
+		}
+		if !afterDoubleDash && strings.HasPrefix(arg, "-") && arg != "-" {
 			flags = append(flags, arg)
 			name := strings.TrimLeft(arg, "-")
 			if eq := strings.Index(name, "="); eq >= 0 {

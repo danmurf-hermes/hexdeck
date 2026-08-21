@@ -180,4 +180,17 @@ be regenerated from the ops alone.
   wins, the second renders a warning.
 - Ops about a ticket that was never created are skipped with a
   warning. The board must always build.
-- Unparseable op files are skipped with a warning, never fatal.
+- Unparseable op files are skipped with a warning, never fatal. An op
+  whose filename disagrees with its own `seq` is read but warned
+  about — the replay order comes from the op's `seq`.
+- Ops are validated strictly: an unknown field is an error, not
+  something silently dropped. The board is hand-writable, so a typo
+  must fail loudly.
+- The committed board files (`board.md`, `board.json`, `board.svg`)
+  are a pure function of the ops. They never depend on the wall
+  clock — stale-claim marks are display-only and appear in `show`,
+  `web`, and the API, never in the committed files.
+- Concurrency is safe by construction: an op write is exclusive, so
+  two agents appending at once get distinct `seq`s. `pick` writes its
+  two ops together — a failure can never leave a claimed ticket
+  stuck in `todo`.

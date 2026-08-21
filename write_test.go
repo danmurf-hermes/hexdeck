@@ -2,9 +2,11 @@ package hexdeck
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -384,5 +386,58 @@ func TestRenderAllSVG(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(boardDir, "board.svg")); err != nil {
 		t.Errorf("board.svg missing: %v", err)
+	}
+}
+
+// TestAppendOpConcurrent checks the multi-writer contract: N writers
+// appending at once all land, the fold reads them all, and the replay
+// order is deterministic ((seq, opId)) even when writers raced the
+// same seq. Seq uniqueness across writers is not promised — replay
+// order is.
+func TestAppendOpConcurrent(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	const n = 20
+	var wg sync.WaitGroup
+	errs := make([]error, n)
+	for i := 0; i < n; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			payload := json.RawMessage(fmt.Sprintf(`{"title":"ticket %d"}`, i))
+			_, errs[i] = AppendOp(opsDir, Op{Type: OpTicketCreated, Ticket: fmt.Sprintf("T-%d", i+1), Actor: "agent", Payload: payload})
+		}(i)
+	}
+	wg.Wait()
+	for i, err := range errs {
+		if err != nil {
+			t.Errorf("writer %d: %v", i, err)
+		}
+	}
+	ops, warnings, err := ReadOpsDir(opsDir)
+	if err != nil {
+		t.Fatalf("ReadOpsDir: %v", err)
+	}
+	if len(ops) != n {
+		t.Fatalf("ops = %d, want %d — some concurrent writes were lost", len(ops), n)
+	}
+	if len(warnings) != 0 {
+		t.Errorf("warnings = %v, want none", warnings)
+	}
+	// All ops must sort deterministically: seq asc, opId asc.
+	for i := 1; i < len(ops); i++ {
+		prev, cur := ops[i-1], ops[i]
+		if prev.Seq > cur.Seq || (prev.Seq == cur.Seq && prev.OpID >= cur.OpID) {
+			t.Errorf("replay order broken at %d: %+v then %+v", i, prev, cur)
+		}
+	}
+	// Every seq must be >= 1 and <= n (races share seqs, never skip).
+	for _, op := range ops {
+		if op.Seq < 1 || op.Seq > n {
+			t.Errorf("seq %d out of range", op.Seq)
+		}
 	}
 }

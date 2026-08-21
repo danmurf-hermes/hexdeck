@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +28,7 @@ func newMCPTestServer(t *testing.T) (*mcpSession, *bytes.Buffer) {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out, io.Discard)
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)
 	return s, out
 }
 
@@ -225,6 +224,41 @@ func TestMCPBoardShowTicket(t *testing.T) {
 	}
 }
 
+// TestMCPBoardLogWarnings checks that board_log surfaces read
+// warnings in the result text: an agent must see that ops were
+// skipped, or it would trust a timeline with holes in it.
+func TestMCPBoardLogWarnings(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	// Drop a broken op file into the ops dir.
+	opsDir := filepath.Join(dir, ".kanban", "ops")
+	bad := filepath.Join(opsDir, "0000000000000099-99999999-9999-4999-8999-999999999999.json")
+	if err := os.WriteFile(bad, []byte("{not json"), 0o644); err != nil {
+		t.Fatalf("write bad op: %v", err)
+	}
+	outBuf := &bytes.Buffer{}
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), outBuf)
+	responses := mcpExchange(t, s, outBuf,
+		mcpInit, mcpInitialized,
+		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"board_log","arguments":{}}}`)
+	if len(responses) != 2 {
+		t.Fatalf("responses = %d, want 2", len(responses))
+	}
+	text := toolText(t, responses[1])
+	if !strings.Contains(text, "warning:") {
+		t.Errorf("board_log result does not surface the read warning:\n%s", text)
+	}
+	// The good ops must still render alongside the warning.
+	if !strings.Contains(text, "ticket.created T-1") {
+		t.Errorf("board_log result missing the good op:\n%s", text)
+	}
+}
+
 // TestMCPBoardLog checks tools/call board_log returns the timeline,
 // with the filters applied.
 func TestMCPBoardLog(t *testing.T) {
@@ -281,7 +315,7 @@ func TestMCPBoardNextEmpty(t *testing.T) {
 		t.Fatalf("move: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out, io.Discard)
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)
 	responses := mcpExchange(t, s, out, mcpInit, mcpInitialized,
 		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"board_next","arguments":{}}}`)
 	if len(responses) != 2 {

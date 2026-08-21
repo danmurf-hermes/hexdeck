@@ -158,26 +158,54 @@ func appendAgentsHook(dir string) error {
 // plus one), the opId (a random UUID), the ts (now, UTC), and the
 // schema, then writes the file with the canonical name. The op is
 // validated first — nothing is written for an invalid op.
+//
+// The write is O_EXCL as a belt-and-braces guard: the filename embeds
+// a fresh random opId, so a concurrent writer that computed the same
+// seq lands a different filename — both ops exist with the same seq,
+// which the fold tolerates deterministically ((seq, opId) order). The
+// exclusive-create only ever trips on a UUID collision, in which case
+// the loop re-rolls. Seq uniqueness across writers is not promised;
+// replay order is.
 func AppendOp(opsDir string, op Op) (Op, error) {
 	op.Schema = SchemaVersion
 	op.OpID = newUUID()
 	op.TS = time.Now().UTC().Truncate(time.Second)
-	seq, err := nextSeq(opsDir)
-	if err != nil {
-		return Op{}, err
-	}
-	op.Seq = seq
 	data, err := json.Marshal(op)
 	if err != nil {
 		return Op{}, fmt.Errorf("marshal op: %w", err)
 	}
-	if _, err := ParseOp(data); err != nil {
-		return Op{}, fmt.Errorf("refusing to write invalid op: %w", err)
+	for {
+		seq, err := nextSeq(opsDir)
+		if err != nil {
+			return Op{}, err
+		}
+		op.Seq = seq
+		data, err = json.Marshal(op)
+		if err != nil {
+			return Op{}, fmt.Errorf("marshal op: %w", err)
+		}
+		if _, err := ParseOp(data); err != nil {
+			return Op{}, fmt.Errorf("refusing to write invalid op: %w", err)
+		}
+		path := filepath.Join(opsDir, OpFilename(seq, op.OpID))
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if os.IsExist(err) {
+			continue // a concurrent writer took this seq — re-roll
+		}
+		if err != nil {
+			return Op{}, fmt.Errorf("write op: %w", err)
+		}
+		if _, err := f.Write(data); err != nil {
+			f.Close()
+			os.Remove(path)
+			return Op{}, fmt.Errorf("write op: %w", err)
+		}
+		if err := f.Close(); err != nil {
+			os.Remove(path)
+			return Op{}, fmt.Errorf("write op: %w", err)
+		}
+		return op, nil
 	}
-	if err := os.WriteFile(filepath.Join(opsDir, OpFilename(seq, op.OpID)), data, 0o644); err != nil {
-		return Op{}, fmt.Errorf("write op: %w", err)
-	}
-	return op, nil
 }
 
 // nextSeq returns the highest seq in the ops dir plus one. An empty or
@@ -204,6 +232,17 @@ func nextSeq(opsDir string) (int, error) {
 		}
 	}
 	return max + 1, nil
+}
+
+// writeFileAtomic writes data to path atomically: temp file in the
+// same dir, then rename. A crash or a short write can never leave a
+// half-written file at path.
+func writeFileAtomic(path string, data []byte, perm os.FileMode) error {
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, perm); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
 }
 
 // newUUID returns a random RFC 4122 version 4 UUID string.
@@ -249,26 +288,28 @@ func NextTicketID(state BoardState) string {
 
 // RenderAll rebuilds every committed board file from the ops: board.md
 // and board.json, plus board.svg when svg is true. The files are
-// disposable — the ops are the truth. The fold here is always cold:
-// the snapshot cache is never trusted for the committed projections,
-// so the rendered files can never diverge from the ops.
+// disposable — the ops are the truth. The fold here is the pure one:
+// no snapshot cache and no wall clock, so the committed files are a
+// pure function of the ops and can never change under a clock. Each
+// file is written atomically (temp file, then rename), so a crash can
+// never leave a half-written board.
 func RenderAll(boardDir string, svg bool) error {
-	state, err := projectAt(boardDir, time.Now())
+	state, err := projectFold(boardDir)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(boardDir, "board.md"), RenderMarkdown(state), 0o644); err != nil {
+	if err := writeFileAtomic(filepath.Join(boardDir, "board.md"), RenderMarkdown(state), 0o644); err != nil {
 		return fmt.Errorf("write board.md: %w", err)
 	}
 	data, err := RenderJSON(state)
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(boardDir, "board.json"), data, 0o644); err != nil {
+	if err := writeFileAtomic(filepath.Join(boardDir, "board.json"), data, 0o644); err != nil {
 		return fmt.Errorf("write board.json: %w", err)
 	}
 	if svg {
-		if err := os.WriteFile(filepath.Join(boardDir, "board.svg"), RenderSVG(state), 0o644); err != nil {
+		if err := writeFileAtomic(filepath.Join(boardDir, "board.svg"), RenderSVG(state), 0o644); err != nil {
 			return fmt.Errorf("write board.svg: %w", err)
 		}
 	}
@@ -279,9 +320,10 @@ func RenderAll(boardDir string, svg bool) error {
 // the ops. It returns an error naming the first file that drifted. CI
 // runs it to catch hand-edited projections. board.svg is checked only
 // when it exists — it is opt-in via `render --svg`. The fold is always
-// cold — the honesty gate never trusts the snapshot cache.
+// cold and clock-free — the honesty gate never trusts the snapshot
+// cache and never fails on a board whose ops did not move.
 func RenderCheck(boardDir string) error {
-	state, err := projectAt(boardDir, time.Now())
+	state, err := projectFold(boardDir)
 	if err != nil {
 		return err
 	}

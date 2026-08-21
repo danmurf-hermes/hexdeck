@@ -91,11 +91,11 @@ func projectCached(dir string, now time.Time) (BoardState, error) {
 	return state, nil
 }
 
-// projectAt is the pure fold with an explicit clock: no snapshot cache,
-// read or write. Golden tests use it so the cache never lands on
-// read-only fixture dirs, and the renders use it so committed files
-// always come from the ops alone.
-func projectAt(dir string, now time.Time) (BoardState, error) {
+// projectFold is the pure fold: no snapshot cache, no wall clock, no
+// stale-claim marking. The board is a pure function of the ops — same
+// ops, same bytes, always. The committed renders and the honesty gate
+// use it, so board.md and board.json can never change under a clock.
+func projectFold(dir string) (BoardState, error) {
 	state := BoardState{
 		Columns:  append([]string(nil), DefaultColumns...),
 		Prefix:   DefaultPrefix,
@@ -130,6 +130,17 @@ func projectAt(dir string, now time.Time) (BoardState, error) {
 			state.Updated = op.TS
 		}
 		apply(op, &state)
+	}
+	return state, nil
+}
+
+// projectAt is the fold at an explicit clock: the pure board plus the
+// stale-claim marks. Interactive paths (Project, show, web, pick) use
+// it so claims age visibly; the committed renders never do.
+func projectAt(dir string, now time.Time) (BoardState, error) {
+	state, err := projectFold(dir)
+	if err != nil {
+		return BoardState{}, err
 	}
 	markStaleClaims(&state, now)
 	return state, nil
@@ -176,9 +187,7 @@ func readConfig(path string) (*Config, error) {
 func apply(op Op, state *BoardState) {
 	switch op.Type {
 	case OpBoardCreated:
-		var p struct {
-			Name string `json:"name"`
-		}
+		var p BoardCreatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s: bad payload: %v", op.Type, err))
 			return
@@ -189,10 +198,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket already exists, keeping the first", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Title       string `json:"title"`
-			Description string `json:"description"`
-		}
+		var p TicketCreatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -211,12 +217,13 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			To string `json:"to"`
-		}
+		var p TicketMovedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
+		}
+		if p.From != "" && p.From != ticket.Status {
+			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: from %q does not match current status %q", op.Type, op.Ticket, p.From, ticket.Status))
 		}
 		ticket.Status = p.To
 		state.Tickets[op.Ticket] = ticket
@@ -226,10 +233,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Title       *string `json:"title"`
-			Description *string `json:"description"`
-		}
+		var p TicketUpdatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -247,9 +251,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Text string `json:"text"`
-		}
+		var p CommentAddedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -262,9 +264,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			By string `json:"by"`
-		}
+		var p TicketClaimedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return

@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -58,7 +57,7 @@ func TestMCPShowTicketRich(t *testing.T) {
 		t.Fatalf("pick: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out, io.Discard)
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)
 	responses := mcpExchange(t, s, out, mcpInit, mcpInitialized,
 		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"board_show_ticket","arguments":{"ticket":"T-1"}}}`)
 	if len(responses) != 2 {

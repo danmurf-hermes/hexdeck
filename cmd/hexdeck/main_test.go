@@ -205,6 +205,38 @@ func TestE2E(t *testing.T) {
 	}
 }
 
+// TestE2EPickSingleColumn checks the guard: pick on a board with fewer
+// than two columns fails with a clear error instead of panicking.
+func TestE2EPickSingleColumn(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	// Shrink the board to one column.
+	config := filepath.Join(dir, ".kanban", "config.json")
+	data, err := os.ReadFile(config)
+	if err != nil {
+		t.Fatalf("read config: %v", err)
+	}
+	one := strings.Replace(string(data), "\"todo\",\n    \"in-progress\",\n    \"review\",\n    \"done\"", "\"todo\"", 1)
+	if one == string(data) {
+		t.Fatalf("config replace did not match:\n%s", data)
+	}
+	if err := os.WriteFile(config, []byte(one), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	out, code := runHexdeck(t, dir, "pick", "--as", "claude-a")
+	if code == 0 {
+		t.Fatalf("pick on a one-column board succeeded, want an error:\n%s", out)
+	}
+	if !strings.Contains(out, "at least two columns") {
+		t.Errorf("pick error = %q, want it to name the column requirement", out)
+	}
+}
+
 // TestE2ECommit checks --commit: the op and the board files land in a
 // commit with the suggested message.
 func TestE2ECommit(t *testing.T) {
@@ -512,6 +544,50 @@ func TestE2ERenderSVG(t *testing.T) {
 	}
 }
 
+// TestE2ESVGFreshAfterWrite checks that a board which opted into
+// board.svg never goes stale under the write path: after a move, the
+// committed SVG matches a fresh render and render --check passes.
+func TestE2ESVGFreshAfterWrite(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "render", "--svg", "--as", "claude-a"); code != 0 {
+		t.Fatalf("render --svg: exit %d\n%s", code, out)
+	}
+	boardDir := filepath.Join(dir, ".kanban")
+	before, err := os.ReadFile(filepath.Join(boardDir, "board.svg"))
+	if err != nil {
+		t.Fatalf("read board.svg: %v", err)
+	}
+	// A write that changes the board must refresh the SVG.
+	if out, code := runHexdeck(t, dir, "move", "T-1", "in-progress", "--as", "claude-a"); code != 0 {
+		t.Fatalf("move: exit %d\n%s", code, out)
+	}
+	after, err := os.ReadFile(filepath.Join(boardDir, "board.svg"))
+	if err != nil {
+		t.Fatalf("read board.svg after move: %v", err)
+	}
+	if bytes.Equal(before, after) {
+		t.Errorf("board.svg unchanged after a move — the write path did not refresh it")
+	}
+	// The committed SVG must match the library render and pass the check.
+	state, err := hexdeck.Project(boardDir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	want := hexdeck.RenderSVG(state)
+	if !bytes.Equal(after, want) {
+		t.Errorf("board.svg does not match a fresh render:\n--- got ---\n%s\n--- want ---\n%s", after, want)
+	}
+	if out, code := runHexdeck(t, dir, "render", "--check", "--as", "claude-a"); code != 0 {
+		t.Errorf("render --check after write: exit %d\n%s", code, out)
+	}
+}
+
 // TestE2ERenderCheckSVG checks that render --check covers board.svg
 // once it exists: a hand-edited SVG fails the check with the file
 // named.
@@ -538,6 +614,63 @@ func TestE2ERenderCheckSVG(t *testing.T) {
 	}
 	if !strings.Contains(out, "board.svg") {
 		t.Errorf("render --check output = %q, want it to name board.svg", out)
+	}
+}
+
+// TestReorderArgs checks the argument reordering: flags (and their
+// values) move before positionals, --flag=value stays one token, bool
+// flags take no value, and `--` ends flag scanning so a positional
+// value that starts with `-` can be passed.
+func TestReorderArgs(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+		want []string
+	}{
+		{name: "flags after positionals", args: []string{"Title", "-d", "desc", "--as", "claude-a"}, want: []string{"-d", "desc", "--as", "claude-a", "Title"}},
+		{name: "flags before positionals", args: []string{"--as", "claude-a", "Title"}, want: []string{"--as", "claude-a", "Title"}},
+		{name: "bool flag", args: []string{"Title", "--commit"}, want: []string{"--commit", "Title"}},
+		{name: "equals form", args: []string{"Title", "-d=desc"}, want: []string{"-d=desc", "Title"}},
+		{name: "double dash drops marker", args: []string{"T-1", "--", "-1"}, want: []string{"T-1", "-1"}},
+		{name: "double dash then flags are positional", args: []string{"T-1", "--", "--commit"}, want: []string{"T-1", "--commit"}},
+		{name: "dash alone is positional", args: []string{"-"}, want: []string{"-"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := reorderArgs(tt.args)
+			if len(got) != len(tt.want) {
+				t.Fatalf("reorderArgs(%v) = %v, want %v", tt.args, got, tt.want)
+			}
+			for i := range tt.want {
+				if got[i] != tt.want[i] {
+					t.Errorf("reorderArgs(%v) = %v, want %v", tt.args, got, tt.want)
+					break
+				}
+			}
+		})
+	}
+}
+
+// TestE2EDashPositional checks the `--` escape hatch end to end: a
+// comment whose text starts with a dash is accepted as a positional,
+// not mis-parsed as a flag.
+func TestE2EDashPositional(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "comment", "T-1", "--as", "claude-a", "--", "-1 is a typo"); code != 0 {
+		t.Fatalf("comment with dash text: exit %d\n%s", code, out)
+	}
+	out, code := runHexdeck(t, dir, "show", "T-1")
+	if code != 0 {
+		t.Fatalf("show: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "-1 is a typo") {
+		t.Errorf("show T-1 missing the dash-leading comment:\n%s", out)
 	}
 }
 

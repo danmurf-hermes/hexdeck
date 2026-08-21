@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/danmurf/hexdeck"
 )
@@ -210,7 +211,12 @@ type webServer struct {
 	repoDir  string
 	actor    string
 	noPull   bool
-	changes  []webChange
+	// mu guards changes: HTTP handlers run in separate goroutines, and
+	// a drag followed by a commit can land concurrently. The board
+	// writes themselves stay serialized by git's lock; this mutex
+	// keeps the panel bookkeeping race-free.
+	mu      sync.Mutex
+	changes []webChange
 }
 
 // newWebServer builds a web server over a board dir. The repo dir is
@@ -259,6 +265,10 @@ func (s *webServer) handleState(w http.ResponseWriter, r *http.Request) {
 // handleMove moves a ticket. The body is {"ticket": "T-1", "to":
 // "in-progress"}.
 func (s *webServer) handleMove(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, fmt.Errorf("move takes POST"))
+		return
+	}
 	var body struct {
 		Ticket string `json:"ticket"`
 		To     string `json:"to"`
@@ -305,6 +315,10 @@ func (s *webServer) handleMove(w http.ResponseWriter, r *http.Request) {
 // handleComment adds a comment. The body is {"ticket": "T-1", "text":
 // "on it"}.
 func (s *webServer) handleComment(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, fmt.Errorf("comment takes POST"))
+		return
+	}
 	var body struct {
 		Ticket string `json:"ticket"`
 		Text   string `json:"text"`
@@ -352,6 +366,7 @@ func (s *webServer) handleChanges(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, err)
 		return
 	}
+	s.mu.Lock()
 	message := ""
 	if len(s.changes) > 0 {
 		message = s.changes[len(s.changes)-1].Message
@@ -360,6 +375,7 @@ func (s *webServer) handleChanges(w http.ResponseWriter, r *http.Request) {
 	if changes == nil {
 		changes = []webChange{}
 	}
+	s.mu.Unlock()
 	writeJSON(w, struct {
 		Changes []webChange `json:"changes"`
 		Diff    string      `json:"diff"`
@@ -371,17 +387,24 @@ func (s *webServer) handleChanges(w http.ResponseWriter, r *http.Request) {
 // {"message": "..."} — the message the user edited in the panel. The
 // default is the suggested message.
 func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeError(w, http.StatusMethodNotAllowed, fmt.Errorf("commit takes POST"))
+		return
+	}
 	var body struct {
 		Message string `json:"message"`
 	}
 	// The body is optional — an empty body means the suggested message.
-	if r.ContentLength > 0 {
-		if err := readBody(r, &body); err != nil {
-			writeError(w, http.StatusBadRequest, err)
-			return
-		}
+	// The decoder runs unconditionally (a chunked body has no
+	// ContentLength), but an empty body is a clean EOF, not an error.
+	readErr := readBody(r, &body)
+	if readErr != nil && !strings.Contains(readErr.Error(), "EOF") {
+		writeError(w, http.StatusBadRequest, readErr)
+		return
 	}
+	s.mu.Lock()
 	if len(s.changes) == 0 {
+		s.mu.Unlock()
 		writeError(w, http.StatusBadRequest, fmt.Errorf("nothing to commit"))
 		return
 	}
@@ -389,7 +412,24 @@ func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
 	if message == "" {
 		message = s.changes[len(s.changes)-1].Message
 	}
-	cmd := exec.Command("git", "commit", "-m", message)
+	s.mu.Unlock()
+	rel, err := filepath.Rel(s.repoDir, s.boardDir)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	paths, err := stagedBoardPaths(s.repoDir, rel)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if len(paths) == 0 {
+		writeError(w, http.StatusBadRequest, fmt.Errorf("nothing staged to commit"))
+		return
+	}
+	// Commit only the board's staged files — never whatever else the
+	// user has staged in the repo.
+	cmd := exec.Command("git", append([]string{"commit", "-m", message, "--"}, paths...)...)
 	cmd.Dir = s.repoDir
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
@@ -397,7 +437,9 @@ func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusInternalServerError, fmt.Errorf("git commit failed: %w", err))
 		return
 	}
+	s.mu.Lock()
 	s.changes = nil
+	s.mu.Unlock()
 	writeJSON(w, struct {
 		Committed bool   `json:"committed"`
 		Message   string `json:"message"`
@@ -405,21 +447,17 @@ func (s *webServer) handleCommit(w http.ResponseWriter, r *http.Request) {
 }
 
 // append writes the op, re-renders the board, stages the change, and
-// records it in the changes panel. It runs git pull --rebase first
-// unless noPull is set — the same rule as the CLI.
+// records it in the changes panel. The write itself goes through the
+// shared writeOp path — the same one the CLI uses. The whole sequence
+// runs under the mutex: HTTP handlers run in separate goroutines, and
+// serializing the write prevents two quick drags from interleaving
+// their pull/append/render stages or racing the seq computation.
 func (s *webServer) append(op hexdeck.Op, message string) error {
-	if !s.noPull {
-		if err := gitPullRebase(s.repoDir); err != nil {
-			return err
-		}
-	}
-	if _, err := hexdeck.AppendOp(filepath.Join(s.boardDir, "ops"), op); err != nil {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, err := writeOp(s.boardDir, s.repoDir, s.noPull, op); err != nil {
 		return err
 	}
-	if err := hexdeck.RenderAll(s.boardDir, false); err != nil {
-		return err
-	}
-	stageGit(s.repoDir, s.boardDir, "ops", "board.md", "board.json")
 	s.changes = append(s.changes, webChange{Type: string(op.Type), Ticket: op.Ticket, Message: message})
 	return nil
 }
@@ -457,9 +495,11 @@ func (s *webServer) stagedDiff() (string, error) {
 	return string(out), nil
 }
 
-// readBody decodes a JSON request body.
+// readBody decodes a JSON request body, capped at 1 MiB so an
+// oversized body cannot be an easy DoS even on localhost.
 func readBody(r *http.Request, v any) error {
 	defer r.Body.Close()
+	r.Body = http.MaxBytesReader(nil, r.Body, 1<<20)
 	if err := json.NewDecoder(r.Body).Decode(v); err != nil {
 		return fmt.Errorf("invalid JSON body: %w", err)
 	}
@@ -505,7 +545,7 @@ func runWeb(args []string) error {
 	if err != nil {
 		return err
 	}
-	actor, err := resolveActor(cf)
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
 	if err != nil {
 		return err
 	}

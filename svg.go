@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html"
+	"unicode/utf8"
 )
 
 // svgLayout is the fixed geometry of the board image. All sizes are in
@@ -64,15 +65,7 @@ func RenderSVG(state BoardState) []byte {
 	layout := svgLayoutDefault
 	palette := svgPaletteDefault
 
-	columns := append([]string(nil), state.Columns...)
-	for _, ticket := range sortedTickets(state) {
-		if ticket.Archived {
-			continue
-		}
-		if !contains(columns, ticket.Status) {
-			columns = append(columns, ticket.Status)
-		}
-	}
+	columns := boardColumns(state)
 
 	width := layout.margin + len(columns)*layout.columnW + (len(columns)-1)*layout.columnGap + layout.margin
 	height := layout.columnTop + layout.titleH + 12 + svgCardsArea(state, columns, layout) + layout.margin
@@ -135,7 +128,7 @@ func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y in
 	fmt.Fprintf(b, `<text x="%d" y="%d" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="%s">%s</text>`+"\n",
 		x+layout.cardPad, y+layout.cardPad+12, palette.cardText, html.EscapeString(ticket.ID))
 	fmt.Fprintf(b, `<text x="%d" y="%d" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="%s">%s</text>`+"\n",
-		x+layout.cardPad, y+layout.cardPad+28, palette.cardText, html.EscapeString(ticket.Title))
+		x+layout.cardPad, y+layout.cardPad+28, palette.cardText, html.EscapeString(truncate(ticket.Title, svgMaxTextRunes)))
 	badgeX := x + layout.cardPad
 	if ticket.ClaimedBy != "" {
 		label := "claimed by " + ticket.ClaimedBy
@@ -154,14 +147,33 @@ func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y in
 }
 
 // writeSVGBadge writes one small pill label and returns the x position
-// after it. The pill is 14px high; the text is 10px.
+// after it. The pill is 14px high; the text is 10px. The label is
+// truncated so a long claimer name cannot overflow the card.
 func writeSVGBadge(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y int, label, fill, textFill string) int {
-	text := html.EscapeString(label)
+	text := html.EscapeString(truncate(label, svgMaxTextRunes))
 	w := 12 + len(text)*6
 	fmt.Fprintf(b, `<rect x="%d" y="%d" width="%d" height="14" rx="7" fill="%s"/>`+"\n", x, y, w, fill)
 	fmt.Fprintf(b, `<text x="%d" y="%d" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="%s">%s</text>`+"\n",
 		x+6, y+10, textFill, text)
 	return x + w + 6
+}
+
+// svgMaxTextRunes is the longest card text rendered: roughly 200px at
+// the card's font sizes. Longer titles and badges are truncated with an
+// ellipsis so a long string cannot overflow the card into the adjacent
+// column.
+const svgMaxTextRunes = 28
+
+// truncate caps s at max runes, appending an ellipsis when it cuts.
+func truncate(s string, max int) string {
+	if utf8.RuneCountInString(s) <= max {
+		return s
+	}
+	runes := []rune(s)
+	if max <= 1 {
+		return "…"
+	}
+	return string(runes[:max-1]) + "…"
 }
 
 // svgUpdatedLine builds the "Updated: <ts> · <counts>" line for the

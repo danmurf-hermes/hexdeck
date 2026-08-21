@@ -29,15 +29,7 @@ func RenderMarkdown(state BoardState) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "# Board — %s\n", state.Name)
 	fmt.Fprintf(&b, "Updated: %s · %s\n", state.Updated.UTC().Format("2006-01-02T15:04:05Z"), columnCounts(state))
-	columns := append([]string(nil), state.Columns...)
-	for _, ticket := range sortedTickets(state) {
-		if ticket.Archived {
-			continue
-		}
-		if !contains(columns, ticket.Status) {
-			columns = append(columns, ticket.Status)
-		}
-	}
+	columns := boardColumns(state)
 	for _, column := range columns {
 		fmt.Fprintf(&b, "\n## %s\n", column)
 		for _, ticket := range sortedTickets(state) {
@@ -96,10 +88,11 @@ func RenderJSON(state BoardState) ([]byte, error) {
 	return append(data, '\n'), nil
 }
 
-// columnCounts builds the "3 todo · 2 in-progress · ..." part of the
-// Updated line. One count per column, in config order. Columns that hold
-// tickets but are not in the config come last, in first-seen order.
-func columnCounts(state BoardState) string {
+// boardColumns returns the columns to render: the config columns, plus
+// any column that holds tickets but is not in the config, in first-
+// seen order. The renders all share this one definition so a future
+// change to column handling needs one edit, not four.
+func boardColumns(state BoardState) []string {
 	columns := append([]string(nil), state.Columns...)
 	for _, ticket := range sortedTickets(state) {
 		if ticket.Archived {
@@ -109,6 +102,14 @@ func columnCounts(state BoardState) string {
 			columns = append(columns, ticket.Status)
 		}
 	}
+	return columns
+}
+
+// columnCounts builds the "3 todo · 2 in-progress · ..." part of the
+// Updated line. One count per column, in config order. Columns that hold
+// tickets but are not in the config come last, in first-seen order.
+func columnCounts(state BoardState) string {
+	columns := boardColumns(state)
 	counts := make([]string, 0, len(columns))
 	for _, column := range columns {
 		n := 0
@@ -132,13 +133,15 @@ func sortedTickets(state BoardState) []Ticket {
 		tickets = append(tickets, ticket)
 	}
 	sort.Slice(tickets, func(i, j int) bool {
-		return ticketIDLess(state.Prefix, tickets[i].ID, tickets[j].ID)
+		return TicketIDLess(state.Prefix, tickets[i].ID, tickets[j].ID)
 	})
 	return tickets
 }
 
-// ticketIDLess compares two ticket ids. T-2 < T-10 < T-11 < X-1.
-func ticketIDLess(prefix string, a, b string) bool {
+// TicketIDLess compares two ticket ids numerically: T-2 < T-10 <
+// T-11 < X-1. It is the same ordering the renders use, so every
+// surface (board view, pick, MCP next) agrees on ticket order.
+func TicketIDLess(prefix string, a, b string) bool {
 	an, aok := ticketNumber(prefix, a)
 	bn, bok := ticketNumber(prefix, b)
 	switch {
