@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T08:55:47Z · 2 todo · 0 in-progress · 2 review · 2 done
+Updated: 2026-08-21T09:03:57Z · 3 todo · 0 in-progress · 2 review · 2 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -7,6 +7,8 @@ Updated: 2026-08-21T08:55:47Z · 2 todo · 0 in-progress · 2 review · 2 done
   - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
 - T-6 Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest.
   Coverage measurement fix
+- T-7 Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7
+  Docs reassessment
 
 ## in-progress
 
