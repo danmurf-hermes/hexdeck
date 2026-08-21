@@ -78,3 +78,9 @@ The merge rule applies here: a ticket in `review` is done when its PR merges. Th
 `docs/contributing.md` is the contribution guide — for humans and agents alike. It describes how the board is used (`pick` a ticket, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), the quality bar, and the rules (no force-push, no op edits, ask on the PR when ambiguous).
 
 The guide is part of the dogfood: a fresh agent with zero context reads it once and can run a chunk against the board. The cold-start test (T-4) is the proof.
+
+## The cold-start test
+
+The Phase 4 acceptance, run against a real agent. A fresh agent with zero context — empty memory, no skills, only the model credential — got a clean clone of the repo and one neutral task. It had to discover the board itself, through the repo's own files: `AGENTS.md` → `.kanban/README.md` → `docs/contributing.md`.
+
+The agent created a ticket, moved it, commented, moved it to review, and committed the code and the board ops together — in one attempt. The report is `docs/cold-start.md`; the acceptance is pinned in `ci_test.go` (the report must exist and record the result, and the discovery chain must be intact).

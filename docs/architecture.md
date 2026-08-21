@@ -145,9 +145,10 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 4 chunk 1: the dogfood board — `hexdeck init` in the hexdeck repo, the phase table migrated into tickets, and a second render check in CI for `.kanban/`. The board is the build tracker now.
 - Phase 4 chunk 2: the build worker runs against the board — the contribution guide (`docs/contributing.md`) replaced the worker runbook, and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
 - Phase 4 chunk 3: the acceptance read — `board.md` now renders ticket descriptions and comments, so the board carries the story on its own. The dogfood board answers "where is the project up to" without opening anything else, and `ci_test.go` pins that contract.
+- Phase 4 chunk 4: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. The report is `docs/cold-start.md`; the acceptance is pinned in `ci_test.go`.
 
 ## What comes next
 
-- Phase 4 chunk 4: the cold-start test — a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
+- Phase 5: V1.1 — only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.

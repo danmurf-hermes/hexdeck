@@ -1,0 +1,1 @@
+{"schema":1,"opId":"307b931b-5728-4c74-be06-94716a06d7c8","seq":37,"ts":"2026-08-21T08:24:10Z","actor":"hermes","type":"ticket.moved","ticket":"T-4","payload":{"from":"todo","to":"in-progress"}}

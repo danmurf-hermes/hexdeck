@@ -1,10 +1,7 @@
 # Board — hexdeck
-Updated: 2026-08-21T07:52:21Z · 2 todo · 0 in-progress · 1 review · 2 done
+Updated: 2026-08-21T08:24:10Z · 1 todo · 0 in-progress · 2 review · 2 done
 
 ## todo
-- T-4 Cold-start test: a fresh agent uses the board in one attempt · 1 comment
-  A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
-  - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
   Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
   - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
@@ -17,6 +14,10 @@ Updated: 2026-08-21T07:52:21Z · 2 todo · 0 in-progress · 1 review · 2 done
   - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
   - 2026-08-21T06:53:49Z hermes: Back to todo: no PR has delivered the acceptance test yet. Chunk 2 delivers the worker runbook.
   - 2026-08-21T07:52:21Z hermes: board.md now renders descriptions and comments — the board answers the question on its own. The acceptance is pinned in ci_test.go.
+- T-4 Cold-start test: a fresh agent uses the board in one attempt — claimed by hermes · 2 comments
+  A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
+  - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
+  - 2026-08-21T08:24:10Z danmurf-hermes: Cold-start test passed in one attempt: a fresh agent with zero context, given only the repo, discovered the board via AGENTS.md, created T-6, moved it, commented, and moved it to review — code and ops in one commit. Report: docs/cold-start.md. Acceptance pinned in ci_test.go.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment
