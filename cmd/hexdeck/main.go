@@ -226,10 +226,10 @@ func runCreate(args []string) error {
 		return err
 	}
 	id := hexdeck.NextTicketID(state)
-	payload, err := json.Marshal(struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-	}{title, *desc})
+	payload, err := json.Marshal(hexdeck.TicketCreatedPayload{
+		Title:       title,
+		Description: *desc,
+	})
 	if err != nil {
 		return err
 	}
@@ -280,10 +280,10 @@ func runMove(args []string) error {
 	if !contains(state.Columns, to) {
 		return fmt.Errorf("column %q does not exist — columns: %s", to, strings.Join(state.Columns, ", "))
 	}
-	payload, err := json.Marshal(struct {
-		From string `json:"from"`
-		To   string `json:"to"`
-	}{t.Status, to})
+	payload, err := json.Marshal(hexdeck.TicketMovedPayload{
+		From: t.Status,
+		To:   to,
+	})
 	if err != nil {
 		return err
 	}
@@ -327,9 +327,7 @@ func runComment(args []string) error {
 	if _, ok := state.Tickets[ticket]; !ok {
 		return fmt.Errorf("ticket %s does not exist", ticket)
 	}
-	payload, err := json.Marshal(struct {
-		Text string `json:"text"`
-	}{text})
+	payload, err := json.Marshal(hexdeck.CommentAddedPayload{Text: text})
 	if err != nil {
 		return err
 	}
@@ -502,9 +500,7 @@ func runPick(args []string) error {
 		return candidates[i].ID < candidates[j].ID
 	})
 	ticket := candidates[0]
-	claimPayload, err := json.Marshal(struct {
-		By string `json:"by"`
-	}{actor})
+	claimPayload, err := json.Marshal(hexdeck.TicketClaimedPayload{By: actor})
 	if err != nil {
 		return err
 	}
@@ -516,10 +512,10 @@ func runPick(args []string) error {
 	}); err != nil {
 		return err
 	}
-	movePayload, err := json.Marshal(struct {
-		From string `json:"from"`
-		To   string `json:"to"`
-	}{ticket.Status, state.Columns[1]})
+	movePayload, err := json.Marshal(hexdeck.TicketMovedPayload{
+		From: ticket.Status,
+		To:   state.Columns[1],
+	})
 	if err != nil {
 		return err
 	}
@@ -564,9 +560,7 @@ func runRelease(args []string) error {
 	if _, ok := state.Tickets[ticket]; !ok {
 		return fmt.Errorf("ticket %s does not exist", ticket)
 	}
-	payload, err := json.Marshal(struct {
-		By string `json:"by"`
-	}{actor})
+	payload, err := json.Marshal(hexdeck.TicketClaimedPayload{By: actor})
 	if err != nil {
 		return err
 	}
