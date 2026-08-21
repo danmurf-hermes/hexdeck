@@ -11,8 +11,7 @@ hexdeck create "Title" [-d "description"] [--as <actor>] [--commit]
 hexdeck move <ticket> <column> [--as <actor>] [--commit]
 hexdeck comment <ticket> "text" [--as <actor>] [--commit]
 hexdeck link <ticket> <kind> <target> [--remove] [--as <actor>] [--commit]
-hexdeck label <ticket> <label> [--remove] [--as <actor>] [--commit]
-hexdeck show [<ticket>] [--json] [--label <label>]
+hexdeck show [<ticket>] [--json]
 hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
 hexdeck pick --as <actor> [--commit]
 hexdeck release <ticket> --as <actor> [--commit]
@@ -62,22 +61,12 @@ removes the link. A ticket can never link to itself.
 Links are considered by `pick`: a `todo` ticket whose blocker is not in
 `done` is not pickable.
 
-### label
-
-Adds a label to a ticket. A label is one word — a small set per ticket
-(e.g. `feature`, `bug`, `docs`, `infra`). The board card shows the
-labels after the claim; the ticket view shows a `labels:` line.
-`--remove` removes the label. A label can never be empty or contain
-spaces or commas.
-
 ### show
 
-Prints the board as markdown: each ticket's id, title, claim, labels,
-and description. With a ticket id, prints one ticket — fields, links,
-labels, comments, and history. Comments and links live on the ticket
-view, not the board view. `--json` prints the machine view
-(`board.json`). `--label <label>` prints only the tickets carrying the
-label — the columns stay, the filter hides tickets, never columns.
+Prints the board as markdown: each ticket's id, title, claim, and
+description. With a ticket id, prints one ticket — fields, links,
+comments, and history. Comments and links live on the ticket view, not
+the board view. `--json` prints the machine view (`board.json`).
 
 ### log
 
@@ -123,8 +112,7 @@ harness) starts `hexdeck mcp` and asks the board questions without the
 CLI. The server speaks the MCP protocol (version 2025-06-18) and
 exposes four tools:
 
-- `board_show` — the whole board as markdown. Optional argument:
-  `label` — only tickets with that label.
+- `board_show` — the whole board as markdown.
 - `board_show_ticket` — one ticket. Argument: `ticket`.
 - `board_log` — the op timeline. Optional arguments: `ticket`,
   `actor`, `since` (a duration like `2d`).
@@ -151,8 +139,6 @@ One op = one JSON file in `.kanban/ops/`. Fields: `schema`, `opId`,
 | `ticket.archived` | `{}` | Hides the ticket from the default board. |
 | `ticket.link.added` | `{"kind": "blocks"\|"related", "to": "..."}` | Links the ticket to another. |
 | `ticket.link.removed` | `{"kind": "blocks"\|"related", "to": "..."}` | Removes a link. |
-| `ticket.label.added` | `{"label": "..."}` | Adds a label — one word. |
-| `ticket.label.removed` | `{"label": "..."}` | Removes a label. |
 
 Ops sort by `(seq, opId)` — never by file order, never by timestamp.
 Two writers can produce the same seq; the opId breaks the tie.
@@ -217,9 +203,6 @@ be regenerated from the ops alone.
 - A blocks link from A to B means B is not pickable until A is in
   `done`. The fold keeps the mirror lists (`blocks` on A, `blocked by`
   on B) in sync — a link is one op, and removing it clears both sides.
-- A label is one word. A duplicate label is skipped with a warning —
-  a label is a set, not a list. Removing a label that is not there is
-  skipped with a warning.
 - A link to a ticket that does not exist is skipped with a warning —
   a stale link never blocks a pick.
 - Ops about a ticket that was never created are skipped with a

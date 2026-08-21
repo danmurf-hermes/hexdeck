@@ -23,34 +23,30 @@ type OpType string
 
 // The complete list of V1 op types.
 const (
-	OpBoardCreated       OpType = "board.created"
-	OpTicketCreated      OpType = "ticket.created"
-	OpTicketMoved        OpType = "ticket.moved"
-	OpTicketUpdated      OpType = "ticket.updated"
-	OpCommentAdded       OpType = "comment.added"
-	OpTicketClaimed      OpType = "ticket.claimed"
-	OpTicketReleased     OpType = "ticket.released"
-	OpTicketArchived     OpType = "ticket.archived"
-	OpTicketLinkAdded    OpType = "ticket.link.added"
-	OpTicketLinkRemoved  OpType = "ticket.link.removed"
-	OpTicketLabelAdded   OpType = "ticket.label.added"
-	OpTicketLabelRemoved OpType = "ticket.label.removed"
+	OpBoardCreated      OpType = "board.created"
+	OpTicketCreated     OpType = "ticket.created"
+	OpTicketMoved       OpType = "ticket.moved"
+	OpTicketUpdated     OpType = "ticket.updated"
+	OpCommentAdded      OpType = "comment.added"
+	OpTicketClaimed     OpType = "ticket.claimed"
+	OpTicketReleased    OpType = "ticket.released"
+	OpTicketArchived    OpType = "ticket.archived"
+	OpTicketLinkAdded   OpType = "ticket.link.added"
+	OpTicketLinkRemoved OpType = "ticket.link.removed"
 )
 
 // validOpTypes is the set of op types the parser accepts.
 var validOpTypes = map[OpType]bool{
-	OpBoardCreated:       true,
-	OpTicketCreated:      true,
-	OpTicketMoved:        true,
-	OpTicketUpdated:      true,
-	OpCommentAdded:       true,
-	OpTicketClaimed:      true,
-	OpTicketReleased:     true,
-	OpTicketArchived:     true,
-	OpTicketLinkAdded:    true,
-	OpTicketLinkRemoved:  true,
-	OpTicketLabelAdded:   true,
-	OpTicketLabelRemoved: true,
+	OpBoardCreated:      true,
+	OpTicketCreated:     true,
+	OpTicketMoved:       true,
+	OpTicketUpdated:     true,
+	OpCommentAdded:      true,
+	OpTicketClaimed:     true,
+	OpTicketReleased:    true,
+	OpTicketArchived:    true,
+	OpTicketLinkAdded:   true,
+	OpTicketLinkRemoved: true,
 }
 
 // Op is one event from the board log. One op = one JSON file in ops/.
@@ -185,14 +181,6 @@ type (
 		Kind string `json:"kind"`
 		To   string `json:"to"`
 	}
-
-	// TicketLabelPayload is the payload for ticket.label.added and
-	// ticket.label.removed. Label is one word — a small set per ticket
-	// (e.g. feature, bug, docs, infra), shown on the board card and
-	// filterable.
-	TicketLabelPayload struct {
-		Label string `json:"label"`
-	}
 )
 
 // LinkKindBlocks is the blocks link kind: the ticket must come before
@@ -265,16 +253,6 @@ func validatePayload(op Op) error {
 				err = fmt.Errorf("cannot link a ticket to itself")
 			}
 		}
-	case OpTicketLabelAdded, OpTicketLabelRemoved:
-		var p TicketLabelPayload
-		err = decodePayload(op.Payload, &p)
-		if err == nil {
-			if p.Label == "" {
-				err = fmt.Errorf("label is required")
-			} else if !isOneWord(p.Label) {
-				err = fmt.Errorf("label must be one word, got %q", p.Label)
-			}
-		}
 	}
 	if err != nil {
 		return fmt.Errorf("invalid payload for %s: %w", op.Type, err)
@@ -303,18 +281,6 @@ func decodePayload(data []byte, v any) error {
 // surrounding whitespace).
 func isJSONEmptyObject(data []byte) bool {
 	return strings.TrimSpace(string(data)) == "{}"
-}
-
-// isOneWord reports whether s is a single word: no whitespace, no
-// commas. Labels are one word so they render cleanly on the board card
-// and in the ticket line.
-func isOneWord(s string) bool {
-	for _, r := range s {
-		if r == ' ' || r == '	' || r == '\n' || r == ',' {
-			return false
-		}
-	}
-	return true
 }
 
 // SortOps sorts ops in place by (seq asc, opId asc). This is the

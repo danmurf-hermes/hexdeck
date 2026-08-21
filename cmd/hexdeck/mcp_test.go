@@ -232,38 +232,6 @@ func TestMCPBoardShowTicket(t *testing.T) {
 	}
 }
 
-// TestMCPBoardShowLabelFilter checks tools/call board_show with a
-// label argument: only tickets with the label render.
-func TestMCPBoardShowLabelFilter(t *testing.T) {
-	dir := initRepo(t)
-	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
-		t.Fatalf("init: exit %d\n%s", code, out)
-	}
-	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
-		t.Fatalf("create: exit %d\n%s", code, out)
-	}
-	if out, code := runHexdeck(t, dir, "create", "Two", "--as", "claude-a"); code != 0 {
-		t.Fatalf("create: exit %d\n%s", code, out)
-	}
-	if out, code := runHexdeck(t, dir, "label", "T-1", "bug", "--as", "claude-a"); code != 0 {
-		t.Fatalf("label: exit %d\n%s", code, out)
-	}
-	outBuf := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), outBuf)
-	responses := mcpExchange(t, s, outBuf, mcpInit, mcpInitialized,
-		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"board_show","arguments":{"label":"bug"}}}`)
-	if len(responses) != 2 {
-		t.Fatalf("responses = %d, want 2", len(responses))
-	}
-	text := toolText(t, responses[1])
-	if !strings.Contains(text, "T-1 One") {
-		t.Errorf("board_show label filter missing the matching ticket:\n%s", text)
-	}
-	if strings.Contains(text, "T-2 Two") {
-		t.Errorf("board_show label filter carries the non-matching ticket:\n%s", text)
-	}
-}
-
 // TestMCPBoardLogWarnings checks that board_log surfaces read
 // warnings in the result text: an agent must see that ops were
 // skipped, or it would trust a timeline with holes in it.

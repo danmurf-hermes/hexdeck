@@ -27,7 +27,6 @@ type svgPalette struct {
 	card, cardBorder       string
 	cardText, cardMeta     string
 	claim, claimText       string
-	label, labelText       string
 }
 
 var svgLayoutDefault = svgLayout{
@@ -44,7 +43,6 @@ var svgPaletteDefault = svgPalette{
 	card: "#ffffff", cardBorder: "#d0d7de",
 	cardText: "#1f2328", cardMeta: "#57606a",
 	claim: "#ddf4ff", claimText: "#0969da",
-	label: "#fff8c5", labelText: "#7d4e00",
 }
 
 // RenderSVG renders the board as board.svg — the board image for the
@@ -136,10 +134,7 @@ func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y in
 		if ticket.ClaimStale {
 			label += " (stale)"
 		}
-		badgeX = writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.claim, palette.claimText)
-	}
-	for _, label := range ticket.Labels {
-		badgeX = writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.label, palette.labelText)
+		writeSVGBadge(b, layout, palette, badgeX, y+layout.cardPad+36, label, palette.claim, palette.claimText)
 	}
 }
 

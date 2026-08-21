@@ -56,10 +56,6 @@ type Ticket struct {
 	// Related is the ids of the tickets linked as related, in the
 	// order the links were added.
 	Related []string `json:"related,omitempty"`
-	// Labels is the labels on the ticket, in the order they were
-	// added. A small set per ticket (e.g. feature, bug, docs, infra),
-	// shown on the board card and filterable.
-	Labels []string `json:"labels,omitempty"`
 }
 
 // BoardState is the board after the fold. The projection of the ops.
@@ -381,39 +377,6 @@ func apply(op Op, state *BoardState) {
 				removeString(&target.Related, op.Ticket)
 				state.Tickets[p.To] = target
 			}
-		}
-		state.Tickets[op.Ticket] = ticket
-	case OpTicketLabelAdded:
-		ticket, ok := state.Tickets[op.Ticket]
-		if !ok {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
-			return
-		}
-		var p TicketLabelPayload
-		if err := json.Unmarshal(op.Payload, &p); err != nil {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
-			return
-		}
-		if contains(ticket.Labels, p.Label) {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: %s already has label %s, skipping the duplicate", op.Type, op.Ticket, op.Ticket, p.Label))
-			return
-		}
-		ticket.Labels = append(ticket.Labels, p.Label)
-		state.Tickets[op.Ticket] = ticket
-	case OpTicketLabelRemoved:
-		ticket, ok := state.Tickets[op.Ticket]
-		if !ok {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
-			return
-		}
-		var p TicketLabelPayload
-		if err := json.Unmarshal(op.Payload, &p); err != nil {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
-			return
-		}
-		if !removeString(&ticket.Labels, p.Label) {
-			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: no label %s on %s, skipping", op.Type, op.Ticket, p.Label, op.Ticket))
-			return
 		}
 		state.Tickets[op.Ticket] = ticket
 	}

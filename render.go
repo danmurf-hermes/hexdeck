@@ -21,23 +21,15 @@ import (
 //	- T-1 Title — claimed by claude-a
 //	  the description, indented
 //
-// The board shows each ticket's id, title, claim, labels, and
-// description — nothing else. Comments live on the ticket view (`hexdeck
-// show <ticket>`, the web ticket detail, the MCP ticket tool), not on
-// the board.
+// The board shows each ticket's id, title, claim, and description —
+// nothing else. Comments live on the ticket view (`hexdeck show
+// <ticket>`, the web ticket detail, the MCP ticket tool), not on the
+// board.
 //
 // Tickets sort by id within a column, numerically (T-2 before T-10).
 // Archived tickets are hidden. Tickets in a column that is not in the
 // config render in a trailing section named after the column.
 func RenderMarkdown(state BoardState) []byte {
-	return RenderMarkdownFiltered(state, "")
-}
-
-// RenderMarkdownFiltered renders the board like RenderMarkdown, but
-// only tickets carrying the label render. An empty label renders the
-// whole board. The header and the column sections stay — the filter
-// hides tickets, never columns.
-func RenderMarkdownFiltered(state BoardState, label string) []byte {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "# Board — %s\n", state.Name)
 	fmt.Fprintf(&b, "Updated: %s · %s\n", state.Updated.UTC().Format("2006-01-02T15:04:05Z"), columnCounts(state))
@@ -48,18 +40,12 @@ func RenderMarkdownFiltered(state BoardState, label string) []byte {
 			if ticket.Archived || ticket.Status != column {
 				continue
 			}
-			if label != "" && !contains(ticket.Labels, label) {
-				continue
-			}
 			fmt.Fprintf(&b, "- %s %s", ticket.ID, ticket.Title)
 			if ticket.ClaimedBy != "" {
 				fmt.Fprintf(&b, " — claimed by %s", ticket.ClaimedBy)
 				if ticket.ClaimStale {
 					b.WriteString(" (stale claim)")
 				}
-			}
-			if len(ticket.Labels) > 0 {
-				fmt.Fprintf(&b, " [%s]", strings.Join(ticket.Labels, ", "))
 			}
 			b.WriteString("\n")
 			if ticket.Description != "" {

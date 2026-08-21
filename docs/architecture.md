@@ -107,7 +107,7 @@ One op = one JSON file. Fields: `schema`, `opId`, `seq`, `ts`,
 Op types: `board.created`, `ticket.created`, `ticket.moved`,
 `ticket.updated`, `comment.added`, `ticket.claimed`,
 `ticket.released`, `ticket.archived`, `ticket.link.added`,
-`ticket.link.removed`, `ticket.label.added`, `ticket.label.removed`.
+`ticket.link.removed`.
 
 ## Deterministic ordering
 
@@ -161,11 +161,6 @@ The fold rules:
   link is skipped with a warning.
 - `ticket.link.removed` removes a link from both sides. Removing a
   link that is not there is skipped with a warning.
-- `ticket.label.added` adds a label to the ticket's `Labels` list. A
-  duplicate label is skipped with a warning — a label is a set, not a
-  list.
-- `ticket.label.removed` removes a label. Removing a label that is
-  not there is skipped with a warning.
 
 Ops about a ticket that was never created are skipped with a warning —
 visible, never fatal. The board must always build. A link whose target
@@ -176,8 +171,7 @@ stall a pick.
 the claim timeout, the tickets (a map by id), the warnings, and the
 newest op ts (`Updated`). `Ticket` holds the id, title, description,
 status, comments, created time, claim (who and when), the stale flag,
-the archived flag, the links (`Blocks`, `BlockedBy`, `Related`), and
-the labels (`Labels`).
+the archived flag, and the links (`Blocks`, `BlockedBy`, `Related`).
 
 ## The life of a ticket
 
@@ -236,22 +230,6 @@ skipped with a warning, never fatal. A link to a missing ticket does
 not block a pick — the fold drops it, so a stale reference can never
 stall the board.
 
-## Labels
-
-A ticket can carry a small set of labels — one-word tags like
-`feature`, `bug`, `docs`, `infra`. A label is one op with the label
-name: `ticket.label.added` adds it, `ticket.label.removed` removes it.
-The fold keeps the labels in the order they were added. A duplicate
-label is skipped with a warning — a label is a set, not a list — and
-removing a label that is not there is skipped the same way.
-
-Labels render on the board card (after the claim), in the SVG and the
-web view as small badges, and on the ticket view as a `labels:` line.
-The board can be filtered by label: `hexdeck show --label bug` and the
-MCP `board_show` tool take an optional label argument. The filter
-hides tickets, never columns — the board keeps its shape, only the
-cards change.
-
 ## The renders
 
 Three functions turn a `BoardState` into the committed board files.
@@ -264,19 +242,16 @@ All are deterministic: same state, same bytes, always.
   T-10. Archived tickets are hidden. A ticket in a column that is not
   in the config renders in a trailing section named after the column.
   A stale claim renders `(stale claim)` after the claim. Each ticket
-  shows its id, title, claim, labels, and description — nothing else.
+  shows its id, title, claim, and description — nothing else.
   Comments live on the ticket view (`hexdeck show <ticket>`, the web
   ticket detail, the MCP ticket tool), not on the board.
-  `RenderMarkdownFiltered(state, label)` renders the same board with
-  only the tickets carrying the label — the filter hides tickets,
-  never columns.
 - `RenderJSON(state)` — `board.json`, the machine view. The full
   `BoardState`, indented, with a trailing newline.
 - `RenderSVG(state)` — `board.svg`, the board image for the README. A
   header with the board name and the `Updated:` line, then one column
   per configured column, side by side. Each ticket is a card: the id,
-  the title, a badge for the claim, and a badge per label. Comments
-  live on the ticket view, so the cards carry no comment badge.
+  the title, and a badge for the claim. Comments live on the ticket
+  view, so the cards carry no comment badge.
   Archived tickets are hidden. A ticket in a column that is not in the
   config renders in a trailing column named after the column. A stale
   claim renders `(stale)` in the claim badge.
@@ -450,8 +425,7 @@ asks the board questions without the CLI.
 
 The server exposes four tools, all read-only:
 
-- `board_show` — the whole board as markdown. Optional argument:
-  `label` — only tickets with that label.
+- `board_show` — the whole board as markdown.
 - `board_show_ticket` — one ticket: title, description, status,
   claim, comments.
 - `board_log` — the op timeline, with the same filters as

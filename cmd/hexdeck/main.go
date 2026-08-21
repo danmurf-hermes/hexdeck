@@ -24,8 +24,7 @@ Usage:
   hexdeck move <ticket> <column> [--as <actor>] [--commit]
   hexdeck comment <ticket> "text" [--as <actor>] [--commit]
   hexdeck link <ticket> <kind> <target> [--remove] [--as <actor>] [--commit]
-  hexdeck label <ticket> <label> [--remove] [--as <actor>] [--commit]
-  hexdeck show [<ticket>] [--json] [--label <label>]
+  hexdeck show [<ticket>] [--json]
   hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
   hexdeck pick --as <actor> [--commit]
   hexdeck release <ticket> --as <actor> [--commit]
@@ -62,8 +61,6 @@ func main() {
 		err = runComment(args)
 	case "link":
 		err = runLink(args)
-	case "label":
-		err = runLabel(args)
 	case "show":
 		err = runShow(args)
 	case "log":
@@ -412,70 +409,12 @@ func runLink(args []string) error {
 	return nil
 }
 
-// runLabel appends a ticket.label.added or ticket.label.removed op.
-func runLabel(args []string) error {
-	fs := flag.NewFlagSet("label", flag.ExitOnError)
-	var cf commonFlags
-	addCommon(fs, &cf)
-	remove := fs.Bool("remove", false, "remove the label instead of adding it")
-	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	if err := fs.Parse(args); err != nil {
-		return err
-	}
-	if fs.NArg() != 2 {
-		return fmt.Errorf("label takes two arguments: the ticket and the label")
-	}
-	ticket, label := fs.Arg(0), fs.Arg(1)
-	if label == "" {
-		return fmt.Errorf("label is required")
-	}
-	if !isOneWord(label) {
-		return fmt.Errorf("label must be one word, got %q", label)
-	}
-	boardDir, err := resolveBoardDir(cf)
-	if err != nil {
-		return err
-	}
-	actor, err := resolveActor(cf, filepath.Dir(boardDir))
-	if err != nil {
-		return err
-	}
-	state, err := hexdeck.Project(boardDir)
-	if err != nil {
-		return err
-	}
-	if _, ok := state.Tickets[ticket]; !ok {
-		return fmt.Errorf("ticket %s does not exist", ticket)
-	}
-	payload, err := json.Marshal(hexdeck.TicketLabelPayload{Label: label})
-	if err != nil {
-		return err
-	}
-	opType := hexdeck.OpTicketLabelAdded
-	message := fmt.Sprintf("board: label %s %s", ticket, label)
-	if *remove {
-		opType = hexdeck.OpTicketLabelRemoved
-		message = fmt.Sprintf("board: unlabel %s %s", ticket, label)
-	}
-	if _, err := appendOp(boardDir, cf, hexdeck.Op{
-		Type:    opType,
-		Ticket:  ticket,
-		Actor:   actor,
-		Payload: payload,
-	}); err != nil {
-		return err
-	}
-	suggestCommit(cf, boardDir, message)
-	return nil
-}
-
 // runShow prints the board or one ticket.
 func runShow(args []string) error {
 	fs := flag.NewFlagSet("show", flag.ExitOnError)
 	var cf commonFlags
 	addCommon(fs, &cf)
 	asJSON := fs.Bool("json", false, "print the machine view (board.json)")
-	label := fs.String("label", "", "only tickets with this label")
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -502,7 +441,7 @@ func runShow(args []string) error {
 	if fs.NArg() == 1 {
 		return showTicket(state, fs.Arg(0))
 	}
-	fmt.Print(string(hexdeck.RenderMarkdownFiltered(state, *label)))
+	fmt.Print(string(hexdeck.RenderMarkdown(state)))
 	return nil
 }
 
@@ -900,16 +839,4 @@ func contains(list []string, s string) bool {
 		}
 	}
 	return false
-}
-
-// isOneWord reports whether s is a single word: no whitespace, no
-// commas. Labels are one word so they render cleanly on the board card
-// and in the ticket line.
-func isOneWord(s string) bool {
-	for _, r := range s {
-		if r == ' ' || r == '	' || r == '\n' || r == ',' {
-			return false
-		}
-	}
-	return true
 }

@@ -33,15 +33,10 @@ type mcpTool struct {
 var mcpTools = []mcpTool{
 	{
 		Name:        "board_show",
-		Description: "Show the whole board as markdown: every column with its tickets and claims. Optional label filter: only tickets with that label.",
+		Description: "Show the whole board as markdown: every column with its tickets and claims.",
 		InputSchema: map[string]any{
-			"type": "object",
-			"properties": map[string]any{
-				"label": map[string]any{
-					"type":        "string",
-					"description": "Only tickets with this label, e.g. bug.",
-				},
-			},
+			"type":       "object",
+			"properties": map[string]any{},
 		},
 	},
 	{
@@ -218,7 +213,7 @@ func (s *mcpSession) runTool(name string, args map[string]string) (string, error
 	}
 	switch name {
 	case "board_show":
-		return string(hexdeck.RenderMarkdownFiltered(state, args["label"])), nil
+		return string(hexdeck.RenderMarkdown(state)), nil
 	case "board_show_ticket":
 		ticket, ok := state.Tickets[args["ticket"]]
 		if !ok {

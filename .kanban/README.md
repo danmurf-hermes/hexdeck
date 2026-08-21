@@ -15,10 +15,8 @@ hexdeck create "Title" [-d "description"]   # new ticket
 hexdeck move T-12 todo                      # change column
 hexdeck comment T-12 "text"                 # add a comment
 hexdeck link T-12 blocks T-3                # link tickets: blocks, related
-hexdeck label T-12 bug                       # add a label: one word
 hexdeck show                                # print the board (compact)
 hexdeck show T-12                           # print one ticket
-hexdeck show --label bug                    # only tickets with the label
 hexdeck log --since 2d                      # what happened recently
 hexdeck pick --as <your-name>               # claim the next todo ticket
 
@@ -31,8 +29,7 @@ Create `.kanban/ops/<seq>-<uuid>.json`:
 
 Op types: ticket.created, ticket.moved, ticket.updated,
 comment.added, ticket.claimed, ticket.released, ticket.archived,
-ticket.link.added, ticket.link.removed, ticket.label.added,
-ticket.label.removed.
+ticket.link.added, ticket.link.removed.
 
 Ticket ids are <prefix>-<number>, prefix from config.json
 (default T, e.g. T-12).
