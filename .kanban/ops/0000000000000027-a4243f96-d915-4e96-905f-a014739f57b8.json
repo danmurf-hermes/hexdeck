@@ -1,0 +1,1 @@
+{"schema":1,"opId":"a4243f96-d915-4e96-905f-a014739f57b8","seq":27,"ts":"2026-08-21T06:53:49Z","actor":"hermes","type":"comment.added","ticket":"T-2","payload":{"text":"The worker runbook (docs/worker.md) is written — the protocol this worker follows. Ops and docs land in the same commit."}}

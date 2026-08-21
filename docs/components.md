@@ -72,3 +72,9 @@ A real board in `docs/demo/` — config, ops, and the three committed projection
 The repo's own board in `.kanban/`. It is the build tracker: the phase table from PROGRESS.md migrated into tickets, and the build worker creates, moves, and comments on tickets as it works. CI runs `render --check` on it — the same honesty gate as the demo board. Its claim timeout is ten years, for the same reason: the committed projections never change with the wall clock.
 
 The merge rule applies here: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.
+
+## The worker runbook
+
+`docs/worker.md` documents the build worker: the background agent that builds hexdeck, one chunk per run. It describes the loop (sync, close merged tickets, check feedback, one chunk, docs, PR, stop), how the worker uses the board (`pick` before a chunk, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), and the hard rules (no private details, no force-push, no self-merge, one chunk per run).
+
+The runbook is part of the dogfood: a fresh agent with zero context reads it once and can run a chunk against the board. The cold-start test (T-4) is the proof.
