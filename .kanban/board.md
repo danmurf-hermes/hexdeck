@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T09:03:57Z · 3 todo · 0 in-progress · 2 review · 2 done
+Updated: 2026-08-21T09:22:12Z · 3 todo · 0 in-progress · 1 review · 3 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -13,11 +13,6 @@ Updated: 2026-08-21T09:03:57Z · 3 todo · 0 in-progress · 2 review · 2 done
 ## in-progress
 
 ## review
-- T-3 Dogfood acceptance: board.md answers where the project is up to — claimed by hermes · 3 comments
-  A human reads board.md and can answer the question without opening anything else.
-  - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
-  - 2026-08-21T06:53:49Z hermes: Back to todo: no PR has delivered the acceptance test yet. Chunk 2 delivers the worker runbook.
-  - 2026-08-21T07:52:21Z hermes: board.md now renders descriptions and comments — the board answers the question on its own. The acceptance is pinned in ci_test.go.
 - T-4 Cold-start test: a fresh agent uses the board in one attempt — claimed by hermes · 2 comments
   A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
   - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
@@ -32,3 +27,8 @@ Updated: 2026-08-21T09:03:57Z · 3 todo · 0 in-progress · 2 review · 2 done
   - 2026-08-20T22:20:22Z hermes: This chunk: the worker runs against the board.
   - 2026-08-21T06:53:49Z hermes: The worker runbook (docs/worker.md) is written — the protocol this worker follows. Ops and docs land in the same commit.
   - 2026-08-21T07:15:42Z danmurf-hermes: docs/contributing.md replaced the worker runbook — the project prescribes no workflow; anyone (human or agent) reads the board, does a ticket, updates the board as they go.
+- T-3 Dogfood acceptance: board.md answers where the project is up to — claimed by hermes · 3 comments
+  A human reads board.md and can answer the question without opening anything else.
+  - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
+  - 2026-08-21T06:53:49Z hermes: Back to todo: no PR has delivered the acceptance test yet. Chunk 2 delivers the worker runbook.
+  - 2026-08-21T07:52:21Z hermes: board.md now renders descriptions and comments — the board answers the question on its own. The acceptance is pinned in ci_test.go.

@@ -55,7 +55,7 @@
       "id": "T-3",
       "title": "Dogfood acceptance: board.md answers where the project is up to",
       "description": "A human reads board.md and can answer the question without opening anything else.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
@@ -135,5 +135,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T09:03:57Z"
+  "updated": "2026-08-21T09:22:12Z"
 }
