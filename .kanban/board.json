@@ -65,6 +65,15 @@
       "created": "2026-08-21T17:59:56Z",
       "archived": false
     },
+    "T-14": {
+      "id": "T-14",
+      "title": "Labels on tickets",
+      "description": "A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-21T17:59:57Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
@@ -234,5 +243,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T17:59:56Z"
+  "updated": "2026-08-21T17:59:57Z"
 }
