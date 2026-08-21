@@ -47,7 +47,7 @@
 | Chunk | Work | Status |
 |---|---|---|
 | 5.1 | board.svg CI render + README embed: CI re-renders the demo board's SVG and fails if the committed image drifted; the README embeds the image at the repo root. | ✅ done — `14706ba` |
-| 5.2 | Local web view: drag tickets between columns, click to comment, changes panel. | ✅ done — `f6814e9` |
+| 5.2 | Local web view: drag tickets between columns, click to comment, changes panel. | ✅ done — `270c643` |
 | 5.3 | MCP server: agents ask "what's the status?" without the CLI. | ⏳ pending |
 | 5.4 | Snapshot checkpointing: replay from snapshot + delta. | ⏳ pending |
 
