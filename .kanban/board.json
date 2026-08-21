@@ -59,7 +59,7 @@
       "id": "T-12",
       "title": "Comments live on the ticket, not the board view",
       "description": "The board shows ticket id and title only. Comments are for the ticket view: hexdeck show \u003cticket\u003e and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.",
-      "status": "todo",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T20:12:10Z",
@@ -76,9 +76,17 @@
       "id": "T-13",
       "title": "Ticket relationships: blocks, related-to",
       "description": "Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.",
-      "status": "backlog",
-      "comments": [],
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-21T21:19:28Z",
+          "actor": "danmurf-hermes",
+          "text": "Working on it: ticket relationships. Two link kinds — blocks (the target must wait) and related (neither must come first). New ops ticket.link.added/removed, the ticket view renders the links on both sides, and pick skips a todo ticket whose blocker is not done. TDD: op parse + fold tests first, then the CLI, then docs."
+        }
+      ],
       "created": "2026-08-21T17:59:56Z",
+      "claimedBy": "danmurf-hermes",
+      "claimedAt": "2026-08-21T20:43:14Z",
       "archived": false
     },
     "T-14": {
@@ -268,5 +276,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T20:12:10Z"
+  "updated": "2026-08-21T21:19:28Z"
 }

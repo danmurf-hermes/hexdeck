@@ -74,12 +74,17 @@ function cardHTML(t) {
   const comments = (t.comments || []).map(c =>
     '<div class="comment"><span class="who">' + esc(c.actor) + '</span> <span class="when">' + esc(c.ts) + '</span><br>' + esc(c.text) + '</div>'
   ).join("");
+  const links = [];
+  if (t.blocks && t.blocks.length) links.push('<div class="link">blocks: ' + t.blocks.map(esc).join(", ") + '</div>');
+  if (t.blockedBy && t.blockedBy.length) links.push('<div class="link">blocked by: ' + t.blockedBy.map(esc).join(", ") + '</div>');
+  if (t.related && t.related.length) links.push('<div class="link">related: ' + t.related.map(esc).join(", ") + '</div>');
   return '<div class="card" draggable="true" data-id="' + esc(t.id) + '">' +
     '<div class="id">' + esc(t.id) + '</div>' +
     '<div class="title">' + esc(t.title) + '</div>' +
     (badges.length ? '<div class="meta">' + badges.join("") + '</div>' : "") +
-    (t.description || comments ? '<div class="details" hidden>' +
+    (t.description || links.length || comments ? '<div class="details" hidden>' +
       (t.description ? '<div class="desc">' + esc(t.description) + '</div>' : "") +
+      (links.length ? '<div class="links">' + links.join("") + '</div>' : "") +
       (comments ? '<div class="comments">' + comments + '</div>' : "") +
       '</div>' : "") +
     '<form class="comment-form" data-id="' + esc(t.id) + '">' +

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -104,6 +105,101 @@ func TestPickTarget(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := pickTarget(hexdeck.BoardState{Columns: tt.columns}); got != tt.want {
 				t.Errorf("pickTarget(%v) = %q, want %q", tt.columns, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestTicketTextLinks checks the ticket view renders the links: blocks,
+// blocked by, and related, one per line.
+func TestTicketTextLinks(t *testing.T) {
+	ticket := hexdeck.Ticket{
+		ID:        "T-1",
+		Title:     "one",
+		Status:    "todo",
+		Created:   time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC),
+		Comments:  []hexdeck.Comment{},
+		Blocks:    []string{"T-2"},
+		BlockedBy: []string{"T-3"},
+		Related:   []string{"T-4"},
+	}
+	text := ticketText(ticket)
+	for _, want := range []string{
+		"blocks: T-2",
+		"blocked by: T-3",
+		"related: T-4",
+	} {
+		if !strings.Contains(text, want) {
+			t.Errorf("ticketText missing %q:\n%s", want, text)
+		}
+	}
+}
+
+// TestTicketTextNoLinks checks a ticket without links renders no link
+// lines.
+func TestTicketTextNoLinks(t *testing.T) {
+	ticket := hexdeck.Ticket{
+		ID:       "T-1",
+		Title:    "one",
+		Status:   "todo",
+		Created:  time.Date(2026, 8, 20, 14, 0, 0, 0, time.UTC),
+		Comments: []hexdeck.Comment{},
+	}
+	text := ticketText(ticket)
+	for _, banned := range []string{"blocks:", "blocked by:", "related:"} {
+		if strings.Contains(text, banned) {
+			t.Errorf("ticketText renders %q for a ticket without links:\n%s", banned, text)
+		}
+	}
+}
+
+// TestNextTodoBlocked checks the blocking rule: a todo ticket whose
+// blocker is not done is not pickable, whatever its id. A ticket whose
+// blockers are all done is pickable. A blocks link to a missing ticket
+// (the fold warns and drops it) never blocks.
+func TestNextTodoBlocked(t *testing.T) {
+	blockerDone := hexdeck.Ticket{ID: "T-1", Title: "done blocker", Status: "done", Comments: []hexdeck.Comment{}}
+	blockerTodo := hexdeck.Ticket{ID: "T-2", Title: "open blocker", Status: "todo", Comments: []hexdeck.Comment{}}
+	blockerClaimed := hexdeck.Ticket{ID: "T-2", Title: "open blocker", Status: "todo", ClaimedBy: "claude-a", Comments: []hexdeck.Comment{}}
+	blocked := hexdeck.Ticket{ID: "T-3", Title: "blocked", Status: "todo", BlockedBy: []string{"T-2"}, Comments: []hexdeck.Comment{}}
+	unblocked := hexdeck.Ticket{ID: "T-4", Title: "unblocked", Status: "todo", BlockedBy: []string{"T-1"}, Comments: []hexdeck.Comment{}}
+	missingBlocker := hexdeck.Ticket{ID: "T-5", Title: "missing blocker", Status: "todo", BlockedBy: []string{"T-99"}, Comments: []hexdeck.Comment{}}
+	plain := hexdeck.Ticket{ID: "T-6", Title: "plain", Status: "todo", Comments: []hexdeck.Comment{}}
+	tests := []struct {
+		name   string
+		state  hexdeck.BoardState
+		wantID string
+		wantOK bool
+	}{
+		{name: "blocked ticket skipped", state: hexdeck.BoardState{Prefix: "T", Columns: []string{"todo", "done"}, Tickets: map[string]hexdeck.Ticket{
+			"T-2": blockerTodo,
+			"T-3": blocked,
+		}}, wantID: "T-2", wantOK: true},
+		{name: "done blocker does not block", state: hexdeck.BoardState{Prefix: "T", Columns: []string{"todo", "done"}, Tickets: map[string]hexdeck.Ticket{
+			"T-1": blockerDone,
+			"T-4": unblocked,
+		}}, wantID: "T-4", wantOK: true},
+		{name: "all blocked", state: hexdeck.BoardState{Prefix: "T", Columns: []string{"todo", "done"}, Tickets: map[string]hexdeck.Ticket{
+			"T-2": blockerClaimed,
+			"T-3": blocked,
+		}}, wantOK: false},
+		{name: "missing blocker does not block", state: hexdeck.BoardState{Prefix: "T", Columns: []string{"todo", "done"}, Tickets: map[string]hexdeck.Ticket{
+			"T-5": missingBlocker,
+		}}, wantID: "T-5", wantOK: true},
+		{name: "blocked skipped, plain picked", state: hexdeck.BoardState{Prefix: "T", Columns: []string{"todo", "done"}, Tickets: map[string]hexdeck.Ticket{
+			"T-2": blockerClaimed,
+			"T-3": blocked,
+			"T-6": plain,
+		}}, wantID: "T-6", wantOK: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := nextTodo(tt.state)
+			if ok != tt.wantOK {
+				t.Fatalf("nextTodo ok = %v, want %v", ok, tt.wantOK)
+			}
+			if ok && got.ID != tt.wantID {
+				t.Errorf("nextTodo = %s, want %s", got.ID, tt.wantID)
 			}
 		})
 	}

@@ -11,14 +11,23 @@ import (
 )
 
 // ticketText renders one ticket the way `hexdeck show <ticket>` and
-// the MCP board_show_ticket tool both print it: fields, comments, and
-// history. One formatter, two consumers.
+// the MCP board_show_ticket tool both print it: fields, links, comments,
+// and history. One formatter, two consumers.
 func ticketText(ticket hexdeck.Ticket) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s\n", ticket.ID, ticket.Title)
 	fmt.Fprintf(&b, "status: %s\n", ticket.Status)
 	if ticket.Description != "" {
 		fmt.Fprintf(&b, "description: %s\n", ticket.Description)
+	}
+	if len(ticket.Blocks) > 0 {
+		fmt.Fprintf(&b, "blocks: %s\n", strings.Join(ticket.Blocks, ", "))
+	}
+	if len(ticket.BlockedBy) > 0 {
+		fmt.Fprintf(&b, "blocked by: %s\n", strings.Join(ticket.BlockedBy, ", "))
+	}
+	if len(ticket.Related) > 0 {
+		fmt.Fprintf(&b, "related: %s\n", strings.Join(ticket.Related, ", "))
 	}
 	if ticket.ClaimedBy != "" {
 		fmt.Fprintf(&b, "claimed by: %s", ticket.ClaimedBy)
@@ -74,9 +83,12 @@ func opTimeline(boardDir, ticket, actor, since string) (string, []string, error)
 }
 
 // nextTodo returns the next todo ticket to pick: the first todo ticket
-// by id, skipping fresh claims. A stale claim does not block the
-// ticket. The second return value reports whether one exists. Shared by
-// `hexdeck pick` and the MCP board_next tool.
+// by id, skipping fresh claims and blocked tickets. A ticket is blocked
+// when one of its blockers is not done — the blocker is either not on
+// the board (the fold warned and dropped the link) or still open. A
+// stale claim does not block the ticket. The second return value
+// reports whether one exists. Shared by `hexdeck pick` and the MCP
+// board_next tool.
 func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
 	column := pickColumn(state)
 	var candidates []hexdeck.Ticket
@@ -85,6 +97,9 @@ func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
 			continue
 		}
 		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
+			continue
+		}
+		if blocked(state, ticket) {
 			continue
 		}
 		candidates = append(candidates, ticket)
@@ -96,6 +111,20 @@ func nextTodo(state hexdeck.BoardState) (hexdeck.Ticket, bool) {
 		return hexdeck.TicketIDLess(state.Prefix, candidates[i].ID, candidates[j].ID)
 	})
 	return candidates[0], true
+}
+
+// blocked reports whether a ticket's blockers stand in the way: at
+// least one blocker that is on the board is not done. A blocker that is
+// not on the board does not block — the fold drops links to missing
+// tickets with a warning, so a stale link can never stall the pick.
+func blocked(state hexdeck.BoardState, ticket hexdeck.Ticket) bool {
+	for _, blocker := range ticket.BlockedBy {
+		bt, ok := state.Tickets[blocker]
+		if ok && bt.Status != "done" {
+			return true
+		}
+	}
+	return false
 }
 
 // pickColumn returns the column pick takes from: the column named

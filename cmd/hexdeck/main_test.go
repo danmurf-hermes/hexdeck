@@ -392,8 +392,73 @@ func TestE2EPickRelease(t *testing.T) {
 	}
 }
 
-// TestE2EErrors checks the error paths: unknown ticket, unknown column,
-// unknown command, and init over an existing board.
+// TestE2ELink checks the link command end to end: it appends the
+// ticket.link.added op, the ticket view shows the links on both sides,
+// the board files re-render, and an invalid link is an error.
+func TestE2ELink(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "Two", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "Three", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "link", "T-1", "blocks", "T-2", "--as", "claude-a"); code != 0 {
+		t.Fatalf("link blocks: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "link", "T-1", "related", "T-3", "--as", "claude-a"); code != 0 {
+		t.Fatalf("link related: exit %d\n%s", code, out)
+	}
+	// The ticket view shows the links on both sides.
+	out, code := runHexdeck(t, dir, "show", "T-1")
+	if code != 0 {
+		t.Fatalf("show T-1: exit %d\n%s", code, out)
+	}
+	for _, want := range []string{"blocks: T-2", "related: T-3"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("show T-1 missing %q:\n%s", want, out)
+		}
+	}
+	out, code = runHexdeck(t, dir, "show", "T-2")
+	if code != 0 {
+		t.Fatalf("show T-2: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "blocked by: T-1") {
+		t.Errorf("show T-2 missing the blocked-by line:\n%s", out)
+	}
+	// The board files re-rendered and pass the honesty check.
+	if out, code := runHexdeck(t, dir, "render", "--check"); code != 0 {
+		t.Errorf("render --check: exit %d\n%s", code, out)
+	}
+	// An invalid link errors: unknown ticket, unknown kind, self-link.
+	if out, code := runHexdeck(t, dir, "link", "T-99", "blocks", "T-2", "--as", "claude-a"); code == 0 {
+		t.Errorf("link to unknown ticket succeeded, want error:\n%s", out)
+	}
+	if out, code := runHexdeck(t, dir, "link", "T-1", "nope", "T-2", "--as", "claude-a"); code == 0 {
+		t.Errorf("link with unknown kind succeeded, want error:\n%s", out)
+	}
+	if out, code := runHexdeck(t, dir, "link", "T-1", "blocks", "T-1", "--as", "claude-a"); code == 0 {
+		t.Errorf("link to self succeeded, want error:\n%s", out)
+	}
+	// The remove form clears the link from both sides.
+	if out, code := runHexdeck(t, dir, "link", "T-1", "blocks", "T-2", "--remove", "--as", "claude-a"); code != 0 {
+		t.Fatalf("link --remove: exit %d\n%s", code, out)
+	}
+	out, code = runHexdeck(t, dir, "show", "T-2")
+	if code != 0 {
+		t.Fatalf("show T-2: exit %d\n%s", code, out)
+	}
+	if strings.Contains(out, "blocked by: T-1") {
+		t.Errorf("show T-2 still carries the removed link:\n%s", out)
+	}
+}
+
 func TestE2EErrors(t *testing.T) {
 	dir := initRepo(t)
 	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {

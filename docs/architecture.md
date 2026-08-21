@@ -106,7 +106,8 @@ One op = one JSON file. Fields: `schema`, `opId`, `seq`, `ts`,
 
 Op types: `board.created`, `ticket.created`, `ticket.moved`,
 `ticket.updated`, `comment.added`, `ticket.claimed`,
-`ticket.released`, `ticket.archived`.
+`ticket.released`, `ticket.archived`, `ticket.link.added`,
+`ticket.link.removed`.
 
 ## Deterministic ordering
 
@@ -154,15 +155,23 @@ The fold rules:
   renders a warning.
 - `ticket.released` clears the claim.
 - `ticket.archived` marks the ticket archived.
+- `ticket.link.added` links the ticket to another: a `blocks` link
+  lands in the ticket's `Blocks` list and the target's `BlockedBy`
+  list; a `related` link lands in both `Related` lists. A duplicate
+  link is skipped with a warning.
+- `ticket.link.removed` removes a link from both sides. Removing a
+  link that is not there is skipped with a warning.
 
 Ops about a ticket that was never created are skipped with a warning —
-visible, never fatal. The board must always build.
+visible, never fatal. The board must always build. A link whose target
+was never created is skipped the same way, so a stale link can never
+stall a pick.
 
 `BoardState` holds the board name, the columns, the ticket id prefix,
 the claim timeout, the tickets (a map by id), the warnings, and the
 newest op ts (`Updated`). `Ticket` holds the id, title, description,
 status, comments, created time, claim (who and when), the stale flag,
-and the archived flag.
+the archived flag, and the links (`Blocks`, `BlockedBy`, `Related`).
 
 ## The life of a ticket
 
@@ -201,6 +210,25 @@ Staleness is computed at projection time from the wall clock. The fold
 itself never reads the clock — only the staleness pass does, so the
 fold stays deterministic. Tests use `projectAt`, the same projection
 with an explicit clock.
+
+## Links
+
+Two tickets can be linked. A link is one op with a kind and a target:
+
+- **blocks** — the ticket must come before the target. `pick` skips a
+  `todo` ticket whose blocker is not in `done`, so a blocked ticket is
+  never picked ahead of its blocker.
+- **related** — the tickets are connected, but neither must come
+  first.
+
+The fold keeps the mirror lists in sync. A `blocks` link from A to B
+lands in A's `Blocks` and B's `BlockedBy`; a `related` link lands in
+both `Related` lists. Removing a link clears both sides — one op, no
+second bookkeeping op to forget. A duplicate link, a link whose target
+was never created, and a removal of a link that is not there are all
+skipped with a warning, never fatal. A link to a missing ticket does
+not block a pick — the fold drops it, so a stale reference can never
+stall the board.
 
 ## The renders
 

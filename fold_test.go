@@ -414,3 +414,124 @@ func writeOp(t *testing.T, opsDir string, seq int, opID, data string) {
 		t.Fatalf("write op: %v", err)
 	}
 }
+
+// TestFoldLinkAdded checks the link-added rule: a blocks link lands in
+// the ticket's Blocks list and the target's BlockedBy list; a related
+// link lands in Related. A duplicate link is skipped with a warning.
+func TestFoldLinkAdded(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"links","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-2","payload":{"title":"two"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-3","payload":{"title":"three"}}`)
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-2"}}`)
+	writeOp(t, opsDir, 5, "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", `{"schema":1,"opId":"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","seq":5,"ts":"2026-08-20T14:04:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"related","to":"T-3"}}`)
+	// The duplicate blocks link must warn, not add twice.
+	writeOp(t, opsDir, 6, "ffffffff-ffff-4fff-8fff-ffffffffffff", `{"schema":1,"opId":"ffffffff-ffff-4fff-8fff-ffffffffffff","seq":6,"ts":"2026-08-20T14:05:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-2"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	t1 := state.Tickets["T-1"]
+	if len(t1.Blocks) != 1 || t1.Blocks[0] != "T-2" {
+		t.Errorf("T-1 blocks = %v, want [T-2]", t1.Blocks)
+	}
+	if len(t1.Related) != 1 || t1.Related[0] != "T-3" {
+		t.Errorf("T-1 related = %v, want [T-3]", t1.Related)
+	}
+	t2 := state.Tickets["T-2"]
+	if len(t2.BlockedBy) != 1 || t2.BlockedBy[0] != "T-1" {
+		t.Errorf("T-2 blockedBy = %v, want [T-1]", t2.BlockedBy)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1 (the duplicate link)", state.Warnings)
+	}
+	if !strings.Contains(state.Warnings[0], "T-1 already blocks T-2") {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}
+
+// TestFoldLinkRemoved checks the link-removal rule: removing a link
+// clears it from both sides, and removing a link that is not there is
+// skipped with a warning.
+func TestFoldLinkRemoved(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"links","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-2","payload":{"title":"two"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-2"}}`)
+	writeOp(t, opsDir, 4, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", `{"schema":1,"opId":"dddddddd-dddd-4ddd-8ddd-dddddddddddd","seq":4,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"blocks","to":"T-2"}}`)
+	// Removing a link that is not there must warn, not fail.
+	writeOp(t, opsDir, 5, "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee", `{"schema":1,"opId":"eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee","seq":5,"ts":"2026-08-20T14:04:00Z","actor":"claude-a","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"blocks","to":"T-2"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	t1 := state.Tickets["T-1"]
+	if len(t1.Blocks) != 0 {
+		t.Errorf("T-1 blocks = %v, want none after removal", t1.Blocks)
+	}
+	if len(state.Tickets["T-2"].BlockedBy) != 0 {
+		t.Errorf("T-2 blockedBy = %v, want none after removal", state.Tickets["T-2"].BlockedBy)
+	}
+	if len(state.Warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1 (the double removal)", state.Warnings)
+	}
+	if !strings.Contains(state.Warnings[0], "no blocks link from T-1 to T-2") {
+		t.Errorf("warning = %q", state.Warnings[0])
+	}
+}
+
+// TestFoldLinkMissingTicket checks the missing-ticket rule for links:
+// a link op about a ticket that was never created is skipped with a
+// warning, never fatal.
+func TestFoldLinkMissingTicket(t *testing.T) {
+	dir := t.TempDir()
+	opsDir := filepath.Join(dir, "ops")
+	if err := os.Mkdir(opsDir, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"links","columns":["backlog","todo","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	writeOp(t, opsDir, 1, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":1,"ts":"2026-08-20T14:00:00Z","actor":"claude-a","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`)
+	writeOp(t, opsDir, 2, "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", `{"schema":1,"opId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","seq":2,"ts":"2026-08-20T14:01:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-99"}}`)
+	writeOp(t, opsDir, 3, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", `{"schema":1,"opId":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","seq":3,"ts":"2026-08-20T14:02:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-99","payload":{"kind":"blocks","to":"T-1"}}`)
+
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	if len(state.Tickets["T-1"].Blocks) != 0 {
+		t.Errorf("T-1 blocks = %v, want none — the target T-99 does not exist", state.Tickets["T-1"].Blocks)
+	}
+	if len(state.Warnings) != 2 {
+		t.Fatalf("warnings = %v, want exactly 2", state.Warnings)
+	}
+	want := []string{
+		"ticket.link.added for T-1: target T-99 does not exist, skipping",
+		"ticket.link.added for T-99: ticket does not exist, skipping",
+	}
+	for i := range want {
+		if state.Warnings[i] != want[i] {
+			t.Errorf("warnings[%d] = %q, want %q", i, state.Warnings[i], want[i])
+		}
+	}
+}

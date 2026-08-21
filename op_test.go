@@ -49,6 +49,14 @@ func TestParseOpValid(t *testing.T) {
 			name: "ticket.archived",
 			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":8,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.archived","ticket":"T-1","payload":{}}`,
 		},
+		{
+			name: "ticket.link.added",
+			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":9,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-3"}}`,
+		},
+		{
+			name: "ticket.link.removed",
+			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":10,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"blocks","to":"T-3"}}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -163,6 +171,31 @@ func TestParseOpInvalid(t *testing.T) {
 			name:    "non-empty archived payload",
 			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.archived","ticket":"T-1","payload":{"foo":1}}`,
 			wantErr: "archived payload must be empty",
+		},
+		{
+			name:    "link without to",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks"}}`,
+			wantErr: "to is required",
+		},
+		{
+			name:    "link without kind",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.added","ticket":"T-1","payload":{"to":"T-2"}}`,
+			wantErr: "kind is required",
+		},
+		{
+			name:    "link unknown kind",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"depends","to":"T-2"}}`,
+			wantErr: `kind must be "blocks" or "related"`,
+		},
+		{
+			name:    "link to self",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.added","ticket":"T-1","payload":{"kind":"blocks","to":"T-1"}}`,
+			wantErr: "cannot link a ticket to itself",
+		},
+		{
+			name:    "link removed bad kind",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"nope","to":"T-2"}}`,
+			wantErr: "kind must be \"blocks\" or \"related\"",
 		},
 	}
 	for _, tt := range tests {

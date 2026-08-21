@@ -23,6 +23,7 @@ Usage:
   hexdeck create "Title" [-d "description"] [--as <actor>] [--commit]
   hexdeck move <ticket> <column> [--as <actor>] [--commit]
   hexdeck comment <ticket> "text" [--as <actor>] [--commit]
+  hexdeck link <ticket> <kind> <target> [--remove] [--as <actor>] [--commit]
   hexdeck show [<ticket>] [--json]
   hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
   hexdeck pick --as <actor> [--commit]
@@ -58,6 +59,8 @@ func main() {
 		err = runMove(args)
 	case "comment":
 		err = runComment(args)
+	case "link":
+		err = runLink(args)
 	case "show":
 		err = runShow(args)
 	case "log":
@@ -343,6 +346,66 @@ func runComment(args []string) error {
 		return err
 	}
 	suggestCommit(cf, boardDir, fmt.Sprintf("board: comment on %s", ticket))
+	return nil
+}
+
+// runLink appends a ticket.link.added or ticket.link.removed op.
+func runLink(args []string) error {
+	fs := flag.NewFlagSet("link", flag.ExitOnError)
+	var cf commonFlags
+	addCommon(fs, &cf)
+	remove := fs.Bool("remove", false, "remove the link instead of adding it")
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	if err := fs.Parse(args); err != nil {
+		return err
+	}
+	if fs.NArg() != 3 {
+		return fmt.Errorf("link takes three arguments: the ticket, the kind, and the target")
+	}
+	ticket, kind, target := fs.Arg(0), fs.Arg(1), fs.Arg(2)
+	if kind != hexdeck.LinkKindBlocks && kind != hexdeck.LinkKindRelated {
+		return fmt.Errorf("kind must be %q or %q", hexdeck.LinkKindBlocks, hexdeck.LinkKindRelated)
+	}
+	if target == ticket {
+		return fmt.Errorf("cannot link a ticket to itself")
+	}
+	boardDir, err := resolveBoardDir(cf)
+	if err != nil {
+		return err
+	}
+	actor, err := resolveActor(cf, filepath.Dir(boardDir))
+	if err != nil {
+		return err
+	}
+	state, err := hexdeck.Project(boardDir)
+	if err != nil {
+		return err
+	}
+	if _, ok := state.Tickets[ticket]; !ok {
+		return fmt.Errorf("ticket %s does not exist", ticket)
+	}
+	if _, ok := state.Tickets[target]; !ok {
+		return fmt.Errorf("ticket %s does not exist", target)
+	}
+	payload, err := json.Marshal(hexdeck.TicketLinkPayload{Kind: kind, To: target})
+	if err != nil {
+		return err
+	}
+	opType := hexdeck.OpTicketLinkAdded
+	message := fmt.Sprintf("board: link %s %s %s", ticket, kind, target)
+	if *remove {
+		opType = hexdeck.OpTicketLinkRemoved
+		message = fmt.Sprintf("board: unlink %s %s %s", ticket, kind, target)
+	}
+	if _, err := appendOp(boardDir, cf, hexdeck.Op{
+		Type:    opType,
+		Ticket:  ticket,
+		Actor:   actor,
+		Payload: payload,
+	}); err != nil {
+		return err
+	}
+	suggestCommit(cf, boardDir, message)
 	return nil
 }
 
@@ -731,7 +794,7 @@ func stagedBoardPaths(repoDir, boardRel string) ([]string, error) {
 // the next token as its value.
 var boolFlags = map[string]bool{
 	"commit": true, "no-pull": true, "json": true, "svg": true,
-	"check": true, "h": true, "help": true,
+	"check": true, "h": true, "help": true, "remove": true,
 }
 
 // reorderArgs moves flags (and their values) before positional

@@ -114,6 +114,8 @@ Filename: `%016d-seq-<opId>.json` — zero-padded seq sorts lexicographically = 
 | `ticket.claimed` | `{ "by": "claude-a" }` | cooperative lock (see §3.6) |
 | `ticket.released` | `{ "by": "claude-a" }` | release the lock |
 | `ticket.archived` | `{}` | hide from the default board (V1.1) |
+| `ticket.link.added` | `{ "kind": "blocks"\|"related", "to": "T-3" }` | link the ticket to another |
+| `ticket.link.removed` | `{ "kind": "blocks"\|"related", "to": "T-3" }` | remove a link |
 
 **Ticket ids:** sequential `T-1`, `T-2`, … assigned by the CLI (next = max existing + 1). The prefix is **configurable** — set at `board init` time with `--prefix` (default `T`), stored in `config.json` as `ticketPrefix`. A board can pick any prefix (e.g. `HDX-1`, `KAN-1`), Jira-style. Hand-writing agents check `board show` for the next number. If two `ticket.created` ops land with the same id, the projection keeps the first and renders a warning on the second — visible, not fatal.
 
@@ -136,6 +138,7 @@ Read board.md — the committed board view. No CLI needed.
 board create "Title" [-d "description"]   # new ticket
 board move T-12 todo                      # change column
 board comment T-12 "text"                 # add a comment
+board link T-12 blocks T-3                # link tickets: blocks, related
 board show                                # print the board (compact)
 board show T-12                           # print one ticket
 board log --since 2d                      # what happened recently
@@ -149,7 +152,8 @@ Create `.kanban/ops/<seq>-<uuid>.json`:
   "payload": { "from": "backlog", "to": "todo" } }
 
 Op types: ticket.created, ticket.moved, ticket.updated,
-comment.added, ticket.claimed, ticket.released, ticket.archived.
+comment.added, ticket.claimed, ticket.released, ticket.archived,
+ticket.link.added, ticket.link.removed.
 
 Ticket ids are <prefix>-<number>, prefix from config.json
 (default T, e.g. T-12).
@@ -301,6 +305,7 @@ Name: **hexdeck** (project decision, Aug 20 2026 — deck of cards, hex = git's 
 | `board create "Title" [-d "desc"]` | append `ticket.created`, stage, print ticket id |
 | `board move T-12 todo` | append `ticket.moved`, stage |
 | `board comment T-12 "text"` | append `comment.added`, stage |
+| `board link T-12 blocks T-3` | append `ticket.link.added` (kinds: `blocks`, `related`) |
 | `board show` | print the board — compact, one line per ticket (token-efficient for agents) |
 | `board show T-12` | print one ticket: fields + comments + history |
 | `board show --json` | print `board.json` |

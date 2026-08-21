@@ -124,7 +124,35 @@ Updated: 2026-08-21T10:23:51Z · 0 backlog · 2 todo · 0 done
 ## done
 ```
 
-## 9. Release the claim
+## 9. Link tickets
+
+```
+$ hexdeck create "Ship the redesign"
+T-3
+suggested commit: board: create T-3
+
+$ hexdeck move T-3 todo
+suggested commit: board: move T-3 → todo
+
+$ hexdeck link T-2 blocks T-3
+suggested commit: board: link T-2 blocks T-3
+```
+
+`blocks` says T-3 must wait: it is not pickable until T-2 is in
+`done`. The ticket view shows the link on both sides:
+
+```
+$ hexdeck show T-3
+T-3 Ship the redesign
+status: todo
+blocked by: T-2
+created: 2026-08-21T10:23:52Z
+```
+
+`pick` skips a blocked ticket, so it takes T-1, not T-3. Remove the
+link with `hexdeck link T-2 blocks T-3 --remove`.
+
+## 10. Release the claim
 
 ```
 $ hexdeck release T-2 --as you
@@ -134,7 +162,7 @@ suggested commit: board: release T-2
 A claim is a cooperative lock, not a security boundary. Release it when
 you stop working on the ticket.
 
-## 10. Read the log
+## 11. Read the log
 
 ```
 $ hexdeck log
@@ -145,13 +173,16 @@ $ hexdeck log
 2026-08-21T10:23:51Z you ticket.created T-2
 2026-08-21T10:23:51Z you ticket.moved T-2
 2026-08-21T10:23:51Z you ticket.claimed T-2
-2026-08-21T10:23:51Z you ticket.released T-2
+2026-08-21T10:23:52Z you ticket.created T-3
+2026-08-21T10:23:52Z you ticket.moved T-3
+2026-08-21T10:23:52Z you ticket.link.added T-3
+2026-08-21T10:23:52Z you ticket.released T-2
 ```
 
 The log is the whole history, newest first. Filter it with `--since`,
 `--ticket`, and `--actor`.
 
-## 11. Check the board is honest
+## 12. Check the board is honest
 
 ```
 $ hexdeck render --check
