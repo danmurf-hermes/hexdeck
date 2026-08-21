@@ -1,9 +1,11 @@
 # Board — hexdeck
-Updated: 2026-08-21T17:59:44Z · 1 backlog · 0 todo · 10 done
+Updated: 2026-08-21T17:59:56Z · 2 backlog · 0 todo · 10 done
 
 ## backlog
 - T-11 Default columns: backlog → todo → done
   The default flow: plan lots of work in backlog, bring items into todo when ready to pick up, move to done when finished. 'in-progress' becomes opt-in for work that spans multiple PRs. Update InitBoard defaults, the primer, the demo board, docs, and the BUILD-SPEC decision.
+- T-12 Comments live on the ticket, not the board view
+  The board shows ticket id and title only. Comments are for the ticket view: hexdeck show <ticket> and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.
 
 ## todo
 
