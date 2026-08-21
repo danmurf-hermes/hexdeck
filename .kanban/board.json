@@ -28,7 +28,7 @@
       "id": "T-10",
       "title": "Phase 5 chunk 3: MCP server",
       "description": "hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T12:56:17Z",
