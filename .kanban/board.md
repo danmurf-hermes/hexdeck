@@ -1,11 +1,7 @@
 # Board — hexdeck
-Updated: 2026-08-21T15:26:43Z · 1 todo · 0 in-progress · 0 review · 9 done
+Updated: 2026-08-21T15:26:43Z · 0 todo · 0 in-progress · 0 review · 10 done
 
 ## todo
-- T-5 V1.1: web view, MCP, snapshots · 2 comments
-  Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
-  - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
-  - 2026-08-21T15:26:43Z danmurf-hermes: Snapshot checkpointing done — snapshot.json is a disposable local replay cache (digest-validated, gitignored, never committed; renders and CI always fold cold). TDD: snapshot_test.go pinned reuse, invalidation (new op, config change), corrupt-cache fallback, RenderCheck cold-fold honesty, gitignore. Closes the last V1.1 item — the board is now all done.
 
 ## in-progress
 
@@ -29,6 +25,10 @@ Updated: 2026-08-21T15:26:43Z · 1 todo · 0 in-progress · 0 review · 9 done
   A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.
   - 2026-08-20T22:20:22Z hermes: The acceptance test for Phase 4.
   - 2026-08-21T08:24:10Z danmurf-hermes: Cold-start test passed in one attempt: a fresh agent with zero context, given only the repo, discovered the board via AGENTS.md, created T-6, moved it, commented, and moved it to review — code and ops in one commit. Report: docs/cold-start.md. Acceptance pinned in ci_test.go.
+- T-5 V1.1: web view, MCP, snapshots · 2 comments
+  Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
+  - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
+  - 2026-08-21T15:26:43Z danmurf-hermes: Snapshot checkpointing done — snapshot.json is a disposable local replay cache (digest-validated, gitignored, never committed; renders and CI always fold cold). TDD: snapshot_test.go pinned reuse, invalidation (new op, config change), corrupt-cache fallback, RenderCheck cold-fold honesty, gitignore. Closes the last V1.1 item — the board is now all done.
 - T-6 Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest. · 1 comment
   Coverage measurement fix
   - 2026-08-21T09:41:13Z danmurf-hermes: Honest measurement wired: HEXDECK_E2E_COVER builds the E2E binary with -cover -coverpkg=./..., and go test merges the subprocess coverage into the profile. Total 80.7% (was 44.7% — the CLI's tests did not count). Pinned in ci_test.go: the badge must stay at 80% or above.
