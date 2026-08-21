@@ -93,7 +93,7 @@
       "id": "T-14",
       "title": "Labels on tickets",
       "description": "A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.",
-      "status": "todo",
+      "status": "backlog",
       "comments": [],
       "created": "2026-08-21T17:59:57Z",
       "archived": false
@@ -276,5 +276,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T21:37:54Z"
+  "updated": "2026-08-21T21:19:28Z"
 }
