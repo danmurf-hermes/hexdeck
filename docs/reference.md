@@ -71,7 +71,8 @@ Clears a claim. The ticket stays in its column.
 
 Rebuilds `board.md` and `board.json` from the ops. `--svg` also
 rebuilds `board.svg`. `--check` re-renders and compares to the
-committed files — it fails if they drifted.
+committed files — it fails if they drifted. `board.svg` is checked
+too, once it exists.
 
 ## Op types
 

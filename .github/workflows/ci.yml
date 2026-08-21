@@ -61,6 +61,11 @@ jobs:
         run: ./hexdeck render --check --dir docs/demo
       - name: hexdeck render --check (dogfood board)
         run: ./hexdeck render --check --dir .kanban
+      - name: board.svg honesty
+        run: |
+          ./hexdeck render --svg --dir docs/demo
+          cmp docs/demo/board.svg board.svg
+          git diff --exit-code -- docs/demo/board.svg
 
   coverage:
     name: Coverage badge

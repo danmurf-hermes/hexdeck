@@ -97,9 +97,9 @@ flowchart TB
 
 A real board, rendered by hexdeck from real ops:
 
-![Board](docs/demo/board.svg)
+![Board](board.svg)
 
-That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg --dir docs/demo` and you get the same image, byte for byte. CI runs `hexdeck render --check --dir docs/demo` on every push — a hand-edited or stale projection fails the build.
+That image is generated from the ops in `docs/demo/ops`. The board is never drawn by hand — it is always a projection of the ops. Run `hexdeck render --svg --dir docs/demo` and you get the same image, byte for byte. CI runs `hexdeck render --check --dir docs/demo` on every push — a hand-edited or stale projection fails the build. The image at the repo root is checked too: CI re-renders it and fails if it drifted.
 
 ## The dogfood board
 

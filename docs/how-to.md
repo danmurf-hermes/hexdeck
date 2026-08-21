@@ -64,6 +64,36 @@ hexdeck render --svg
 also rebuilds `board.svg` — the board image for the README. The image
 is deterministic: same ops, same bytes, always.
 
+## Show the board on GitHub
+
+GitHub does not run JavaScript in READMEs, so the board image is the
+way to show the board on the repo homepage.
+
+```
+hexdeck render --svg
+cp .kanban/board.svg board.svg
+```
+
+Commit both files. Add the image to the README:
+
+```markdown
+![Board](board.svg)
+```
+
+CI keeps it honest:
+
+```yaml
+- name: board.svg honesty
+  run: |
+    go build -o hexdeck ./cmd/hexdeck
+    ./hexdeck render --svg
+    cmp .kanban/board.svg board.svg
+    git diff --exit-code -- .kanban/board.svg
+```
+
+The image is a projection. CI re-renders it and fails if it drifted —
+the board on the homepage is always the projection of the ops.
+
 ## Check the board in CI
 
 ```

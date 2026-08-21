@@ -14,7 +14,7 @@
 | 3 | Concurrency hardening (merge matrix, claims) | ✅ done | `9a6a3e2` | 18-scenario merge matrix: zero conflicts, identical projections. Claim race: first claim by (seq, opId) wins, second warns. Claim expiry: stale claims marked, shown in renders, pickable |
 | 3.5 | CI pipeline (GitHub Actions: lint, test, build, render --check, README badges) | ✅ done | `556151a` | All three chunks done: `ci.yml` (lint, test, build), `render --check` in CI, README badges (CI + coverage). Phase 4 (dogfood) is next |
 | 4 | Dogfood on a real project | ✅ done | `5677647` | Target: hexdeck itself. The board lives in `.kanban/` — it is the tracker now. Chunk 1 done: board init + migration + CI check. Chunk 2 done: the worker runs against the board, contribution guide in docs/contributing.md. Chunk 3 done: the acceptance read — board.md renders descriptions and comments, the board answers the question on its own. Chunk 4 done: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. Report: docs/cold-start.md |
-| 5 | V1.1 (web view, MCP, snapshots) | ⏳ pending | — | Only if V1 earns it |
+| 5 | V1.1 (web view, MCP, snapshots) | ⏳ in progress | `14706ba` | Chunk 1 done: board.svg CI render + README embed. CI re-renders the demo board's SVG and fails if the committed image drifted; the README embeds the image at the repo root, so GitHub shows the live board on the homepage. Chunks 2-4 (web view, MCP, snapshots) are next |
 
 ## Phase 1 chunks (Go, module github.com/danmurf/hexdeck)
 
@@ -41,6 +41,15 @@
 | 4.2 | The worker runs against the board: creates, moves, and comments on tickets as it works. Code and ops land in the same commit. | ✅ done — `c64f7d5` |
 | 4.3 | Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else. | ✅ done — `86318e0` |
 | 4.4 | Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt. | ✅ done — `5677647` |
+
+## Phase 5 chunks (V1.1 — only if V1 earns it)
+
+| Chunk | Work | Status |
+|---|---|---|
+| 5.1 | board.svg CI render + README embed: CI re-renders the demo board's SVG and fails if the committed image drifted; the README embeds the image at the repo root. | ✅ done — `14706ba` |
+| 5.2 | Local web view: drag tickets between columns, click to comment, changes panel. | ⏳ pending |
+| 5.3 | MCP server: agents ask "what's the status?" without the CLI. | ⏳ pending |
+| 5.4 | Snapshot checkpointing: replay from snapshot + delta. | ⏳ pending |
 
 ## How to pick up work
 
@@ -70,3 +79,4 @@
 - Merge rule applied (Aug 21): PR #24 merged (08:52) and delivered both T-3 and T-4 (the PR comment named T-4). Both tickets moved to `done` as ops-only commits straight to main. No second PR.
 - T-6 done (honest coverage): the coverage badge counted only the library (44.7%) because the CLI's end-to-end tests run the binary as a subprocess, which `go tool cover` cannot see. Fix: `HEXDECK_E2E_COVER` makes the E2E test build the binary with `-cover -coverpkg=./...`, and the go command merges the subprocess coverage into the profile. The badge now shows 80.7%. Pinned: `TestCoverageBadgeHonest` fails below 80%, and `TestCoverageJobInWorkflow` checks the new CI command. E2E tests also gained three new cases (actor fallback, log filters, show with claim) and a path fix (tests run from any working directory).
 - T-7 done (docs overhaul, `66493ba`): the docs describe the app, not the build. Diataxis set: `docs/tutorial.md` (a real session, step by step), `docs/how-to.md` (one task, one guide), `docs/reference.md` (commands, op types, config, rules), `docs/architecture.md` (explanation, with a mermaid state diagram). README rewritten: quick start, a real session with real output, key concepts, mermaid flowchart. Process narrative (chunk logs, phase history, cold-start report) stripped from README and docs; `docs/components.md` folded into the reference. Pinned in `ci_test.go`: `TestDocsDiataxis`, `TestDocsDescribeTheApp`, `TestReadmeRealExample`, `TestMermaidFences`. T-7 moved to `review` — waits for a human merge.
+- Phase 5 chunk 1 done (board.svg CI render + README embed, `14706ba`): the README embeds `board.svg` at the repo root, so GitHub shows the live board on the homepage. CI keeps it honest — the render-check job re-renders the demo board's SVG, compares it to the root image with `cmp`, and fails if it drifted. Pinned in `ci_test.go`: `TestBoardSVGInWorkflow`, `TestReadmeEmbedsBoardSVG`. E2E tests gained `render --svg` and `render --check` SVG coverage. Docs updated in the same commit. T-8 moved to `review` — waits for a human merge.

@@ -253,6 +253,10 @@ request:
   `hexdeck render --check --dir docs/demo`, then
   `hexdeck render --check --dir .kanban`. Both committed boards must
   match their ops. A hand-edited or stale projection fails the job.
+  Then the board.svg honesty step: it re-renders the demo board's SVG,
+  compares it to the image at the repo root with `cmp`, and fails if
+  the committed image drifted. The README embeds that image, so the
+  board on the repo homepage is always the projection of the ops.
 - **Coverage badge** — runs only on pushes to `main`. It runs
   `HEXDECK_E2E_COVER=1 go test -coverpkg=./... -count=1
   -coverprofile=coverage.out ./...`, reads the total from
@@ -311,9 +315,22 @@ The contract is tested: `ci_test.go` reads the real workflow, badge
 file, and README, and fails if the coverage job, the badge schema, or
 the badge links are missing.
 
+## The board image on the homepage
+
+The README embeds `board.svg` at the repo root — the board image, so
+GitHub shows the live board on the repo homepage. The image is a
+projection of the demo board's ops in `docs/demo/ops`. It is never
+drawn by hand.
+
+CI keeps it honest. The render-check job re-renders the demo board's
+SVG, compares it to the image at the repo root with `cmp`, and fails
+if the committed image drifted. The contract is pinned:
+`TestBoardSVGInWorkflow` checks the workflow has the honesty step, and
+`TestReadmeEmbedsBoardSVG` checks the README embeds the image.
+
 ## What comes next
 
-V1.1 — only if V1 earns it: board.svg CI render + README embed, local
-web view, MCP server, snapshot checkpointing.
+V1.1 — only if V1 earns it: local web view, MCP server, snapshot
+checkpointing.
 
 Full plan: `docs/BUILD-SPEC.md`.

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"os/exec"
@@ -480,6 +481,63 @@ func TestE2ERenderCheckDemo(t *testing.T) {
 	out, code := runHexdeck(t, repoRoot, "render", "--check", "--dir", "docs/demo")
 	if code != 0 {
 		t.Fatalf("render --check on docs/demo: exit %d\n%s", code, out)
+	}
+}
+
+// TestE2ERenderSVG checks render --svg: it writes board.svg, and the
+// file is byte-for-byte the library render of the same state.
+func TestE2ERenderSVG(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "render", "--svg", "--as", "claude-a"); code != 0 {
+		t.Fatalf("render --svg: exit %d\n%s", code, out)
+	}
+	boardDir := filepath.Join(dir, ".kanban")
+	got, err := os.ReadFile(filepath.Join(boardDir, "board.svg"))
+	if err != nil {
+		t.Fatalf("read board.svg: %v", err)
+	}
+	state, err := hexdeck.Project(boardDir)
+	if err != nil {
+		t.Fatalf("Project: %v", err)
+	}
+	want := hexdeck.RenderSVG(state)
+	if !bytes.Equal(got, want) {
+		t.Errorf("board.svg does not match the library render:\n--- got ---\n%s\n--- want ---\n%s", got, want)
+	}
+}
+
+// TestE2ERenderCheckSVG checks that render --check covers board.svg
+// once it exists: a hand-edited SVG fails the check with the file
+// named.
+func TestE2ERenderCheckSVG(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "render", "--svg", "--as", "claude-a"); code != 0 {
+		t.Fatalf("render --svg: exit %d\n%s", code, out)
+	}
+	svgPath := filepath.Join(dir, ".kanban", "board.svg")
+	f, err := os.OpenFile(svgPath, os.O_APPEND|os.O_WRONLY, 0o644)
+	if err != nil {
+		t.Fatalf("open board.svg: %v", err)
+	}
+	if _, err := f.WriteString("\n<!-- hand-edited -->\n"); err != nil {
+		t.Fatalf("edit board.svg: %v", err)
+	}
+	f.Close()
+	out, code := runHexdeck(t, dir, "render", "--check", "--as", "claude-a")
+	if code == 0 {
+		t.Errorf("render --check after SVG hand-edit succeeded, want failure:\n%s", out)
+	}
+	if !strings.Contains(out, "board.svg") {
+		t.Errorf("render --check output = %q, want it to name board.svg", out)
 	}
 }
 

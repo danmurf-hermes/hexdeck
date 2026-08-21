@@ -1,0 +1,1 @@
+{"schema":1,"opId":"c0c4da78-03b1-439f-8d55-b5b4e35b6fad","seq":52,"ts":"2026-08-21T10:59:41Z","actor":"danmurf-hermes","type":"ticket.moved","ticket":"T-8","payload":{"from":"todo","to":"in-progress"}}
