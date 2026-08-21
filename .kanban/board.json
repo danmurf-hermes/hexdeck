@@ -1,9 +1,8 @@
 {
   "name": "hexdeck",
   "columns": [
+    "backlog",
     "todo",
-    "in-progress",
-    "review",
     "done"
   ],
   "prefix": "T",
@@ -196,6 +195,17 @@
       "archived": false
     }
   },
-  "warnings": [],
+  "warnings": [
+    "ticket.moved for T-1: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-2: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-3: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-4: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-5: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-6: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-7: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-8: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
+    "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
+  ],
   "updated": "2026-08-21T15:26:44Z"
 }

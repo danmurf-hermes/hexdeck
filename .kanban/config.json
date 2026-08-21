@@ -2,9 +2,8 @@
   "schema": 1,
   "board": "hexdeck",
   "columns": [
+    "backlog",
     "todo",
-    "in-progress",
-    "review",
     "done"
   ],
   "ticketPrefix": "T",

@@ -1,11 +1,9 @@
 # Board — hexdeck
-Updated: 2026-08-21T15:26:44Z · 0 todo · 0 in-progress · 0 review · 10 done
+Updated: 2026-08-21T15:26:44Z · 0 backlog · 0 todo · 10 done
+
+## backlog
 
 ## todo
-
-## in-progress
-
-## review
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment
