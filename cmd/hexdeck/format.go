@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -40,21 +39,21 @@ func ticketText(ticket hexdeck.Ticket) string {
 
 // opTimeline renders the op timeline the way `hexdeck log` and the MCP
 // board_log tool print it, with the same filters: a ticket, an actor,
-// and a "since" duration. Warnings print to stderr — the same channel
-// the CLI uses.
-func opTimeline(boardDir, ticket, actor, since string) (string, error) {
+// and a "since" duration. Warnings from reading the ops come back
+// separately so each surface can show them: the CLI prints them to
+// stderr, the MCP tool puts them in the result text — an agent calling
+// board_log must see that ops were skipped, or it would trust a
+// timeline with holes in it.
+func opTimeline(boardDir, ticket, actor, since string) (string, []string, error) {
 	ops, warnings, err := hexdeck.ReadOpsDir(filepath.Join(boardDir, "ops"))
 	if err != nil {
-		return "", err
-	}
-	for _, warning := range warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", warning)
+		return "", nil, err
 	}
 	var cutoff time.Time
 	if since != "" {
 		d, err := time.ParseDuration(since)
 		if err != nil {
-			return "", fmt.Errorf("since: %q is not a duration like 2d or 3h", since)
+			return "", nil, fmt.Errorf("since: %q is not a duration like 2d or 3h", since)
 		}
 		cutoff = time.Now().UTC().Add(-d)
 	}
@@ -71,7 +70,7 @@ func opTimeline(boardDir, ticket, actor, since string) (string, error) {
 		}
 		fmt.Fprintf(&b, "%s %s %s %s\n", op.TS.UTC().Format("2006-01-02T15:04:05Z"), op.Actor, op.Type, op.Ticket)
 	}
-	return b.String(), nil
+	return b.String(), warnings, nil
 }
 
 // nextTodo returns the next todo ticket to pick: the first todo ticket

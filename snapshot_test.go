@@ -262,3 +262,89 @@ func TestSnapshotGitignore(t *testing.T) {
 		t.Errorf(".gitignore does not mention snapshot.json:\n%s", data)
 	}
 }
+
+// TestSnapshotGitignorePreservesUserContent checks that repairing the
+// .gitignore appends the snapshot line instead of replacing the file —
+// user entries must survive a routine cache write.
+func TestSnapshotGitignorePreservesUserContent(t *testing.T) {
+	dir := copyFixture(t, "basic")
+	ignore := filepath.Join(dir, ".gitignore")
+	if err := os.WriteFile(ignore, []byte("local-config.json\n"), 0o644); err != nil {
+		t.Fatalf("write .gitignore: %v", err)
+	}
+	if _, err := Project(dir); err != nil {
+		t.Fatalf("project: %v", err)
+	}
+	data, err := os.ReadFile(ignore)
+	if err != nil {
+		t.Fatalf("read .gitignore: %v", err)
+	}
+	if !strings.Contains(string(data), "local-config.json") {
+		t.Errorf("user entry lost — .gitignore now:\n%s", data)
+	}
+	if !strings.Contains(string(data), "snapshot.json") {
+		t.Errorf(".gitignore does not mention snapshot.json:\n%s", data)
+	}
+}
+
+// TestRenderClockIndependence checks the honesty guarantee: the
+// committed files are a pure function of the ops. A live claim old
+// enough to be stale by the real wall clock must not put a stale
+// marker in board.md or board.json — that marker is display-only and
+// belongs to the interactive paths. Without this guarantee, CI's
+// render --check would fail on a board whose ops did not move.
+func TestRenderClockIndependence(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dir, "ops"), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	config := `{"schema":1,"board":"clock","columns":["todo","in-progress","review","done"],"claimTimeout":"4h","autoPush":false}`
+	if err := os.WriteFile(filepath.Join(dir, "config.json"), []byte(config), 0o644); err != nil {
+		t.Fatalf("write config: %v", err)
+	}
+	// A claim 10 hours old: stale by any real clock with a 4h timeout.
+	old := time.Now().UTC().Add(-10 * time.Hour).Truncate(time.Second)
+	ops := []Op{
+		{Schema: SchemaVersion, OpID: "11111111-1111-4111-8111-111111111111", Seq: 1, TS: old.Add(-time.Hour), Actor: "claude-a", Type: OpBoardCreated, Payload: mustPayload(t, BoardCreatedPayload{Name: "clock"})},
+		{Schema: SchemaVersion, OpID: "22222222-2222-4222-8222-222222222222", Seq: 2, TS: old, Actor: "claude-a", Type: OpTicketCreated, Ticket: "T-1", Payload: mustPayload(t, TicketCreatedPayload{Title: "stale claim ticket"})},
+		{Schema: SchemaVersion, OpID: "33333333-3333-4333-8333-333333333333", Seq: 3, TS: old, Actor: "claude-a", Type: OpTicketClaimed, Ticket: "T-1", Payload: mustPayload(t, TicketClaimedPayload{By: "claude-a"})},
+	}
+	for _, op := range ops {
+		data, err := json.Marshal(op)
+		if err != nil {
+			t.Fatalf("marshal op: %v", err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "ops", OpFilename(op.Seq, op.OpID)), data, 0o644); err != nil {
+			t.Fatalf("write op: %v", err)
+		}
+	}
+	if err := RenderAll(dir, false); err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	if err := RenderCheck(dir); err != nil {
+		t.Fatalf("render check: %v", err)
+	}
+	md, err := os.ReadFile(filepath.Join(dir, "board.md"))
+	if err != nil {
+		t.Fatalf("read board.md: %v", err)
+	}
+	if strings.Contains(string(md), "(stale claim)") {
+		t.Errorf("board.md contains a stale-claim marker — committed renders must be a pure function of the ops:\n%s", md)
+	}
+	bj, err := os.ReadFile(filepath.Join(dir, "board.json"))
+	if err != nil {
+		t.Fatalf("read board.json: %v", err)
+	}
+	if strings.Contains(string(bj), "claimStale") {
+		t.Errorf("board.json contains a stale-claim marker:\n%s", bj)
+	}
+	// The interactive path still marks it stale: Project must report
+	// the claim as stale at the real clock.
+	state, err := Project(dir)
+	if err != nil {
+		t.Fatalf("project: %v", err)
+	}
+	if !state.Tickets["T-1"].ClaimStale {
+		t.Errorf("Project did not mark the aged claim stale — the display path lost the marker")
+	}
+}

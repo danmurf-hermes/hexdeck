@@ -342,6 +342,46 @@ func TestWebErrors(t *testing.T) {
 	}
 }
 
+// TestWebMethodNotAllowed checks the write endpoints reject non-POST
+// methods with a 405 instead of a confusing parse error.
+func TestWebMethodNotAllowed(t *testing.T) {
+	s, _ := newWebTestServer(t)
+	for _, path := range []string{"/api/move", "/api/comment", "/api/commit"} {
+		rec := doJSON(t, s, "GET", path, nil)
+		if rec.Code != http.StatusMethodNotAllowed {
+			t.Errorf("GET %s: status %d, want 405\n%s", path, rec.Code, rec.Body.String())
+		}
+	}
+}
+
+// TestWebCommitLeavesForeignStaged checks that the web commit commits
+// only the board's files — a file the user staged for something else
+// must stay staged and uncommitted.
+func TestWebCommitLeavesForeignStaged(t *testing.T) {
+	s, dir := newWebTestServer(t)
+	// Stage a foreign file: not part of the board.
+	if err := os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("user work\n"), 0o644); err != nil {
+		t.Fatalf("write notes.txt: %v", err)
+	}
+	runGitOut(t, dir, "add", "notes.txt")
+	// Move through the web server so the changes panel is populated.
+	if rec := doJSON(t, s, "POST", "/api/move", map[string]string{"ticket": "T-1", "to": "in-progress"}); rec.Code != http.StatusOK {
+		t.Fatalf("move: status %d\n%s", rec.Code, rec.Body.String())
+	}
+	rec := doJSON(t, s, "POST", "/api/commit", nil)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("commit: status %d\n%s", rec.Code, rec.Body.String())
+	}
+	status := runGitOut(t, dir, "status", "--porcelain")
+	if !strings.Contains(status, "notes.txt") {
+		t.Errorf("foreign staged file was committed:\n%s", status)
+	}
+	log := runGitOut(t, dir, "log", "--oneline", "-1", "--name-only")
+	if strings.Contains(log, "notes.txt") {
+		t.Errorf("foreign file landed in the board commit:\n%s", log)
+	}
+}
+
 // TestE2EWeb runs the real binary: it serves the page, and a move over
 // HTTP lands as an op on disk. This proves the command wiring — port
 // binding, actor resolution, and the write path.

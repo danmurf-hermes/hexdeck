@@ -125,11 +125,21 @@ Steps:
 1. Read `config.json`. A missing file is fine — the default columns
    apply. A broken file is an error.
 2. Read every op in `ops/`. Unparseable files are skipped with a
-   warning, never fatal.
+   warning, never fatal. An op whose filename disagrees with its own
+   `seq` is read but warned about.
 3. Sort the ops by `(seq, opId)`.
 4. Fold: apply each op to the state in order.
 5. Mark stale claims: a claim older than the claim timeout gets the
    `ClaimStale` flag.
+
+The stale-claim step is the one wall-clock input, and it is carefully
+bounded. The interactive paths (`Project`, `show`, `web`, `pick`) run
+it so claims age visibly. The committed renders never do: `RenderAll`
+and `RenderCheck` fold without the clock, so `board.md`, `board.json`,
+and `board.svg` are a pure function of the ops and CI's `render
+--check` can never fail on a board whose ops did not move. The demo
+and dogfood boards keep a ten-year claim timeout for the same reason —
+belt and braces, not necessity.
 
 The fold rules:
 
@@ -243,7 +253,11 @@ one. Tickets sort numerically within a column, whatever the prefix —
 - `AppendOp(opsDir, op)` writes one op file. It fills the seq (highest
   seen plus one), the opId (a random UUID), the ts (now, UTC), and the
   schema. The op is validated first — nothing is written for an
-  invalid op.
+  invalid op. The write is exclusive (`O_EXCL`): two agents appending
+  at once re-roll the seq until each lands with a distinct one, so two
+  ops with the same seq never exist. The `--commit` paths and the web
+  commit touch only files that belong to the board — never whatever
+  else the user staged.
 - `RenderAll(boardDir, svg)` rebuilds `board.md` and `board.json` from
   the ops, plus `board.svg` when asked.
 - `RenderCheck(boardDir)` compares the committed board files to a

@@ -134,6 +134,21 @@ func TestParseOpInvalid(t *testing.T) {
 			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.updated","ticket":"T-1","payload":{}}`,
 			wantErr: "at least one of title or description",
 		},
+		{
+			name:    "unknown field in payload",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.created","ticket":"T-1","payload":{"title":"one","descripton":"typo"}}`,
+			wantErr: "invalid payload for ticket.created",
+		},
+		{
+			name:    "unknown top-level field",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.created","ticket":"T-1","payload":{"title":"one"},"extra":1}`,
+			wantErr: "invalid op JSON",
+		},
+		{
+			name:    "non-empty archived payload",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.archived","ticket":"T-1","payload":{"foo":1}}`,
+			wantErr: "archived payload must be empty",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -211,5 +226,29 @@ func TestReadOpsDirGolden(t *testing.T) {
 				t.Errorf("golden mismatch for %s\n--- got ---\n%s\n--- want ---\n%s", name, data, want)
 			}
 		})
+	}
+}
+
+// TestReadOpsDirSeqMismatch checks that a file whose name disagrees
+// with its content seq is read but warned about — the append-only
+// discipline must not break silently on a hand-written typo.
+func TestReadOpsDirSeqMismatch(t *testing.T) {
+	dir := t.TempDir()
+	op := `{"schema":1,"opId":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","seq":7,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.created","ticket":"T-1","payload":{"title":"one"}}`
+	if err := os.WriteFile(filepath.Join(dir, "0000000000000005-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.json"), []byte(op), 0o644); err != nil {
+		t.Fatalf("write op: %v", err)
+	}
+	ops, warnings, err := ReadOpsDir(dir)
+	if err != nil {
+		t.Fatalf("ReadOpsDir: %v", err)
+	}
+	if len(ops) != 1 {
+		t.Fatalf("ops = %d, want 1 — a seq mismatch must not drop the op", len(ops))
+	}
+	if len(warnings) != 1 {
+		t.Fatalf("warnings = %v, want exactly 1", warnings)
+	}
+	if !strings.Contains(warnings[0], "filename says seq 5 but the op says 7") {
+		t.Errorf("warning = %q", warnings[0])
 	}
 }

@@ -221,7 +221,16 @@ func (s *mcpSession) runTool(name string, args map[string]string) (string, error
 		}
 		return ticketText(ticket), nil
 	case "board_log":
-		return opTimeline(s.boardDir, args["ticket"], args["actor"], args["since"])
+		text, warnings, err := opTimeline(s.boardDir, args["ticket"], args["actor"], args["since"])
+		if err != nil {
+			return "", err
+		}
+		// Warnings must reach the agent — a timeline with skipped ops
+		// that looks clean would be trusted and wrong.
+		for _, warning := range warnings {
+			text += "warning: " + warning + "\n"
+		}
+		return text, nil
 	case "board_next":
 		ticket, ok := nextTodo(state)
 		if !ok {

@@ -4,11 +4,13 @@
 package hexdeck
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -55,7 +57,10 @@ type Op struct {
 	Payload json.RawMessage `json:"payload"`
 }
 
-// ParseOp parses and validates one op from its JSON bytes.
+// ParseOp parses and validates one op from its JSON bytes. Unknown
+// fields are rejected: the board is hand-writable (the primer teaches
+// agents to write ops by hand), and a typo like "descripton" must fail
+// loudly instead of silently dropping the intended data.
 func ParseOp(data []byte) (Op, error) {
 	// ts is parsed as a string first so a bad timestamp gets a clear
 	// validation error instead of a JSON unmarshal error.
@@ -69,8 +74,13 @@ func ParseOp(data []byte) (Op, error) {
 		Ticket  string          `json:"ticket,omitempty"`
 		Payload json.RawMessage `json:"payload"`
 	}
-	if err := json.Unmarshal(data, &raw); err != nil {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&raw); err != nil {
 		return Op{}, fmt.Errorf("invalid op JSON: %w", err)
+	}
+	if dec.More() {
+		return Op{}, fmt.Errorf("invalid op JSON: trailing data after the op")
 	}
 	op := Op{
 		Schema:  raw.Schema,
@@ -167,19 +177,19 @@ func validatePayload(op Op) error {
 	switch op.Type {
 	case OpBoardCreated:
 		var p BoardCreatedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil && p.Name == "" {
 			err = fmt.Errorf("name is required")
 		}
 	case OpTicketCreated:
 		var p TicketCreatedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil && p.Title == "" {
 			err = fmt.Errorf("title is required")
 		}
 	case OpTicketMoved:
 		var p TicketMovedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil {
 			if p.From == "" {
 				err = fmt.Errorf("from is required")
@@ -189,29 +199,54 @@ func validatePayload(op Op) error {
 		}
 	case OpTicketUpdated:
 		var p TicketUpdatedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil && p.Title == nil && p.Description == nil {
 			err = fmt.Errorf("at least one of title or description is required")
 		}
 	case OpCommentAdded:
 		var p CommentAddedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil && p.Text == "" {
 			err = fmt.Errorf("text is required")
 		}
 	case OpTicketClaimed, OpTicketReleased:
 		var p TicketClaimedPayload
-		err = json.Unmarshal(op.Payload, &p)
+		err = decodePayload(op.Payload, &p)
 		if err == nil && p.By == "" {
 			err = fmt.Errorf("by is required")
 		}
 	case OpTicketArchived:
-		// Empty payload is valid.
+		if !isJSONEmptyObject(op.Payload) {
+			err = fmt.Errorf("archived payload must be empty")
+		}
 	}
 	if err != nil {
 		return fmt.Errorf("invalid payload for %s: %w", op.Type, err)
 	}
 	return nil
+}
+
+// decodePayload decodes a payload strictly: unknown fields are
+// rejected. The board is hand-writable, and a typo like "descripton"
+// must fail loudly instead of silently dropping the intended data.
+func decodePayload(data []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	// A trailing second JSON value is a shape error too: the payload
+	// must be exactly one object.
+	if dec.More() {
+		return fmt.Errorf("payload must be a single JSON object")
+	}
+	return nil
+}
+
+// isJSONEmptyObject reports whether data is exactly "{}" (or "{}" with
+// surrounding whitespace).
+func isJSONEmptyObject(data []byte) bool {
+	return strings.TrimSpace(string(data)) == "{}"
 }
 
 // SortOps sorts ops in place by (seq asc, opId asc). This is the
@@ -233,8 +268,12 @@ func OpFilename(seq int, opID string) string {
 }
 
 // ReadOpsDir reads every op file in dir, sorts them by (seq, opId), and
-// returns the ops plus warnings for files that could not be parsed.
-// Unparseable files are skipped, never fatal — the board must still build.
+// returns the ops plus warnings for files that could not be parsed or
+// whose filename disagrees with their content. Unparseable files are
+// skipped, never fatal — the board must still build. A filename whose
+// seq prefix differs from the op's seq field is a warning too: the
+// append-only discipline rests on seq being the highest seen plus one,
+// and a hand-written typo must not silently reorder the log.
 func ReadOpsDir(dir string) ([]Op, []string, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -255,6 +294,9 @@ func ReadOpsDir(dir string) ([]Op, []string, error) {
 		if err != nil {
 			warnings = append(warnings, fmt.Sprintf("%s: %v", entry.Name(), err))
 			continue
+		}
+		if seq, err := strconv.Atoi(strings.SplitN(entry.Name(), "-", 2)[0]); err == nil && seq != op.Seq {
+			warnings = append(warnings, fmt.Sprintf("%s: filename says seq %d but the op says %d — replay order uses the op's seq", entry.Name(), seq, op.Seq))
 		}
 		ops = append(ops, op)
 	}
