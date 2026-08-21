@@ -39,7 +39,7 @@
 |---|---|---|
 | 4.1 | `hexdeck init` in the hexdeck repo, migrate PROGRESS.md's phase table into tickets, CI checks the dogfood board. | ✅ done — `942757c` |
 | 4.2 | The worker runs against the board: creates, moves, and comments on tickets as it works. Code and ops land in the same commit. | ✅ done — `c64f7d5` |
-| 4.3 | Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else. | ✅ done — see PR |
+| 4.3 | Dogfood acceptance: a human reads `board.md` and can answer "where is the project up to" without opening anything else. | ✅ done — `86318e0` |
 | 4.4 | Cold-start test: a fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt. | ⏳ pending |
 
 ## How to pick up work
