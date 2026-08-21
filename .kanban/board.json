@@ -134,12 +134,18 @@
       "id": "T-7",
       "title": "Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7",
       "description": "Docs reassessment",
-      "status": "todo",
-      "comments": [],
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T10:28:42Z",
+          "actor": "danmurf-hermes",
+          "text": "Docs restructured into the Diataxis set: tutorial (a real session), how-to (one task, one guide), reference (commands, op types, config, rules), explanation (architecture). README rewritten: quick start, a real session with real output, key concepts, mermaid flowchart. Process narrative stripped from README and docs; components.md folded into the reference. Pinned in ci_test.go: TestDocsDiataxis, TestDocsDescribeTheApp, TestReadmeRealExample, TestMermaidFences."
+        }
+      ],
       "created": "2026-08-21T09:03:57Z",
       "archived": false
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T09:41:13Z"
+  "updated": "2026-08-21T10:28:42Z"
 }

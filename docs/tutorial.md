@@ -1,0 +1,169 @@
+# Tutorial — a real session
+
+This tutorial runs hexdeck for real. You need Go 1.26+ and git. Follow
+the steps in order. At the end you have a board, a ticket, a comment,
+and a claim — and you understand the loop.
+
+## 1. Install the CLI
+
+```
+go install github.com/danmurf/hexdeck/cmd/hexdeck@latest
+```
+
+## 2. Make a repo
+
+```
+mkdir demo && cd demo
+git init
+git config user.name you
+git config user.email you@example.com
+```
+
+The actor name comes from `git config user.name`. Set it before you
+use the board.
+
+## 3. Create the board
+
+```
+$ hexdeck init --name demo
+board "demo" created in .kanban
+suggested commit: board: init demo
+```
+
+`init` creates `.kanban/` with the config, the first op, the rendered
+board files, and a README that is the whole manual. It also appends one
+line to `AGENTS.md` so agents find the board.
+
+## 4. Create a ticket
+
+```
+$ hexdeck create "Fix login bug" -d "The login form rejects valid passwords."
+T-1
+suggested commit: board: create T-1
+```
+
+The ticket starts in `todo`. The description is optional.
+
+## 5. Move it and comment
+
+```
+$ hexdeck move T-1 in-progress
+suggested commit: board: move T-1 → in-progress
+
+$ hexdeck comment T-1 "reproduced it — the bug is in the password check"
+suggested commit: board: comment on T-1
+```
+
+Every command prints a suggested commit message. Commit the op and the
+board files together — the commit is the evidence.
+
+## 6. Look at the board
+
+```
+$ hexdeck show
+# Board — demo
+Updated: 2026-08-21T10:23:50Z · 0 todo · 1 in-progress · 0 review · 0 done
+
+## todo
+
+## in-progress
+- T-1 Fix login bug · 1 comment
+  The login form rejects valid passwords.
+  - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
+
+## review
+
+## done
+```
+
+The board is a projection of the ops. The description and the comment
+render under the ticket — the board carries the story on its own.
+
+## 7. Look at one ticket
+
+```
+$ hexdeck show T-1
+T-1 Fix login bug
+status: in-progress
+description: The login form rejects valid passwords.
+created: 2026-08-21T10:23:50Z
+comments:
+  2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
+```
+
+## 8. Claim a ticket
+
+```
+$ hexdeck create "Add dark mode"
+T-2
+suggested commit: board: create T-2
+
+$ hexdeck pick --as you
+picked T-2 Add dark mode
+suggested commit: board: pick T-2
+```
+
+`pick` claims the next `todo` ticket and moves it to `in-progress`. The
+board shows the claim:
+
+```
+$ hexdeck show
+# Board — demo
+Updated: 2026-08-21T10:23:51Z · 0 todo · 2 in-progress · 0 review · 0 done
+
+## todo
+
+## in-progress
+- T-1 Fix login bug · 1 comment
+  The login form rejects valid passwords.
+  - 2026-08-21T10:23:50Z you: reproduced it — the bug is in the password check
+- T-2 Add dark mode — claimed by you
+
+## review
+
+## done
+```
+
+## 9. Release the claim
+
+```
+$ hexdeck release T-2 --as you
+suggested commit: board: release T-2
+```
+
+A claim is a cooperative lock, not a security boundary. Release it when
+you stop working on the ticket.
+
+## 10. Read the log
+
+```
+$ hexdeck log
+2026-08-21T10:23:50Z you board.created
+2026-08-21T10:23:50Z you ticket.created T-1
+2026-08-21T10:23:50Z you ticket.moved T-1
+2026-08-21T10:23:50Z you comment.added T-1
+2026-08-21T10:23:51Z you ticket.created T-2
+2026-08-21T10:23:51Z you ticket.claimed T-2
+2026-08-21T10:23:51Z you ticket.moved T-2
+2026-08-21T10:23:51Z you ticket.released T-2
+```
+
+The log is the whole history, newest first. Filter it with `--since`,
+`--ticket`, and `--actor`.
+
+## 11. Check the board is honest
+
+```
+$ hexdeck render --check
+board files match the ops
+```
+
+`render --check` re-renders the board from the ops and compares it to
+the committed files. It fails if they drifted. CI runs it on every
+push.
+
+## Where next
+
+- [How-to guides](how-to.md) — one task, one guide.
+- [Reference](reference.md) — commands, op types, config, rules.
+- [Explanation](architecture.md) — how the app works.

@@ -5,9 +5,62 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: in build.** Phase 1 (core library), Phase 2 (the CLI), and Phase 3 (concurrency hardening) are done. The CLI works end to end: init a board, create and move tickets, comment, show, log, pick, release, render. Concurrent writers merge with zero conflicts — proven by an 18-scenario merge matrix. Phase 3.5 (CI pipeline) is done: lint, test, build, and `render --check` gates run on every push and PR, and the README badges show CI status and honest code coverage — the CLI's end-to-end tests count, not just the library. Phase 4 (dogfood) is done: hexdeck tracks its own build in `.kanban/`, `board.md` renders descriptions and comments, and the cold-start test passed — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt (`docs/cold-start.md`).
+**Status: V1.** The board, the CLI, and the CI pipeline are built, and hexdeck tracks its own build in `.kanban/`. V1.1 (web view, MCP, snapshots) comes only if V1 earns it.
 
-## Board language
+## Quick start
+
+```
+go install github.com/danmurf/hexdeck/cmd/hexdeck@latest
+cd your-project
+hexdeck init --as your-name          # create the board
+hexdeck create "Fix login bug"       # new ticket
+hexdeck move T-1 in-progress         # change column
+hexdeck comment T-1 "on it"          # add a comment
+hexdeck show                         # print the board
+hexdeck log --since 2d               # what happened recently
+hexdeck pick --as your-name          # claim the next todo ticket
+hexdeck render --check               # CI: board files match the ops
+```
+
+Every change stages the op and the board files and prints a suggested commit message. `--commit` commits it. The board lives in `.kanban/` — read `.kanban/README.md` for the full manual.
+
+## A real session
+
+A fresh repo, five commands, real output:
+
+```
+$ hexdeck init --name demo
+board "demo" created in .kanban
+suggested commit: board: init demo
+
+$ hexdeck create "Fix login bug"
+T-1
+suggested commit: board: create T-1
+
+$ hexdeck move T-1 in-progress
+suggested commit: board: move T-1 → in-progress
+
+$ hexdeck comment T-1 "reproduced it"
+suggested commit: board: comment on T-1
+
+$ hexdeck show
+# Board — demo
+Updated: 2026-08-21T10:22:30Z · 0 todo · 1 in-progress · 0 review · 0 done
+
+## todo
+
+## in-progress
+- T-1 Fix login bug · 1 comment
+  - 2026-08-21T10:22:30Z you: reproduced it
+
+## review
+
+## done
+```
+
+The board is the projection of the ops. Nothing is stored twice.
+
+## Key concepts
 
 These words describe the board as a project management tool. This is the language you use day to day.
 
@@ -20,8 +73,6 @@ These words describe the board as a project management tool. This is the languag
 - **Comment** — a note on a ticket. Comments are part of the ticket's history.
 - **Log** — the timeline of everything that happened on the board, newest first.
 
-## How it works
-
 These words describe the inner workings of the app. You do not need them to use the board, but they explain why it behaves the way it does.
 
 - **Op** — one event, stored as one JSON file in `.kanban/ops/`. Creating a ticket is an op. Moving it is an op. Every change is an op.
@@ -30,6 +81,8 @@ These words describe the inner workings of the app. You do not need them to use 
 - **Projection** — the board files. The board is never stored; it is always rebuilt from the ops. Same ops, same board, always.
 - **Render** — write the projection: `board.md` (for humans), `board.json` (for machines), `board.svg` (the image).
 - **Sort order** — ops sort by `(seq, opId)`, so two writers who work at the same time never conflict when their work merges.
+
+## How it works
 
 ```mermaid
 flowchart TB
@@ -50,46 +103,16 @@ That image is generated from the ops in `docs/demo/ops`. The board is never draw
 
 ## The dogfood board
 
-hexdeck tracks its own build in `.kanban/` — the board is the build tracker. The phase table from PROGRESS.md migrated into tickets, and the build worker creates, moves, and comments on tickets as it works. CI runs `hexdeck render --check --dir .kanban` on every push, so the dogfood board must match its ops too. Read `.kanban/board.md` to see where the build is up to.
-
-## Quick start
-
-```
-go install github.com/danmurf/hexdeck/cmd/hexdeck@latest
-cd your-project
-hexdeck init --as your-name          # create the board
-hexdeck create "Fix login bug"       # new ticket
-hexdeck move T-1 in-progress         # change column
-hexdeck comment T-1 "on it"          # add a comment
-hexdeck show                         # print the board
-hexdeck log --since 2d               # what happened recently
-hexdeck pick --as your-name          # claim the next todo ticket
-hexdeck render --check               # CI: board files match the ops
-```
-
-Every change stages the op and the board files and prints a suggested commit message. `--commit` commits it. The board lives in `.kanban/` — read `.kanban/README.md` for the full manual.
-
-## What exists so far
-
-- The op schema: types, JSON parse, validation, deterministic sort.
-- The fold: apply ops in order to build the board state.
-- The renders: `board.md` (human-readable), `board.json` (machine view), and `board.svg` (the board image) from the board state.
-- The CLI: all commands, git staging, `--commit`, pull before append.
-- Concurrency hardening: the merge matrix (18 scenarios, zero conflicts), the claim-race rule, claim expiry with stale-claim display.
-- The dogfood board: hexdeck tracks its own build in `.kanban/`. Anyone — human or agent — can pick up a ticket; `docs/contributing.md` explains how.
-
-## What comes next
-
-- V1.1 — only if V1 earns it: board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
+hexdeck tracks its own build in `.kanban/` — the board is the build tracker. The build worker creates, moves, and comments on tickets as it works. CI runs `hexdeck render --check --dir .kanban` on every push, so the dogfood board must match its ops too. Read `.kanban/board.md` to see where the build is up to.
 
 ## Docs
 
+- [Tutorial](docs/tutorial.md) — a real session, step by step.
+- [How-to guides](docs/how-to.md) — one task, one guide.
+- [Reference](docs/reference.md) — commands, op types, config, rules.
+- [Explanation](docs/architecture.md) — how the app works.
 - [Contributing](docs/contributing.md) — how to work on hexdeck, for humans and agents.
 - `docs/BUILD-SPEC.md` — the full spec.
-- `docs/architecture.md` — how the code is built.
-- `docs/components.md` — the parts, one section each.
-- `docs/cold-start.md` — the cold-start test report.
-- `PROGRESS.md` — the build tracker.
 
 ## Development
 
