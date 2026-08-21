@@ -176,9 +176,7 @@ func readConfig(path string) (*Config, error) {
 func apply(op Op, state *BoardState) {
 	switch op.Type {
 	case OpBoardCreated:
-		var p struct {
-			Name string `json:"name"`
-		}
+		var p BoardCreatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s: bad payload: %v", op.Type, err))
 			return
@@ -189,10 +187,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket already exists, keeping the first", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Title       string `json:"title"`
-			Description string `json:"description"`
-		}
+		var p TicketCreatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -211,9 +206,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			To string `json:"to"`
-		}
+		var p TicketMovedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -226,10 +219,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Title       *string `json:"title"`
-			Description *string `json:"description"`
-		}
+		var p TicketUpdatedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -247,9 +237,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			Text string `json:"text"`
-		}
+		var p CommentAddedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return
@@ -262,9 +250,7 @@ func apply(op Op, state *BoardState) {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: ticket does not exist, skipping", op.Type, op.Ticket))
 			return
 		}
-		var p struct {
-			By string `json:"by"`
-		}
+		var p TicketClaimedPayload
 		if err := json.Unmarshal(op.Payload, &p); err != nil {
 			state.Warnings = append(state.Warnings, fmt.Sprintf("%s for %s: bad payload: %v", op.Type, op.Ticket, err))
 			return

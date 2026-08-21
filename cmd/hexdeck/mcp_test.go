@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +28,7 @@ func newMCPTestServer(t *testing.T) (*mcpSession, *bytes.Buffer) {
 		t.Fatalf("create: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out, io.Discard)
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)
 	return s, out
 }
 
@@ -281,7 +280,7 @@ func TestMCPBoardNextEmpty(t *testing.T) {
 		t.Fatalf("move: exit %d\n%s", code, out)
 	}
 	out := &bytes.Buffer{}
-	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out, io.Discard)
+	s := newMCPSession(filepath.Join(dir, ".kanban"), strings.NewReader(""), out)
 	responses := mcpExchange(t, s, out, mcpInit, mcpInitialized,
 		`{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"board_next","arguments":{}}}`)
 	if len(responses) != 2 {

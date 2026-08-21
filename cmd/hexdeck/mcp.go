@@ -7,10 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/danmurf/hexdeck"
 )
@@ -88,19 +85,18 @@ var mcpTools = []mcpTool{
 }
 
 // mcpSession is one MCP connection over stdio. It reads one JSON-RPC
-// message per line from in, writes one response per line to out, and
-// logs to logOut. The session is read-only: every tool answers from
-// the projection, and nothing writes to the board.
+// message per line from in and writes one response per line to out.
+// The session is read-only: every tool answers from the projection,
+// and nothing writes to the board.
 type mcpSession struct {
 	boardDir string
 	in       io.Reader
 	out      io.Writer
-	logOut   io.Writer
 }
 
 // newMCPSession builds an MCP session over a board dir.
-func newMCPSession(boardDir string, in io.Reader, out, logOut io.Writer) *mcpSession {
-	return &mcpSession{boardDir: boardDir, in: in, out: out, logOut: logOut}
+func newMCPSession(boardDir string, in io.Reader, out io.Writer) *mcpSession {
+	return &mcpSession{boardDir: boardDir, in: in, out: out}
 }
 
 // run serves the session until the input ends. It reads one message
@@ -219,100 +215,21 @@ func (s *mcpSession) runTool(name string, args map[string]string) (string, error
 	case "board_show":
 		return string(hexdeck.RenderMarkdown(state)), nil
 	case "board_show_ticket":
-		return mcpShowTicket(state, args["ticket"])
+		ticket, ok := state.Tickets[args["ticket"]]
+		if !ok {
+			return "", fmt.Errorf("ticket %s does not exist", args["ticket"])
+		}
+		return ticketText(ticket), nil
 	case "board_log":
-		return mcpLog(s.boardDir, args["ticket"], args["actor"], args["since"])
+		return opTimeline(s.boardDir, args["ticket"], args["actor"], args["since"])
 	case "board_next":
-		return mcpNext(state), nil
+		ticket, ok := nextTodo(state)
+		if !ok {
+			return "no todo tickets to pick", nil
+		}
+		return fmt.Sprintf("%s %s", ticket.ID, ticket.Title), nil
 	}
 	return "", fmt.Errorf("unknown tool: %s", name)
-}
-
-// mcpShowTicket renders one ticket the way `hexdeck show <ticket>`
-// does: fields, comments, and history.
-func mcpShowTicket(state hexdeck.BoardState, id string) (string, error) {
-	ticket, ok := state.Tickets[id]
-	if !ok {
-		return "", fmt.Errorf("ticket %s does not exist", id)
-	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "%s %s\n", ticket.ID, ticket.Title)
-	fmt.Fprintf(&b, "status: %s\n", ticket.Status)
-	if ticket.Description != "" {
-		fmt.Fprintf(&b, "description: %s\n", ticket.Description)
-	}
-	if ticket.ClaimedBy != "" {
-		fmt.Fprintf(&b, "claimed by: %s", ticket.ClaimedBy)
-		if ticket.ClaimStale {
-			fmt.Fprint(&b, " (stale claim)")
-		}
-		fmt.Fprintln(&b)
-	}
-	fmt.Fprintf(&b, "created: %s\n", ticket.Created.UTC().Format("2006-01-02T15:04:05Z"))
-	if len(ticket.Comments) > 0 {
-		fmt.Fprintln(&b, "comments:")
-		for _, comment := range ticket.Comments {
-			fmt.Fprintf(&b, "  %s %s: %s\n", comment.TS.UTC().Format("2006-01-02T15:04:05Z"), comment.Actor, comment.Text)
-		}
-	}
-	return b.String(), nil
-}
-
-// mcpLog renders the op timeline the way `hexdeck log` does, with the
-// same filters.
-func mcpLog(boardDir, ticket, actor, since string) (string, error) {
-	ops, warnings, err := hexdeck.ReadOpsDir(filepath.Join(boardDir, "ops"))
-	if err != nil {
-		return "", err
-	}
-	for _, warning := range warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", warning)
-	}
-	var cutoff time.Time
-	if since != "" {
-		d, err := time.ParseDuration(since)
-		if err != nil {
-			return "", fmt.Errorf("since: %q is not a duration like 2d or 3h", since)
-		}
-		cutoff = time.Now().UTC().Add(-d)
-	}
-	var b strings.Builder
-	for _, op := range ops {
-		if ticket != "" && op.Ticket != ticket {
-			continue
-		}
-		if actor != "" && op.Actor != actor {
-			continue
-		}
-		if !cutoff.IsZero() && op.TS.Before(cutoff) {
-			continue
-		}
-		fmt.Fprintf(&b, "%s %s %s %s\n", op.TS.UTC().Format("2006-01-02T15:04:05Z"), op.Actor, op.Type, op.Ticket)
-	}
-	return b.String(), nil
-}
-
-// mcpNext renders the next todo ticket to pick, the way `hexdeck pick`
-// chooses it: the first todo ticket by id, skipping fresh claims.
-func mcpNext(state hexdeck.BoardState) string {
-	var candidates []hexdeck.Ticket
-	for _, ticket := range state.Tickets {
-		if ticket.Archived || ticket.Status != state.Columns[0] {
-			continue
-		}
-		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
-			continue
-		}
-		candidates = append(candidates, ticket)
-	}
-	if len(candidates) == 0 {
-		return "no todo tickets to pick"
-	}
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].ID < candidates[j].ID
-	})
-	ticket := candidates[0]
-	return fmt.Sprintf("%s %s", ticket.ID, ticket.Title)
 }
 
 // findMCPTool returns the tool with the given name, or nil.
@@ -393,6 +310,6 @@ func runMCP(args []string) error {
 		return err
 	}
 	fmt.Fprintf(os.Stderr, "hexdeck mcp: serving %s over stdio\n", boardDir)
-	session := newMCPSession(boardDir, os.Stdin, os.Stdout, os.Stderr)
+	session := newMCPSession(boardDir, os.Stdin, os.Stdout)
 	return session.run()
 }

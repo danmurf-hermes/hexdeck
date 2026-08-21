@@ -83,10 +83,13 @@ The core library. Eight files:
 
 The `hexdeck` binary. `main.go` plus `main_test.go` with end-to-end
 tests in temp git repos, `web.go` plus `web_test.go` for the web view,
-and `mcp.go` plus `mcp_test.go` for the MCP server. The CLI is a thin
-shell over the library: it parses flags, resolves the board dir and
-the actor name, and calls the library. It never touches the board
-files directly.
+and `mcp.go` plus `mcp_test.go` for the MCP server. `format.go` holds
+the output shapes shared by the CLI and the MCP server: the ticket
+view, the op timeline, and the next-todo choice — one formatter, two
+consumers, so the two surfaces cannot drift. The CLI is a thin shell
+over the library: it parses flags, resolves the board dir and the
+actor name, and calls the library. It never touches the board files
+directly.
 
 The commands: `init`, `create`, `move`, `comment`, `show`, `log`,
 `pick`, `release`, `render`, `web`, `mcp`.

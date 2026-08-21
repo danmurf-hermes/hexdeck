@@ -10,9 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
-	"time"
 
 	"github.com/danmurf/hexdeck"
 )
@@ -385,25 +383,7 @@ func showTicket(state hexdeck.BoardState, id string) error {
 	if !ok {
 		return fmt.Errorf("ticket %s does not exist", id)
 	}
-	fmt.Printf("%s %s\n", ticket.ID, ticket.Title)
-	fmt.Printf("status: %s\n", ticket.Status)
-	if ticket.Description != "" {
-		fmt.Printf("description: %s\n", ticket.Description)
-	}
-	if ticket.ClaimedBy != "" {
-		fmt.Printf("claimed by: %s", ticket.ClaimedBy)
-		if ticket.ClaimStale {
-			fmt.Print(" (stale claim)")
-		}
-		fmt.Println()
-	}
-	fmt.Printf("created: %s\n", ticket.Created.UTC().Format("2006-01-02T15:04:05Z"))
-	if len(ticket.Comments) > 0 {
-		fmt.Println("comments:")
-		for _, comment := range ticket.Comments {
-			fmt.Printf("  %s %s: %s\n", comment.TS.UTC().Format("2006-01-02T15:04:05Z"), comment.Actor, comment.Text)
-		}
-	}
+	fmt.Print(ticketText(ticket))
 	return nil
 }
 
@@ -426,33 +406,11 @@ func runLog(args []string) error {
 	if err != nil {
 		return err
 	}
-	ops, warnings, err := hexdeck.ReadOpsDir(filepath.Join(boardDir, "ops"))
+	text, err := opTimeline(boardDir, *ticket, *actor, *since)
 	if err != nil {
 		return err
 	}
-	for _, warning := range warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", warning)
-	}
-	var cutoff time.Time
-	if *since != "" {
-		d, err := time.ParseDuration(*since)
-		if err != nil {
-			return fmt.Errorf("--since: %q is not a duration like 2d or 3h", *since)
-		}
-		cutoff = time.Now().UTC().Add(-d)
-	}
-	for _, op := range ops {
-		if *ticket != "" && op.Ticket != *ticket {
-			continue
-		}
-		if *actor != "" && op.Actor != *actor {
-			continue
-		}
-		if !cutoff.IsZero() && op.TS.Before(cutoff) {
-			continue
-		}
-		fmt.Printf("%s %s %s %s\n", op.TS.UTC().Format("2006-01-02T15:04:05Z"), op.Actor, op.Type, op.Ticket)
-	}
+	fmt.Print(text)
 	return nil
 }
 
@@ -480,26 +438,11 @@ func runPick(args []string) error {
 	if err != nil {
 		return err
 	}
-	var candidates []hexdeck.Ticket
-	for _, ticket := range state.Tickets {
-		if ticket.Archived || ticket.Status != state.Columns[0] {
-			continue
-		}
-		// A fresh claim blocks the ticket. A stale claim does not —
-		// the projection marks it, and pick takes the ticket.
-		if ticket.ClaimedBy != "" && !ticket.ClaimStale {
-			continue
-		}
-		candidates = append(candidates, ticket)
-	}
-	if len(candidates) == 0 {
+	ticket, ok := nextTodo(state)
+	if !ok {
 		fmt.Println("no todo tickets to pick")
 		return nil
 	}
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].ID < candidates[j].ID
-	})
-	ticket := candidates[0]
 	claimPayload, err := json.Marshal(hexdeck.TicketClaimedPayload{By: actor})
 	if err != nil {
 		return err
