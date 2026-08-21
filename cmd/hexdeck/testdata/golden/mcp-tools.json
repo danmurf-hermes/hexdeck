@@ -1,0 +1,57 @@
+{
+  "tools": [
+    {
+      "description": "Show the whole board as markdown: every column with its tickets, claims, and comment counts.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "board_show"
+    },
+    {
+      "description": "Show one ticket: its title, description, status, claim, and comments.",
+      "inputSchema": {
+        "properties": {
+          "ticket": {
+            "description": "The ticket id, e.g. T-1.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ticket"
+        ],
+        "type": "object"
+      },
+      "name": "board_show_ticket"
+    },
+    {
+      "description": "Show the op timeline, oldest first. Filter by ticket, actor, or a duration like 2d or 3h.",
+      "inputSchema": {
+        "properties": {
+          "actor": {
+            "description": "Only ops by this actor.",
+            "type": "string"
+          },
+          "since": {
+            "description": "Only ops newer than this duration, e.g. 2d or 3h.",
+            "type": "string"
+          },
+          "ticket": {
+            "description": "Only ops about this ticket.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "board_log"
+    },
+    {
+      "description": "Show the next todo ticket to pick, or say there is none.",
+      "inputSchema": {
+        "properties": {},
+        "type": "object"
+      },
+      "name": "board_next"
+    }
+  ]
+}

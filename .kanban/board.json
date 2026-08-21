@@ -24,6 +24,21 @@
       "created": "2026-08-20T22:20:19Z",
       "archived": false
     },
+    "T-10": {
+      "id": "T-10",
+      "title": "Phase 5 chunk 3: MCP server",
+      "description": "hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T12:56:17Z",
+          "actor": "danmurf-hermes",
+          "text": "TDD: mcp_test.go pinned first (red) — handshake, ping, tools/list golden, four tools, error paths, E2E over stdio. Then mcp.go: the JSON-RPC session, the four read-only tools, the golden tool list. Docs updated in the same commit. Coverage back above 80% (82.6%) with new CLI error-path tests."
+        }
+      ],
+      "created": "2026-08-21T12:56:13Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
@@ -177,5 +192,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T12:01:45Z"
+  "updated": "2026-08-21T12:56:17Z"
 }

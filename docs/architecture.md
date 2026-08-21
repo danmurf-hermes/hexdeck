@@ -76,13 +76,14 @@ The core library. Seven files:
 ### CLI package (`github.com/danmurf/hexdeck/cmd/hexdeck`)
 
 The `hexdeck` binary. `main.go` plus `main_test.go` with end-to-end
-tests in temp git repos, and `web.go` plus `web_test.go` for the web
-view. The CLI is a thin shell over the library: it parses flags,
-resolves the board dir and the actor name, and calls the library. It
-never touches the board files directly.
+tests in temp git repos, `web.go` plus `web_test.go` for the web view,
+and `mcp.go` plus `mcp_test.go` for the MCP server. The CLI is a thin
+shell over the library: it parses flags, resolves the board dir and
+the actor name, and calls the library. It never touches the board
+files directly.
 
 The commands: `init`, `create`, `move`, `comment`, `show`, `log`,
-`pick`, `release`, `render`, `web`.
+`pick`, `release`, `render`, `web`, `mcp`.
 
 The CLI owns the git behaviour: it stages the op and the board files
 after every change, prints the suggested commit message, and commits
@@ -358,8 +359,39 @@ CLI can never disagree about the board. The changes panel is the
 GitHub Desktop pattern: diff → suggested message → commit. The server
 binds to 127.0.0.1 only; it is a local tool, not a service.
 
+## The MCP server
+
+`hexdeck mcp` serves the board as an MCP server over stdio. An agent
+harness starts the process and talks to it with newline-delimited
+JSON-RPC messages — the MCP protocol, version 2025-06-18. The agent
+asks the board questions without the CLI.
+
+The server exposes four tools, all read-only:
+
+- `board_show` — the whole board as markdown.
+- `board_show_ticket` — one ticket: title, description, status,
+  claim, comments.
+- `board_log` — the op timeline, with the same filters as
+  `hexdeck log` (`ticket`, `actor`, `since`).
+- `board_next` — the next todo ticket to pick, chosen the same way
+  `hexdeck pick` chooses it.
+
+The session is one JSON-RPC message per line: the server reads a line,
+answers it, and writes the response as one line. The handshake is the
+standard MCP one — `initialize` answers with the protocol version, the
+tools capability, and the server name; `tools/list` answers with the
+tool list; `tools/call` runs one tool. A malformed line gets a parse
+error response, and the session survives. Notifications get no
+response.
+
+The tool list is a render, like `board.md` and the web page: it is
+deterministic and pinned by a golden test (`TestMCPToolsListGolden`).
+Every tool answers from the projection — the server never writes to
+the board. Stdout carries the protocol; the board dir is printed to
+stderr.
+
 ## What comes next
 
-V1.1 — only if V1 earns it: MCP server, snapshot checkpointing.
+V1.1 — only if V1 earns it: snapshot checkpointing.
 
 Full plan: `docs/BUILD-SPEC.md`.

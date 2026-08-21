@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T12:01:45Z · 1 todo · 0 in-progress · 1 review · 7 done
+Updated: 2026-08-21T12:56:17Z · 1 todo · 0 in-progress · 2 review · 7 done
 
 ## todo
 - T-5 V1.1: web view, MCP, snapshots · 1 comment
@@ -12,6 +12,9 @@ Updated: 2026-08-21T12:01:45Z · 1 todo · 0 in-progress · 1 review · 7 done
 - T-9 Phase 5 chunk 2: local web view · 1 comment
   hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).
   - 2026-08-21T12:01:45Z danmurf-hermes: TDD: web_test.go pinned first (red) — golden page, state, move, comment, changes, commit, errors, E2E over HTTP. Then web.go: the embedded page, the API, the changes panel. Docs updated in the same commit.
+- T-10 Phase 5 chunk 3: MCP server · 1 comment
+  hexdeck mcp serves the board as an MCP server over stdio: agents ask the board questions without the CLI. Read-only tools: board_show, board_show_ticket, board_log, board_next.
+  - 2026-08-21T12:56:17Z danmurf-hermes: TDD: mcp_test.go pinned first (red) — handshake, ping, tools/list golden, four tools, error paths, E2E over stdio. Then mcp.go: the JSON-RPC session, the four read-only tools, the golden tool list. Docs updated in the same commit. Coverage back above 80% (82.6%) with new CLI error-path tests.
 
 ## done
 - T-1 Migrate the build tracker into the board · 1 comment

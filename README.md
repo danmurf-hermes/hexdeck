@@ -5,7 +5,7 @@
 
 A kanban board stored in git, built for AI agents. Tickets, columns, comments, and a progress timeline — all plain files in the repo. Agents and humans read and write the same files. No database, no server, no lock-in.
 
-**Status: V1.** The board, the CLI, the CI pipeline, and the local web view are built, and hexdeck tracks its own build in `.kanban/`. V1.1 (MCP, snapshots) comes only if V1 earns it.
+**Status: V1.** The board, the CLI, the CI pipeline, the local web view, and the MCP server are built, and hexdeck tracks its own build in `.kanban/`. V1.1 (snapshots) comes only if V1 earns it.
 
 ## Quick start
 
@@ -21,6 +21,7 @@ hexdeck log --since 2d               # what happened recently
 hexdeck pick --as your-name          # claim the next todo ticket
 hexdeck render --check               # CI: board files match the ops
 hexdeck web                          # local web view: drag, comment, commit
+hexdeck mcp                          # MCP server: agents ask the board questions
 ```
 
 Every change stages the op and the board files and prints a suggested commit message. `--commit` commits it. The board lives in `.kanban/` — read `.kanban/README.md` for the full manual.
