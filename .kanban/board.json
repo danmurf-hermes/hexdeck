@@ -179,7 +179,7 @@
       "id": "T-9",
       "title": "Phase 5 chunk 2: local web view",
       "description": "hexdeck web serves the board in the browser: drag tickets between columns, click to comment, changes panel (diff, suggested message, commit).",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T12:01:45Z",
@@ -192,5 +192,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T12:56:17Z"
+  "updated": "2026-08-21T15:23:12Z"
 }
