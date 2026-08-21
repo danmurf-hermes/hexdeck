@@ -1,7 +1,7 @@
 {
   "tools": [
     {
-      "description": "Show the whole board as markdown: every column with its tickets, claims, and comment counts.",
+      "description": "Show the whole board as markdown: every column with its tickets and claims.",
       "inputSchema": {
         "properties": {},
         "type": "object"

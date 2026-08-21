@@ -139,3 +139,24 @@ func TestRenderSVGStaleClaim(t *testing.T) {
 		t.Errorf("svg does not render the fresh claim:\n%s", svg)
 	}
 }
+
+// TestRenderSVGOmitsCommentBadge checks that cards carry no comment
+// badge — comments live on the ticket view, not on the board image.
+func TestRenderSVGOmitsCommentBadge(t *testing.T) {
+	ts := time.Date(2026, 8, 20, 14, 4, 0, 0, time.UTC)
+	state := BoardState{
+		Name:    "notes",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "with notes", Status: "todo", Comments: []Comment{
+				{TS: ts, Actor: "claude-a", Text: "on it"},
+			}},
+		},
+	}
+	svg := string(RenderSVG(state))
+	for _, banned := range []string{"comment", "claude-a", "on it", "#dafbe1", "#1a7f37"} {
+		if strings.Contains(svg, banned) {
+			t.Errorf("svg carries %q — comments live on the ticket view, not the board image:\n%s", banned, svg)
+		}
+	}
+}

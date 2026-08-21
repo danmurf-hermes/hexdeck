@@ -213,16 +213,17 @@ All are deterministic: same state, same bytes, always.
   Tickets sort by id within a column, numerically — T-2 comes before
   T-10. Archived tickets are hidden. A ticket in a column that is not
   in the config renders in a trailing section named after the column.
-  A stale claim renders `(stale claim)` after the claim. The ticket's
-  description renders under its title, indented, and its comments
-  render as nested bullets with the ts, actor, and text — so the board
-  carries the story on its own, not just the titles.
+  A stale claim renders `(stale claim)` after the claim. Each ticket
+  shows its id, title, claim, and description — nothing else.
+  Comments live on the ticket view (`hexdeck show <ticket>`, the web
+  ticket detail, the MCP ticket tool), not on the board.
 - `RenderJSON(state)` — `board.json`, the machine view. The full
   `BoardState`, indented, with a trailing newline.
 - `RenderSVG(state)` — `board.svg`, the board image for the README. A
   header with the board name and the `Updated:` line, then one column
   per configured column, side by side. Each ticket is a card: the id,
-  the title, and small badges for the claim and the comment count.
+  the title, and a badge for the claim. Comments live on the ticket
+  view, so the cards carry no comment badge.
   Archived tickets are hidden. A ticket in a column that is not in the
   config renders in a trailing column named after the column. A stale
   claim renders `(stale)` in the claim badge.
@@ -364,8 +365,10 @@ and holds the suggested commit message — edit it and press Commit.
 
 The page is a render, like `board.md` and `board.svg`: it is embedded
 in the binary as one deterministic HTML file, pinned by a golden test
-(`TestWebPageGolden`). Cards show id, title and badges; a click on the
-title expands the description and comments. The page never touches the
+(`TestWebPageGolden`). Cards show id, title and the claim badge; a
+click on the title expands the description and comments — the ticket
+detail. The board cards carry no comment count; comments belong to the
+ticket view. The page never touches the
 board files itself — it talks to the API endpoints the server exposes:
 
 - `GET /api/state` — the projection.

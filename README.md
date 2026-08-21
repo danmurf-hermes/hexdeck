@@ -52,13 +52,14 @@ Updated: 2026-08-21T10:22:30Z · 0 backlog · 1 todo · 0 done
 ## backlog
 
 ## todo
-- T-1 Fix login bug · 1 comment
-  - 2026-08-21T10:22:30Z you: reproduced it
+- T-1 Fix login bug
 
 ## done
 ```
 
-The board is the projection of the ops. Nothing is stored twice.
+The board is the projection of the ops. Each ticket shows its id,
+title, and claim; comments live on the ticket view — `hexdeck show T-1`
+prints them. Nothing is stored twice.
 
 ## The web view
 
@@ -68,8 +69,8 @@ as the CLI.
 
 ![The board in the browser](docs/web-board.png)
 
-Cards show the id, title and badges. Click a title to expand the
-description and comments:
+Cards show the id, title and the claim badge. Click a title to expand
+the description and comments — the ticket detail:
 
 ![Expanded card](docs/web-card-expanded.png)
 

@@ -51,9 +51,10 @@ Adds a comment to a ticket. Comments are part of the ticket's history.
 
 ### show
 
-Prints the board as markdown. With a ticket id, prints one ticket:
-fields, comments, and history. `--json` prints the machine view
-(`board.json`).
+Prints the board as markdown: each ticket's id, title, claim, and
+description. With a ticket id, prints one ticket — fields, comments,
+and history. Comments live on the ticket view, not the board view.
+`--json` prints the machine view (`board.json`).
 
 ### log
 
@@ -83,7 +84,9 @@ too, once it exists.
 
 Serves the local web view at `http://127.0.0.1:8080` (change the port
 with `--port`). The page shows the board; drag a ticket to move it,
-type in the box on a ticket to comment. Every change is an op, staged
+type in the box on a ticket to comment. Cards carry the id, title, and
+claim; clicking the title expands the description and comments — the
+ticket detail. Every change is an op, staged
 in git, and listed in the changes panel with the staged diff and the
 suggested commit message. Edit the message and press Commit — the
 changes land in one commit. The web view writes through the same path

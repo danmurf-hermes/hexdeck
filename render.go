@@ -18,9 +18,13 @@ import (
 //	Updated: <max op ts> · <counts per column>
 //
 //	## <column>
-//	- T-1 Title — claimed by claude-a · 2 comments
+//	- T-1 Title — claimed by claude-a
 //	  the description, indented
-//	  - 2026-08-20T14:04:00Z claude-a: on it
+//
+// The board shows each ticket's id, title, claim, and description —
+// nothing else. Comments live on the ticket view (`hexdeck show
+// <ticket>`, the web ticket detail, the MCP ticket tool), not on the
+// board.
 //
 // Tickets sort by id within a column, numerically (T-2 before T-10).
 // Archived tickets are hidden. Tickets in a column that is not in the
@@ -43,24 +47,9 @@ func RenderMarkdown(state BoardState) []byte {
 					b.WriteString(" (stale claim)")
 				}
 			}
-			if len(ticket.Comments) > 0 {
-				fmt.Fprintf(&b, " · %d comment", len(ticket.Comments))
-				if len(ticket.Comments) > 1 {
-					b.WriteString("s")
-				}
-			}
 			b.WriteString("\n")
 			if ticket.Description != "" {
 				writeIndented(&b, ticket.Description, "  ")
-			}
-			for _, comment := range ticket.Comments {
-				lines := strings.Split(comment.Text, "\n")
-				fmt.Fprintf(&b, "  - %s %s: %s\n", comment.TS.UTC().Format("2006-01-02T15:04:05Z"), comment.Actor, lines[0])
-				for _, line := range lines[1:] {
-					b.WriteString("    ")
-					b.WriteString(line)
-					b.WriteString("\n")
-				}
 			}
 		}
 	}

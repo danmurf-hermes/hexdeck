@@ -151,6 +151,10 @@ func TestE2E(t *testing.T) {
 	if !strings.Contains(out, "claimed by") && !strings.Contains(out, "todo") {
 		t.Errorf("show output missing the moved ticket:\n%s", out)
 	}
+	// T-12: comments live on the ticket view, not the board view.
+	if strings.Contains(out, "on it") || strings.Contains(out, "· 1 comment") {
+		t.Errorf("show output carries the comment — comments live on the ticket view:\n%s", out)
+	}
 
 	out, code = runHexdeck(t, dir, "show", "T-1")
 	if code != 0 {
