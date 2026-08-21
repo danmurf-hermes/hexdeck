@@ -50,7 +50,7 @@ func TestFoldGolden(t *testing.T) {
 // TestFoldDuplicateTicket checks the duplicate-ticket rule: the first
 // ticket.created wins, the second renders a warning.
 func TestFoldDuplicateTicket(t *testing.T) {
-	state, err := Project(filepath.Join("testdata", "ops", "duplicate-ticket"))
+	state, err := projectAt(filepath.Join("testdata", "ops", "duplicate-ticket"), fixtureNow)
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestFoldDuplicateTicket(t *testing.T) {
 // TestFoldMissingTicket checks the missing-ticket rule: ops for a ticket
 // that was never created are skipped with a warning, never fatal.
 func TestFoldMissingTicket(t *testing.T) {
-	state, err := Project(filepath.Join("testdata", "ops", "missing-ticket"))
+	state, err := projectAt(filepath.Join("testdata", "ops", "missing-ticket"), fixtureNow)
 	if err != nil {
 		t.Fatalf("Project: %v", err)
 	}

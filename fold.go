@@ -59,12 +59,42 @@ type BoardState struct {
 
 // Project reads the board dir and folds the ops into a BoardState.
 // The board is a pure function of the ops: same ops, same state, always.
+// Project uses the snapshot cache to skip the replay when nothing
+// changed. The cache is an accelerator, never a source of truth — the
+// renders and the CI honesty gate always fold cold.
 func Project(dir string) (BoardState, error) {
-	return projectAt(dir, time.Now())
+	return projectCached(dir, time.Now())
 }
 
-// projectAt is Project with an explicit clock. Tests use it so claim
-// staleness is deterministic.
+// projectCached is Project with an explicit clock. It tries the
+// snapshot cache first; on a miss it folds cold and writes a fresh
+// snapshot.
+func projectCached(dir string, now time.Time) (BoardState, error) {
+	digest, err := snapshotDigest(dir)
+	if err == nil {
+		if snap, ok := readSnapshot(dir); ok && snap.Digest == digest {
+			state := snap.State
+			if state.Tickets == nil {
+				state.Tickets = map[string]Ticket{}
+			}
+			markStaleClaims(&state, now)
+			return state, nil
+		}
+	}
+	state, err := projectAt(dir, now)
+	if err != nil {
+		return BoardState{}, err
+	}
+	if digest != "" {
+		writeSnapshot(dir, digest, state)
+	}
+	return state, nil
+}
+
+// projectAt is the pure fold with an explicit clock: no snapshot cache,
+// read or write. Golden tests use it so the cache never lands on
+// read-only fixture dirs, and the renders use it so committed files
+// always come from the ops alone.
 func projectAt(dir string, now time.Time) (BoardState, error) {
 	state := BoardState{
 		Columns:  append([]string(nil), DefaultColumns...),
