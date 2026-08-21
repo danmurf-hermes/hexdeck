@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -31,17 +32,38 @@ func runHexdeck(t *testing.T, dir string, args ...string) (string, int) {
 	return string(out), code
 }
 
-// buildHexdeck builds the binary once per test run.
+// buildHexdeck builds the binary once per invocation. When the
+// HEXDECK_E2E_COVER env var is set, the build is instrumented with
+// -cover for every package in the module, so the subprocess coverage
+// counts in the honest measurement: the test runner sets GOCOVERDIR,
+// the CLI inherits it, and writes its coverage there on exit.
 func buildHexdeck(t *testing.T) string {
 	t.Helper()
 	bin := filepath.Join(t.TempDir(), "hexdeck")
-	cmd := exec.Command("go", "build", "-o", bin, ".")
-	cmd.Dir = filepath.Join("..", "..", "cmd", "hexdeck")
+	args := []string{"build", "-o", bin}
+	if os.Getenv("HEXDECK_E2E_COVER") != "" {
+		args = append(args, "-cover", "-coverpkg=./...")
+	}
+	args = append(args, "./cmd/hexdeck")
+	cmd := exec.Command("go", args...)
+	cmd.Dir = packageDir() // the repo root, so -coverpkg covers the module
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		t.Fatalf("build hexdeck: %v\n%s", err, out)
 	}
 	return bin
+}
+
+// packageDir returns the repo root, from the location of this file
+// (cmd/hexdeck/main_test.go), so the build works no matter where the
+// test binary runs from.
+func packageDir() string {
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("runtime.Caller failed")
+	}
+	pkg := filepath.Dir(file)              // .../cmd/hexdeck
+	return filepath.Dir(filepath.Dir(pkg)) // .../ (the repo root)
 }
 
 // initRepo makes a temp git repo with a commit, so git commands work.
@@ -376,14 +398,85 @@ func TestE2EShowJSON(t *testing.T) {
 	}
 }
 
+// TestE2EActorFromGitConfig checks the actor fallback: with no --as
+// flag, the actor comes from git user.name.
+func TestE2EActorFromGitConfig(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	ops, _, err := hexdeck.ReadOpsDir(filepath.Join(dir, ".kanban", "ops"))
+	if err != nil {
+		t.Fatalf("ReadOpsDir: %v", err)
+	}
+	for _, op := range ops {
+		if op.Type == hexdeck.OpTicketCreated && op.Actor != "test-agent" {
+			t.Errorf("ticket.created actor = %q, want test-agent (from git user.name)", op.Actor)
+		}
+	}
+}
+
+// TestE2ELogFilters checks the log filters: --since, --actor, and the
+// invalid-duration error path.
+func TestE2ELogFilters(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	out, code := runHexdeck(t, dir, "log", "--since", "1h")
+	if code != 0 {
+		t.Fatalf("log --since: exit %d\n%s", code, out)
+	}
+	if !strings.Contains(out, "ticket.created") {
+		t.Errorf("log --since 1h missing the recent op:\n%s", out)
+	}
+	out, code = runHexdeck(t, dir, "log", "--actor", "nobody")
+	if code != 0 {
+		t.Fatalf("log --actor: exit %d\n%s", code, out)
+	}
+	if strings.Contains(out, "ticket.created") {
+		t.Errorf("log --actor nobody shows ops:\n%s", out)
+	}
+	if out, code := runHexdeck(t, dir, "log", "--since", "nope"); code == 0 {
+		t.Errorf("log --since nope succeeded, want error:\n%s", out)
+	}
+}
+
+// TestE2EShowClaimed checks show on a claimed ticket prints the claim
+// lines.
+func TestE2EShowClaimed(t *testing.T) {
+	dir := initRepo(t)
+	if out, code := runHexdeck(t, dir, "init", "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "-d", "the details", "--as", "claude-a"); code != 0 {
+		t.Fatalf("create: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "pick", "--as", "codex-1"); code != 0 {
+		t.Fatalf("pick: exit %d\n%s", code, out)
+	}
+	out, code := runHexdeck(t, dir, "show", "T-1")
+	if code != 0 {
+		t.Fatalf("show T-1: exit %d\n%s", code, out)
+	}
+	for _, want := range []string{"claimed by: codex-1", "description: the details", "status: in-progress"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("show T-1 missing %q:\n%s", want, out)
+		}
+	}
+}
+
 // TestE2ERenderCheckDemo checks that render --check passes on the
 // committed demo board in docs/demo — the same board CI checks. The
 // demo board is the repo's own dogfood: if it drifts, CI must fail.
 func TestE2ERenderCheckDemo(t *testing.T) {
-	repoRoot, err := filepath.Abs(filepath.Join("..", ".."))
-	if err != nil {
-		t.Fatalf("repo root: %v", err)
-	}
+	repoRoot := packageDir()
 	out, code := runHexdeck(t, repoRoot, "render", "--check", "--dir", "docs/demo")
 	if code != 0 {
 		t.Fatalf("render --check on docs/demo: exit %d\n%s", code, out)

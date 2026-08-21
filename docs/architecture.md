@@ -106,7 +106,7 @@ Ticket ids are `<prefix>-<number>`. The prefix comes from `config.json` (`ticket
 - **Test** — `go test -race ./...`.
 - **Build** — `go build ./...`.
 - **Render check** — builds the CLI and runs `hexdeck render --check --dir docs/demo`, then `hexdeck render --check --dir .kanban`. Both committed boards must match their ops. A hand-edited or stale projection fails the job.
-- **Coverage badge** — runs only on pushes to `main`. It runs `go test -coverprofile=coverage.out ./...`, reads the total from `go tool cover -func`, and writes `coverage.json` — a shields.io endpoint badge file. If the number changed, it commits and pushes the file. The README badge reads it through `img.shields.io/endpoint`.
+- **Coverage badge** — runs only on pushes to `main`. It runs `HEXDECK_E2E_COVER=1 go test -coverpkg=./... -count=1 -coverprofile=coverage.out ./...`, reads the total from `go tool cover -func`, and writes `coverage.json` — a shields.io endpoint badge file. If the number changed, it commits and pushes the file. The README badge reads it through `img.shields.io/endpoint`.
 
 The jobs use the Go version from `go.mod` (`go-version-file`), so the pipeline and the local toolchain never drift apart.
 
@@ -127,7 +127,7 @@ Two badges sit under the README title:
 - **CI** — a shields.io GitHub Actions badge for the `ci.yml` workflow on `main`. It shows the state of the last run. No account needed.
 - **Coverage** — a shields.io endpoint badge. It reads `coverage.json` from the repo. The coverage job in CI writes that file after every push to `main`, so the badge always shows the real number.
 
-The coverage number is the honest total across both packages. The CLI's end-to-end tests run the binary as a subprocess, so Go's coverage tool cannot see them — the number is lower than the real test coverage. The badge shows the measured value, not a prettier one.
+The coverage number is the honest total across both packages. The CLI's end-to-end tests run the binary as a subprocess. Go's default coverage tool cannot see subprocesses, so the number was a measurement artifact — it showed 44.7% while the real coverage was higher. The fix: `HEXDECK_E2E_COVER` makes the E2E test build the binary with `-cover -coverpkg=./...`, and the go command merges the subprocess coverage into the profile. The badge shows that merged value (80.7% when this was written). The contract is pinned: `TestCoverageBadgeHonest` fails if the badge drops below 80%.
 
 The contract is tested: `ci_test.go` reads the real workflow, badge file, and README, and fails if the coverage job, the badge schema, or the badge links are missing.
 
@@ -146,6 +146,7 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 4 chunk 2: the build worker runs against the board — the contribution guide (`docs/contributing.md`) replaced the worker runbook, and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
 - Phase 4 chunk 3: the acceptance read — `board.md` now renders ticket descriptions and comments, so the board carries the story on its own. The dogfood board answers "where is the project up to" without opening anything else, and `ci_test.go` pins that contract.
 - Phase 4 chunk 4: the cold-start test — a fresh agent with zero context, given only the repo, created a ticket, moved it, and commented correctly in one attempt. The report is `docs/cold-start.md`; the acceptance is pinned in `ci_test.go`.
+- T-6: honest coverage — the badge counts the CLI's end-to-end tests. `HEXDECK_E2E_COVER` builds the E2E binary with `-cover -coverpkg=./...`; the go command merges the subprocess coverage into the profile. The badge shows 80.7% instead of the 44.7% artifact, and `TestCoverageBadgeHonest` pins it at 80% or above.
 
 ## What comes next
 

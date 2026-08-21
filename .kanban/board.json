@@ -55,7 +55,7 @@
       "id": "T-3",
       "title": "Dogfood acceptance: board.md answers where the project is up to",
       "description": "A human reads board.md and can answer the question without opening anything else.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
@@ -82,7 +82,7 @@
       "id": "T-4",
       "title": "Cold-start test: a fresh agent uses the board in one attempt",
       "description": "A fresh agent with zero context, given only the repo, creates a ticket, moves it, and comments correctly within one attempt.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
@@ -114,8 +114,32 @@
       ],
       "created": "2026-08-20T22:20:19Z",
       "archived": false
+    },
+    "T-6": {
+      "id": "T-6",
+      "title": "Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest.",
+      "description": "Coverage measurement fix",
+      "status": "review",
+      "comments": [
+        {
+          "ts": "2026-08-21T09:41:13Z",
+          "actor": "danmurf-hermes",
+          "text": "Honest measurement wired: HEXDECK_E2E_COVER builds the E2E binary with -cover -coverpkg=./..., and go test merges the subprocess coverage into the profile. Total 80.7% (was 44.7% — the CLI's tests did not count). Pinned in ci_test.go: the badge must stay at 80% or above."
+        }
+      ],
+      "created": "2026-08-21T08:55:47Z",
+      "archived": false
+    },
+    "T-7": {
+      "id": "T-7",
+      "title": "Docs overhaul: current-state documentation, not build history. Diataxis framework (the standard): tutorials, how-to guides, reference, explanation. Strip process narrative (chunk logs, phase history, cold-start report) from README and docs; document what the app IS: how it is built, how to use, how it works. README: quick start, real example, key concepts. Mermaid diagrams with correct fences so GitHub renders them. Simplified technical English throughout. T-7",
+      "description": "Docs reassessment",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-21T09:03:57Z",
+      "archived": false
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T08:24:10Z"
+  "updated": "2026-08-21T09:41:13Z"
 }

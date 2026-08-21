@@ -61,7 +61,9 @@ Code: `.github/workflows/ci.yml`.
 
 Two shields.io badges under the README title. The CI badge shows the state of the `ci.yml` workflow on `main`. The coverage badge is an endpoint badge over `coverage.json` — the coverage job in CI writes that file after every push to `main`, so the badge always shows the real measured number. The contract is tested: `ci_test.go` reads the real workflow, badge file, and README, and fails if any part is missing.
 
-Code: `coverage.json`, `ci_test.go`.
+The coverage number is honest: the CLI's end-to-end tests run the binary as a subprocess, which Go's default coverage tool cannot see. `HEXDECK_E2E_COVER` makes the E2E test build the binary with `-cover -coverpkg=./...`; the go command merges the subprocess coverage into the profile. `TestCoverageBadgeHonest` pins the badge at 80% or above — a future change that makes the measurement dishonest again fails the test.
+
+Code: `coverage.json`, `ci_test.go`, `cmd/hexdeck/main_test.go`.
 
 ## The demo board
 

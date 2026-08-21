@@ -74,7 +74,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: go test with coverage
-        run: go test -coverprofile=coverage.out ./...
+        run: HEXDECK_E2E_COVER=1 go test -coverpkg=./... -count=1 -coverprofile=coverage.out ./...
       - name: write coverage.json
         run: |
           total=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | tr -d '%')
