@@ -39,6 +39,11 @@
           "ts": "2026-08-21T06:53:49Z",
           "actor": "hermes",
           "text": "The worker runbook (docs/worker.md) is written — the protocol this worker follows. Ops and docs land in the same commit."
+        },
+        {
+          "ts": "2026-08-21T07:15:42Z",
+          "actor": "danmurf-hermes",
+          "text": "docs/contributing.md replaced the worker runbook — the project prescribes no workflow; anyone (human or agent) reads the board, does a ticket, updates the board as they go."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
@@ -98,5 +103,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T06:53:49Z"
+  "updated": "2026-08-21T07:15:42Z"
 }
