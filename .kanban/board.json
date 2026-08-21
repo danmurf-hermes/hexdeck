@@ -28,7 +28,7 @@
       "id": "T-2",
       "title": "Run the build worker against the board",
       "description": "The worker creates, moves, and comments on tickets as it works. Code and ops land in the same commit.",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-20T22:20:22Z",
