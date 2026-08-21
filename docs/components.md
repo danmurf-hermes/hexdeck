@@ -73,8 +73,8 @@ The repo's own board in `.kanban/`. It is the build tracker: the phase table fro
 
 The merge rule applies here: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.
 
-## The worker runbook
+## The contribution guide
 
-`docs/worker.md` documents the build worker: the background agent that builds hexdeck, one chunk per run. It describes the loop (sync, close merged tickets, check feedback, one chunk, docs, PR, stop), how the worker uses the board (`pick` before a chunk, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), and the hard rules (no private details, no force-push, no self-merge, one chunk per run).
+`docs/contributing.md` is the contribution guide — for humans and agents alike. It describes how the board is used (`pick` a ticket, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), the quality bar, and the rules (no force-push, no op edits, ask on the PR when ambiguous).
 
-The runbook is part of the dogfood: a fresh agent with zero context reads it once and can run a chunk against the board. The cold-start test (T-4) is the proof.
+The guide is part of the dogfood: a fresh agent with zero context reads it once and can run a chunk against the board. The cold-start test (T-4) is the proof.

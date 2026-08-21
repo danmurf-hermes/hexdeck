@@ -1,0 +1,1 @@
+{"schema":1,"opId":"d6da2347-fc81-4c9f-a4cc-f10dae461a82","seq":30,"ts":"2026-08-21T07:15:42Z","actor":"danmurf-hermes","type":"comment.added","ticket":"T-2","payload":{"text":"docs/contributing.md replaced the worker runbook — the project prescribes no workflow; anyone (human or agent) reads the board, does a ticket, updates the board as they go."}}

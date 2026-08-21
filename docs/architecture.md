@@ -118,7 +118,7 @@ The repo's own board lives in `.kanban/`. It is the build tracker: the phase tab
 
 The merge rule applies to the dogfood board: a ticket in `review` is done when its PR merges. The worker moves it to `done` as an ops-only commit straight to main — no second PR.
 
-The worker's protocol is documented in `docs/worker.md` — the runbook. It describes the loop (sync, close merged tickets, check feedback, one chunk, docs, PR, stop), how the board is used (`pick` before a chunk, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), and the hard rules. A fresh agent with zero context reads the runbook once and can run a chunk.
+`docs/contributing.md` is the contribution guide — for humans and agents alike. It describes how the board is used (`pick` a ticket, `comment` at milestones, `move <ticket> review` at the end, the same-commit rule), the quality bar, and the rules. A fresh agent with zero context reads it once and can run a chunk.
 
 ## The README badges
 
@@ -143,7 +143,7 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 3.5 chunk 2: `render --check` in CI — a fourth job checks the committed demo board against its ops. `RenderCheck` now covers `board.svg` too, and `--dir` accepts a bare board dir.
 - Phase 3.5 chunk 3: README badges — a CI badge (shields.io GitHub Actions) and a coverage badge (shields.io endpoint over `coverage.json`, written by a fifth CI job on pushes to `main`). The contract is tested in `ci_test.go`.
 - Phase 4 chunk 1: the dogfood board — `hexdeck init` in the hexdeck repo, the phase table migrated into tickets, and a second render check in CI for `.kanban/`. The board is the build tracker now.
-- Phase 4 chunk 2: the build worker runs against the board — the protocol is documented in `docs/worker.md` (the runbook), and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
+- Phase 4 chunk 2: the build worker runs against the board — the contribution guide (`docs/contributing.md`) replaced the worker runbook, and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
 
 ## What comes next
 
