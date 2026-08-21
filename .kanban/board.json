@@ -125,6 +125,11 @@
           "ts": "2026-08-20T22:20:22Z",
           "actor": "hermes",
           "text": "Deferred until V1 earns it."
+        },
+        {
+          "ts": "2026-08-21T15:26:43Z",
+          "actor": "danmurf-hermes",
+          "text": "Snapshot checkpointing done — snapshot.json is a disposable local replay cache (digest-validated, gitignored, never committed; renders and CI always fold cold). TDD: snapshot_test.go pinned reuse, invalidation (new op, config change), corrupt-cache fallback, RenderCheck cold-fold honesty, gitignore. Closes the last V1.1 item — the board is now all done."
         }
       ],
       "created": "2026-08-20T22:20:19Z",
@@ -192,5 +197,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T15:23:12Z"
+  "updated": "2026-08-21T15:26:43Z"
 }

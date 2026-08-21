@@ -1,10 +1,11 @@
 # Board — hexdeck
-Updated: 2026-08-21T15:23:12Z · 1 todo · 0 in-progress · 0 review · 9 done
+Updated: 2026-08-21T15:26:43Z · 1 todo · 0 in-progress · 0 review · 9 done
 
 ## todo
-- T-5 V1.1: web view, MCP, snapshots · 1 comment
+- T-5 V1.1: web view, MCP, snapshots · 2 comments
   Only if V1 earns it. board.svg CI render + README embed, local web view, MCP server, snapshot checkpointing.
   - 2026-08-20T22:20:22Z hermes: Deferred until V1 earns it.
+  - 2026-08-21T15:26:43Z danmurf-hermes: Snapshot checkpointing done — snapshot.json is a disposable local replay cache (digest-validated, gitignored, never committed; renders and CI always fold cold). TDD: snapshot_test.go pinned reuse, invalidation (new op, config change), corrupt-cache fallback, RenderCheck cold-fold honesty, gitignore. Closes the last V1.1 item — the board is now all done.
 
 ## in-progress
 
