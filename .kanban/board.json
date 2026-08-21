@@ -74,6 +74,15 @@
       "created": "2026-08-21T17:59:57Z",
       "archived": false
     },
+    "T-15": {
+      "id": "T-15",
+      "title": "Makefile: common dev tasks in one place",
+      "description": "A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-21T18:13:05Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
@@ -243,5 +252,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T18:05:18Z"
+  "updated": "2026-08-21T18:13:05Z"
 }

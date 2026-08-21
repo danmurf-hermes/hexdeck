@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T18:05:18Z · 3 backlog · 1 todo · 10 done
+Updated: 2026-08-21T18:13:05Z · 4 backlog · 1 todo · 10 done
 
 ## backlog
 - T-12 Comments live on the ticket, not the board view
@@ -8,6 +8,8 @@ Updated: 2026-08-21T18:05:18Z · 3 backlog · 1 todo · 10 done
   Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.
 - T-14 Labels on tickets
   A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
+- T-15 Makefile: common dev tasks in one place
+  A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## todo
 - T-11 Default columns: backlog → todo → done
