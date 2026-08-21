@@ -56,6 +56,15 @@
       "created": "2026-08-21T17:59:56Z",
       "archived": false
     },
+    "T-13": {
+      "id": "T-13",
+      "title": "Ticket relationships: blocks, related-to",
+      "description": "Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.",
+      "status": "backlog",
+      "comments": [],
+      "created": "2026-08-21T17:59:56Z",
+      "archived": false
+    },
     "T-2": {
       "id": "T-2",
       "title": "Run the build worker against the board",
