@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-21T21:37:54Z · 1 backlog · 2 todo · 12 done
+Updated: 2026-08-21T21:38:12Z · 1 backlog · 2 todo · 12 done
 
 ## backlog
 - T-15 Makefile: common dev tasks in one place
@@ -8,7 +8,7 @@ Updated: 2026-08-21T21:37:54Z · 1 backlog · 2 todo · 12 done
 ## todo
 - T-13 Ticket relationships: blocks, related-to — claimed by danmurf-hermes
   Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.
-- T-14 Labels on tickets
+- T-14 Labels on tickets — claimed by danmurf-hermes
   A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
 
 ## done
