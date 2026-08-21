@@ -119,7 +119,7 @@
       "id": "T-6",
       "title": "Coverage badge is dishonest — the E2E tests run the CLI as a subprocess, which go tool cover cannot see (measures 0%). Library alone is 85.6%; the badge's 44.7% is a measurement artifact. Fix: build the CLI with -cover, run E2E with GOCOVERDIR, merge via go tool covdata so subprocess coverage counts. Target ≥80% honest.",
       "description": "Coverage measurement fix",
-      "status": "review",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T09:41:13Z",
@@ -147,5 +147,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-21T10:28:42Z"
+  "updated": "2026-08-21T10:31:01Z"
 }
