@@ -143,9 +143,10 @@ The contract is tested: `ci_test.go` reads the real workflow, badge file, and RE
 - Phase 3.5 chunk 2: `render --check` in CI — a fourth job checks the committed demo board against its ops. `RenderCheck` now covers `board.svg` too, and `--dir` accepts a bare board dir.
 - Phase 3.5 chunk 3: README badges — a CI badge (shields.io GitHub Actions) and a coverage badge (shields.io endpoint over `coverage.json`, written by a fifth CI job on pushes to `main`). The contract is tested in `ci_test.go`.
 - Phase 4 chunk 1: the dogfood board — `hexdeck init` in the hexdeck repo, the phase table migrated into tickets, and a second render check in CI for `.kanban/`. The board is the build tracker now.
+- Phase 4 chunk 2: the build worker runs against the board — the protocol is documented in `docs/worker.md` (the runbook), and the worker exercised it: pick, comment, move to review, ops and docs in the same commit.
 
 ## What comes next
 
-- Phase 4 chunk 2: the build worker runs against the board — it creates, moves, and comments on tickets as it works.
+- Phase 4 chunk 3: the dogfood acceptance — a human reads `board.md` and can answer "where is the project up to" without opening anything else.
 
 Full plan: `docs/BUILD-SPEC.md`. Build tracker: `PROGRESS.md`.
