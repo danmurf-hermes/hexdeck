@@ -1,45 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1196" height="336" viewBox="0 0 1196 336">
-<rect width="1196" height="336" fill="#f6f8fa"/>
-<rect width="1196" height="64" fill="#24292f"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1196" height="340" viewBox="0 0 1196 340">
+<defs><filter id="card-shadow" x="-10%" y="-10%" width="130%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#101828" flood-opacity="0.08"/></filter></defs>
+<rect width="1196" height="340" fill="#f7f8f8"/>
+<rect width="1196" height="64" fill="#5e6ad2"/>
 <text x="16" y="26" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff">my-project</text>
-<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">Updated: 2026-08-20T14:23:00Z · 1 todo · 3 in-progress · 1 review · 2 done · 1 backlog</text>
-<rect x="16" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
-<text x="26" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">todo</text>
-<rect x="16" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="26" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-9</text>
-<text x="26" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Write the primer</text>
-<rect x="252" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
-<text x="262" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">in-progress</text>
-<rect x="252" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="262" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-1</text>
-<text x="262" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Fix login race condition</text>
-<rect x="262" y="158" width="126" height="14" rx="7" fill="#ddf4ff"/>
-<text x="268" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0969da">claimed by claude-a</text>
-<rect x="252" y="184" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="262" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-2</text>
-<text x="262" y="222" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add sound settings</text>
-<rect x="262" y="230" width="120" height="14" rx="7" fill="#ddf4ff"/>
-<text x="268" y="240" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0969da">claimed by codex-1</text>
-<rect x="252" y="256" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="262" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-10</text>
-<text x="262" y="294" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Ten before two</text>
-<rect x="488" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
-<text x="498" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">review</text>
-<rect x="488" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="498" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-3</text>
-<text x="498" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Refactor level loader</text>
-<rect x="724" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
-<text x="734" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">done</text>
-<rect x="724" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="734" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-4</text>
-<text x="734" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Juice pass 2</text>
-<rect x="724" y="184" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="734" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-5</text>
-<text x="734" y="222" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Munitions (4 types)</text>
-<rect x="960" y="80" width="220" height="240" rx="6" fill="#eaeef2"/>
-<text x="970" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">backlog</text>
-<rect x="960" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="970" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-8</text>
-<text x="970" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Backlog item</text>
+<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#7170ff">Updated: 2026-08-20T14:23:00Z · 1 todo · 3 in-progress · 1 review · 2 done · 1 backlog</text>
+<rect x="16" y="84" width="220" height="240" rx="6" fill="#eef0f3"/>
+<text x="26" y="104" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6b7280">todo</text>
+<rect x="16" y="116" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="26" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-9</text>
+<text x="26" y="154" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Write the primer</text>
+<rect x="252" y="84" width="220" height="240" rx="6" fill="#eef0f3"/>
+<text x="262" y="104" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6b7280">in-progress</text>
+<rect x="252" y="116" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="262" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-1</text>
+<text x="262" y="154" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Fix login race condition</text>
+<rect x="262" y="162" width="126" height="14" rx="7" fill="#eef0fe"/>
+<text x="268" y="172" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5e6ad2">claimed by claude-a</text>
+<rect x="252" y="188" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="262" y="210" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-2</text>
+<text x="262" y="226" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add sound settings</text>
+<rect x="262" y="234" width="120" height="14" rx="7" fill="#eef0fe"/>
+<text x="268" y="244" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#5e6ad2">claimed by codex-1</text>
+<rect x="252" y="260" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="262" y="282" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-10</text>
+<text x="262" y="298" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Ten before two</text>
+<rect x="488" y="84" width="220" height="240" rx="6" fill="#eef0f3"/>
+<text x="498" y="104" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6b7280">review</text>
+<rect x="488" y="116" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="498" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-3</text>
+<text x="498" y="154" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Refactor level loader</text>
+<rect x="724" y="84" width="220" height="240" rx="6" fill="#eef0f3"/>
+<text x="734" y="104" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6b7280">done</text>
+<rect x="724" y="116" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="734" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-4</text>
+<text x="734" y="154" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Juice pass 2</text>
+<rect x="724" y="188" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="734" y="210" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-5</text>
+<text x="734" y="226" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Munitions (4 types)</text>
+<rect x="960" y="84" width="220" height="240" rx="6" fill="#eef0f3"/>
+<text x="970" y="104" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#6b7280">backlog</text>
+<rect x="960" y="116" width="220" height="64" rx="10" fill="#ffffff" stroke="#e6e8eb" filter="url(#card-shadow)"/>
+<text x="970" y="138" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-8</text>
+<text x="970" y="154" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Backlog item</text>
 </svg>

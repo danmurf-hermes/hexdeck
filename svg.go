@@ -32,19 +32,19 @@ type svgPalette struct {
 
 var svgLayoutDefault = svgLayout{
 	headerH: 64, columnGap: 16,
-	columnW: 220, columnTop: 80,
+	columnW: 220, columnTop: 84,
 	cardH: 64, cardGap: 8,
-	cardPad: 10, cardRadius: 6,
+	cardPad: 10, cardRadius: 10,
 	titleH: 20, margin: 16,
 }
 
 var svgPaletteDefault = svgPalette{
-	bg: "#f6f8fa", header: "#24292f", headerText: "#ffffff",
-	column: "#eaeef2", columnText: "#57606a",
-	card: "#ffffff", cardBorder: "#d0d7de",
-	cardText: "#1f2328", cardMeta: "#57606a",
-	claim: "#ddf4ff", claimText: "#0969da",
-	label: "#fff8c5", labelText: "#7d4e00",
+	bg: "#f7f8f8", header: "#5e6ad2", headerText: "#ffffff",
+	column: "#eef0f3", columnText: "#6b7280",
+	card: "#ffffff", cardBorder: "#e6e8eb",
+	cardText: "#1f2328", cardMeta: "#6b7280",
+	claim: "#eef0fe", claimText: "#5e6ad2",
+	label: "#fff8e5", labelText: "#92600a",
 }
 
 // RenderSVG renders the board as board.svg — the board image for the
@@ -75,12 +75,15 @@ func RenderSVG(state BoardState) []byte {
 	b.WriteString(`<?xml version="1.0" encoding="UTF-8"?>` + "\n")
 	fmt.Fprintf(&b, `<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">`+"\n",
 		width, height, width, height)
+	b.WriteString(`<defs><filter id="card-shadow" x="-10%" y="-10%" width="130%" height="140%">` +
+		`<feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#101828" flood-opacity="0.08"/>` +
+		`</filter></defs>` + "\n")
 	fmt.Fprintf(&b, `<rect width="%d" height="%d" fill="%s"/>`+"\n", width, height, palette.bg)
 	fmt.Fprintf(&b, `<rect width="%d" height="%d" fill="%s"/>`+"\n", width, layout.headerH, palette.header)
 	fmt.Fprintf(&b, `<text x="16" y="26" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="%s">%s</text>`+"\n",
 		palette.headerText, html.EscapeString(state.Name))
 	fmt.Fprintf(&b, `<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="%s">%s</text>`+"\n",
-		palette.headerText, html.EscapeString(svgUpdatedLine(state)))
+		"#7170ff", html.EscapeString(svgUpdatedLine(state)))
 
 	for i, column := range columns {
 		x := layout.margin + i*(layout.columnW+layout.columnGap)
@@ -124,7 +127,7 @@ func svgCardsArea(state BoardState, columns []string, layout svgLayout) int {
 
 // writeSVGCard writes one ticket card at (x, y).
 func writeSVGCard(b *bytes.Buffer, layout svgLayout, palette svgPalette, x, y int, ticket Ticket) {
-	fmt.Fprintf(b, `<rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s" stroke="%s"/>`+"\n",
+	fmt.Fprintf(b, `<rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s" stroke="%s" filter="url(#card-shadow)"/>`+"\n",
 		x, y, layout.columnW, layout.cardH, layout.cardRadius, palette.card, palette.cardBorder)
 	fmt.Fprintf(b, `<text x="%d" y="%d" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="%s">%s</text>`+"\n",
 		x+layout.cardPad, y+layout.cardPad+12, palette.cardText, html.EscapeString(ticket.ID))
