@@ -100,7 +100,56 @@ func TestWebPageGolden(t *testing.T) {
 	}
 }
 
-// TestWebPageNoCommentBadge checks the T-12 contract: the board cards
+// TestWebPageSaaSDesign locks the T-16 design language: the page is a
+// modern SaaS board, Linear-flavoured — a light canvas, the brand
+// indigo accent, cards with soft shadows and hover-lift transitions,
+// column count pills, empty-column placeholders, and dragover
+// feedback. The prototype palette and the underline-link title are
+// gone.
+func TestWebPageSaaSDesign(t *testing.T) {
+	page := string(webPage)
+	for _, want := range []string{
+		"--bg:#f7f8f8",     // light canvas
+		"--accent:#5e6ad2", // brand indigo (Linear)
+		".card:hover",      // hover state
+		"box-shadow",       // card shadows
+		"transition:",      // smooth hover transitions
+		`class="count"`,    // column count pill
+		"cards.empty",      // empty-column placeholder
+		"No tickets",       // the placeholder hint
+		"dragover",         // drag feedback on columns
+	} {
+		if !strings.Contains(page, want) {
+			t.Errorf("web page lost the SaaS design token %q — the polish did not land", want)
+		}
+	}
+	for _, banned := range []string{
+		"#24292f", // dark header bar
+		"#eaeef2", // grey column
+		"#0969da", // github blue accent
+		"#ddf4ff", // claim tint
+		"text-decoration:underline dotted",
+	} {
+		if strings.Contains(page, banned) {
+			t.Errorf("web page still carries the prototype token %q — the design language did not change", banned)
+		}
+	}
+}
+
+// TestWebPageNoExternalAssets pins the no-network property: the page is
+// one self-contained HTML file — no stylesheets, no font CDNs, no
+// remote fetch. The polish must never cost the offline single-file
+// property.
+func TestWebPageNoExternalAssets(t *testing.T) {
+	page := string(webPage)
+	for _, banned := range []string{"http://", "https://", "@import", "<link", "url("} {
+		if strings.Contains(page, banned) {
+			t.Errorf("web page references an external asset (%q) — the page must stay self-contained", banned)
+		}
+	}
+}
+
+// TestWebPageNoCommentBadge checks the T-12 contract: the board pages
 // carry no comment-count badge — comments live on the ticket view, and
 // the page still renders them in the expanded card detail.
 func TestWebPageNoCommentBadge(t *testing.T) {

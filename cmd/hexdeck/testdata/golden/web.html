@@ -5,42 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hexdeck</title>
 <style>
-:root { --bg:#f6f8fa; --card:#ffffff; --border:#d0d7de; --text:#1f2328; --meta:#57606a; --accent:#0969da; }
+:root { --bg:#f7f8f8; --card:#ffffff; --border:#e6e8eb; --text:#1f2328; --meta:#6b7280; --accent:#5e6ad2; --accent-soft:#eef0fe; --amber:#fff8e5; --amber-text:#92600a; }
 * { box-sizing: border-box; }
 body { margin:0; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text); }
-header { display:flex; align-items:baseline; gap:12px; padding:12px 16px; background:#24292f; color:#fff; }
-header h1 { font-size:16px; margin:0; }
-header .updated { font-size:12px; color:#8b949e; }
-main { display:flex; gap:16px; padding:16px; align-items:flex-start; }
-#board { display:flex; gap:16px; flex:1; overflow-x:auto; }
-.column { width:240px; flex:0 0 auto; background:#eaeef2; border-radius:6px; padding:8px; }
-.column h2 { font-size:13px; margin:0 0 8px; color:var(--meta); text-transform:none; }
+header { display:flex; align-items:baseline; gap:12px; padding:14px 24px; background:var(--card); border-bottom:1px solid var(--border); }
+header h1 { font-size:16px; margin:0; letter-spacing:-.01em; }
+header h1::before { content:""; display:inline-block; width:10px; height:10px; border-radius:3px; background:var(--accent); margin-right:8px; }
+header .updated { font-size:12px; color:var(--meta); }
+main { display:flex; gap:16px; padding:20px 24px; align-items:flex-start; }
+#board { display:flex; gap:16px; flex:1; overflow-x:auto; align-items:flex-start; }
+.column { width:248px; flex:0 0 auto; background:#eef0f3; border-radius:12px; padding:10px; transition:background .15s ease, outline .15s ease; }
+.column.dragover { background:var(--accent-soft); outline:2px dashed var(--accent); outline-offset:-2px; }
+.column h2 { font-size:13px; margin:0 0 10px; color:var(--meta); display:flex; align-items:center; gap:6px; }
+.column h2 .count { font-size:11px; font-weight:600; background:var(--card); border:1px solid var(--border); color:var(--meta); border-radius:10px; padding:0 7px; }
 .cards { min-height:40px; }
-.card { background:var(--card); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:8px; cursor:grab; }
+.cards.empty { border:1px dashed var(--border); border-radius:10px; color:var(--meta); font-size:12px; padding:18px 8px; text-align:center; min-height:64px; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:grab; box-shadow:0 1px 2px rgba(16,24,40,.05); transition:box-shadow .15s ease, transform .15s ease, border-color .15s ease; }
+.card:hover { border-color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 12px rgba(16,24,40,.08); }
 .card.dragging { opacity:.5; }
-.card .id { font-size:11px; color:var(--accent); font-weight:600; }
-.card .title { margin:2px 0; cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
+.card .id { font-size:11px; color:var(--accent); font-weight:600; letter-spacing:.02em; }
+.card .title { margin:2px 0; cursor:pointer; }
 .card .desc { color:var(--meta); font-size:12px; margin:2px 0; }
 .card .meta { font-size:11px; color:var(--meta); }
 .card .badge { display:inline-block; border-radius:10px; padding:0 6px; margin-right:4px; font-size:11px; }
-.badge.claim { background:#ddf4ff; color:#0969da; }
-.badge.label { background:#fff8c5; color:#7d4e00; }
+.badge.claim { background:var(--accent-soft); color:var(--accent); }
+.badge.label { background:var(--amber); color:var(--amber-text); }
 .card .comments { margin-top:6px; border-top:1px solid var(--border); padding-top:4px; }
 .card .comment { font-size:12px; color:var(--meta); margin:2px 0; }
 .card .comment .who { color:var(--text); font-weight:600; }
 .card .comment .when { font-size:11px; }
 .card .comment-form { display:flex; gap:4px; margin-top:6px; }
-.card .comment-form input { flex:1; border:1px solid var(--border); border-radius:4px; padding:4px; font:inherit; }
-.card .comment-form button { border:1px solid var(--border); background:#f6f8fa; border-radius:4px; padding:4px 8px; cursor:pointer; }
-#panel { width:320px; flex:0 0 auto; background:var(--card); border:1px solid var(--border); border-radius:6px; padding:12px; position:sticky; top:16px; }
+.card .comment-form input { flex:1; border:1px solid var(--border); border-radius:8px; padding:4px 8px; font:inherit; }
+.card .comment-form button { border:1px solid var(--border); background:var(--card); border-radius:8px; padding:4px 10px; cursor:pointer; }
+.card .comment-form button:hover { border-color:var(--accent); color:var(--accent); }
+#panel { width:320px; flex:0 0 auto; background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; position:sticky; top:20px; box-shadow:0 1px 2px rgba(16,24,40,.05); }
 #panel h2 { font-size:14px; margin:0 0 8px; }
 #changes { list-style:none; margin:0 0 8px; padding:0; }
 #changes li { font-size:12px; padding:4px 0; border-bottom:1px solid var(--border); }
 #changes li .msg { color:var(--meta); }
-#diff { font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; background:#f6f8fa; border:1px solid var(--border); border-radius:4px; padding:8px; max-height:200px; overflow:auto; white-space:pre; }
-#message { width:100%; margin:8px 0; border:1px solid var(--border); border-radius:4px; padding:6px; font:inherit; }
-#commit { width:100%; background:#1f883d; color:#fff; border:0; border-radius:6px; padding:8px; font:inherit; cursor:pointer; }
-#commit:disabled { background:#94d3a2; cursor:default; }
+#diff { font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px; max-height:200px; overflow:auto; white-space:pre; }
+#message { width:100%; margin:8px 0; border:1px solid var(--border); border-radius:8px; padding:6px; font:inherit; }
+#commit { width:100%; background:var(--accent); color:#fff; border:0; border-radius:8px; padding:8px; font:inherit; cursor:pointer; transition:background .15s ease; }
+#commit:hover { background:#4c58c4; }
+#commit:disabled { background:#b9bfea; cursor:default; }
 #status { font-size:12px; color:var(--meta); margin-top:8px; min-height:16px; }
 </style>
 </head>
@@ -107,8 +114,11 @@ function render() {
   $("board").innerHTML = b.columns.map(col => {
     const tickets = Object.values(b.tickets || {}).filter(t => !t.archived && t.status === col)
       .sort((a, b2) => a.id.localeCompare(b2.id, undefined, {numeric:true}));
-    return '<div class="column" data-column="' + esc(col) + '"><h2>' + esc(col) + '</h2>' +
-      '<div class="cards">' + tickets.map(cardHTML).join("") + '</div></div>';
+    const cards = tickets.map(cardHTML).join("");
+    const body = cards || '<div class="cards empty">No tickets</div>';
+    return '<div class="column" data-column="' + esc(col) + '"><h2>' + esc(col) +
+      '<span class="count">' + tickets.length + '</span></h2>' +
+      '<div class="cards' + (cards ? "" : " empty") + '">' + cards + '</div></div>';
   }).join("");
   $("changes").innerHTML = (state.changes || []).map(c =>
     '<li>' + esc(c.ticket) + ' ' + esc(c.type) + '<div class="msg">' + esc(c.message) + '</div></li>'
@@ -145,12 +155,19 @@ document.addEventListener("dragend", e => {
 });
 document.addEventListener("dragover", e => {
   const col = e.target.closest(".column");
-  if (col) e.preventDefault();
+  if (!col) return;
+  e.preventDefault();
+  col.classList.add("dragover");
+});
+document.addEventListener("dragleave", e => {
+  const col = e.target.closest(".column");
+  if (col && !col.contains(e.relatedTarget)) col.classList.remove("dragover");
 });
 document.addEventListener("drop", e => {
   const col = e.target.closest(".column");
   if (!col) return;
   e.preventDefault();
+  col.classList.remove("dragover");
   const id = e.dataTransfer.getData("text/plain");
   if (id) act("/api/move", {ticket:id, to:col.dataset.column});
 });

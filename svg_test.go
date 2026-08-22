@@ -158,8 +158,42 @@ func TestRenderSVGLabelBadges(t *testing.T) {
 		}
 	}
 	// One pill rect per label — the label fill appears exactly twice.
-	if n := strings.Count(svg, "#fff8c5"); n != 2 {
+	if n := strings.Count(svg, "#fff8e5"); n != 2 {
 		t.Errorf("label pill fill appears %d times, want 2 (one per label):\n%s", n, svg)
+	}
+}
+
+// TestRenderSVGSaaSDesign locks the T-16 design language on the board
+// image: the same Linear-flavoured light theme as the web view — light
+// canvas, brand indigo accent, soft-shadowed cards, and rounded
+// corners. The prototype palette (dark header bar, github blues, grey
+// columns) is gone. One palette, two surfaces.
+func TestRenderSVGSaaSDesign(t *testing.T) {
+	state, err := projectAt(filepath.Join("testdata", "ops", "render"), fixtureNow)
+	if err != nil {
+		t.Fatalf("projectAt: %v", err)
+	}
+	svg := string(RenderSVG(state))
+	for _, want := range []string{
+		"#f7f8f8", // page canvas
+		"#5e6ad2", // brand indigo — header and accent
+		"#7170ff", // accent hover
+		"filter=", // drop shadows on cards
+	} {
+		if !strings.Contains(svg, want) {
+			t.Errorf("svg lost the SaaS design token %q — the polish did not land", want)
+		}
+	}
+	for _, banned := range []string{
+		"#24292f", // dark header bar
+		"#eaeef2", // grey column
+		"#0969da", // github blue
+		"#ddf4ff", // claim tint
+		"#d0d7de", // github border
+	} {
+		if strings.Contains(svg, banned) {
+			t.Errorf("svg still carries the prototype token %q — the design language did not change", banned)
+		}
 	}
 }
 
