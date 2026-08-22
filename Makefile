@@ -39,9 +39,9 @@ render-check:
 	cmp $(DEMO)/board.svg board.svg
 	git diff --exit-code -- $(DEMO)/board.svg
 
-## coverage: run tests and print total coverage
+## coverage: run tests and print total coverage (honest: includes subprocess E2E)
 coverage:
-	go test -coverpkg=./... -count=1 -coverprofile=coverage.out ./...
+	HEXDECK_E2E_COVER=1 go test -coverpkg=./... -count=1 -coverprofile=coverage.out ./...
 	go tool cover -func=coverage.out | tail -1
 
 ## clean: remove build artifacts
