@@ -1,11 +1,11 @@
 # Board — hexdeck
-Updated: 2026-08-22T07:07:24Z · 1 backlog · 0 todo · 14 done
+Updated: 2026-08-22T07:07:30Z · 0 backlog · 1 todo · 14 done
 
 ## backlog
-- T-15 Makefile: common dev tasks in one place
-  A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## todo
+- T-15 Makefile: common dev tasks in one place
+  A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## done
 - T-1 Migrate the build tracker into the board
