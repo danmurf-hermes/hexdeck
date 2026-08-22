@@ -1,7 +1,9 @@
 # Board — hexdeck
-Updated: 2026-08-22T07:48:44Z · 0 backlog · 1 todo · 15 done
+Updated: 2026-08-22T07:50:33Z · 1 backlog · 1 todo · 15 done
 
 ## backlog
+- T-17 Web board cards should not carry the comment form — comments belong to the ticket detail view
+  T-12 moved comments off the board into the ticket view, but the web page still renders an Add-comment form on every collapsed board card. The form (and the comments) belong inside the expanded card detail — the web ticket view. Collapsed cards: id, title, badges only.
 
 ## todo
 - T-16 Visual polish: web board and board.svg look like a modern SaaS tool
