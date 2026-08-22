@@ -1,13 +1,11 @@
 # Board — hexdeck
-Updated: 2026-08-22T06:35:25Z · 1 backlog · 1 todo · 13 done
+Updated: 2026-08-22T07:06:55Z · 1 backlog · 0 todo · 14 done
 
 ## backlog
 - T-15 Makefile: common dev tasks in one place
   A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 
 ## todo
-- T-14 Labels on tickets — claimed by danmurf-hermes
-  A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
 
 ## done
 - T-1 Migrate the build tracker into the board
@@ -36,3 +34,5 @@ Updated: 2026-08-22T06:35:25Z · 1 backlog · 1 todo · 13 done
   The board shows ticket id and title only. Comments are for the ticket view: hexdeck show <ticket> and the web ticket detail. Remove comment counts and inline comments from board.md; keep them in ticketText.
 - T-13 Ticket relationships: blocks, related-to — claimed by danmurf-hermes
   Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.
+- T-14 Labels on tickets — claimed by danmurf-hermes
+  A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
