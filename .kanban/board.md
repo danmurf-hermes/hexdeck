@@ -1,7 +1,9 @@
 # Board — hexdeck
-Updated: 2026-08-22T09:32:34Z · 0 backlog · 2 todo · 15 done
+Updated: 2026-08-22T10:24:47Z · 1 backlog · 2 todo · 15 done
 
 ## backlog
+- T-18 Web ticket modal: opening a ticket shows the full ticket view (Jira/Linear style)
+  Clicking a ticket card opens a full-size modal: description, status, labels, links, claim, comments, and a comment form. Ticket history too. Collapsed board cards stay id/title/badges only.
 
 ## todo
 - T-16 Visual polish: web board and board.svg look like a modern SaaS tool
