@@ -1,7 +1,9 @@
 # Board — hexdeck
-Updated: 2026-08-22T07:07:30Z · 0 backlog · 1 todo · 14 done
+Updated: 2026-08-22T07:07:30Z · 1 backlog · 1 todo · 14 done
 
 ## backlog
+- T-16 Visual polish: web board and board.svg look like a modern SaaS tool
+  Make the web view (hexdeck web) genuinely beautiful — modern SaaS board aesthetics: clean typography, spaced cards, smooth hover/transition states, badge styling, empty-column placeholders, subtle shadows. Then apply the same design language to the generated board.svg (docs/board.svg + repo board.svg): same visual language so both surfaces look like the same product. Reference the popular-web-designs skill for proven SaaS patterns. Benchmark: Linear or Vercel-level polish.
 
 ## todo
 - T-15 Makefile: common dev tasks in one place
