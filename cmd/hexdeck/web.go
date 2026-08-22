@@ -229,7 +229,7 @@ type webServer struct {
 func newWebServer(boardDir, actor string, noPull bool) *webServer {
 	return &webServer{
 		boardDir: boardDir,
-		repoDir:  filepath.Dir(boardDir),
+		repoDir:  findRepoRoot(boardDir),
 		actor:    actor,
 		noPull:   noPull,
 	}
