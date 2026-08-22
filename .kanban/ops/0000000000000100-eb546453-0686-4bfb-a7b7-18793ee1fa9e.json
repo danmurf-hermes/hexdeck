@@ -1,0 +1,1 @@
+{"schema":1,"opId":"eb546453-0686-4bfb-a7b7-18793ee1fa9e","seq":100,"ts":"2026-08-22T07:50:35Z","actor":"danmurf-hermes","type":"comment.added","ticket":"T-17","payload":{"text":"Working on it: move the comment form inside the .details block so it only shows when the ticket is expanded."}}

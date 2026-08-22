@@ -120,6 +120,34 @@ func TestWebPageNoCommentBadge(t *testing.T) {
 	}
 }
 
+// TestWebCommentFormOnlyOnDetail checks the T-12 contract for the web
+// page: the Add-comment form is part of the ticket detail (the expanded
+// card), never the collapsed board card. The form markup must sit
+// inside the .details block — before its closing '</div>' — so a
+// collapsed card is id, title and badges only.
+func TestWebCommentFormOnlyOnDetail(t *testing.T) {
+	page := string(webPage)
+	details := strings.Index(page, `class="details"`)
+	form := strings.Index(page, `class="comment-form"`)
+	// The details block is unconditional and closes with '</div>' + —
+	// the last such close in the card template (the id and title divs
+	// close with '</div>' + earlier; the card itself closes with
+	// '</div>'; and the inner ternaries with '</div>' : "").
+	closeDetail := strings.LastIndex(page, `'</div>' +`)
+	if details == -1 {
+		t.Fatalf("web page lost the ticket detail block")
+	}
+	if form == -1 {
+		t.Fatalf("web page lost the comment form")
+	}
+	if closeDetail == -1 {
+		t.Fatalf("web page lost the details block closing")
+	}
+	if !(details < form && form < closeDetail) {
+		t.Errorf("comment form is outside the details block — collapsed board cards still offer comments")
+	}
+}
+
 // TestWebState checks GET /api/state returns the projection.
 func TestWebState(t *testing.T) {
 	s, _ := newWebTestServer(t)

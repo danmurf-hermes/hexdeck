@@ -1,13 +1,13 @@
 # Board — hexdeck
-Updated: 2026-08-22T07:41:16Z · 0 backlog · 2 todo · 14 done
+Updated: 2026-08-22T07:57:35Z · 0 backlog · 2 todo · 15 done
 
 ## backlog
 
 ## todo
-- T-15 Makefile: common dev tasks in one place
-  A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.
 - T-16 Visual polish: web board and board.svg look like a modern SaaS tool
   Make the web view (hexdeck web) genuinely beautiful — modern SaaS board aesthetics: clean typography, spaced cards, smooth hover/transition states, badge styling, empty-column placeholders, subtle shadows. Then apply the same design language to the generated board.svg (docs/board.svg + repo board.svg): same visual language so both surfaces look like the same product. Reference the popular-web-designs skill for proven SaaS patterns. Benchmark: Linear or Vercel-level polish.
+- T-17 Web board cards should not carry the comment form — comments belong to the ticket detail view
+  T-12 moved comments off the board into the ticket view, but the web page still renders an Add-comment form on every collapsed board card. The form (and the comments) belong inside the expanded card detail — the web ticket view. Collapsed cards: id, title, badges only.
 
 ## done
 - T-1 Migrate the build tracker into the board
@@ -38,3 +38,5 @@ Updated: 2026-08-22T07:41:16Z · 0 backlog · 2 todo · 14 done
   Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.
 - T-14 Labels on tickets — claimed by danmurf-hermes
   A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.
+- T-15 Makefile: common dev tasks in one place
+  A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.

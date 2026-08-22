@@ -105,13 +105,13 @@ function cardHTML(t) {
     '<div class="id">' + esc(t.id) + '</div>' +
     '<div class="title">' + esc(t.title) + '</div>' +
     (badges.length ? '<div class="meta">' + badges.join("") + '</div>' : "") +
-    (t.description || links.length || comments ? '<div class="details" hidden>' +
+    '<div class="details" hidden>' +
       (t.description ? '<div class="desc">' + esc(t.description) + '</div>' : "") +
       (links.length ? '<div class="links">' + links.join("") + '</div>' : "") +
       (comments ? '<div class="comments">' + comments + '</div>' : "") +
-      '</div>' : "") +
-    '<form class="comment-form" data-id="' + esc(t.id) + '">' +
-    '<input placeholder="comment…"><button>Add</button></form>' +
+      '<form class="comment-form" data-id="' + esc(t.id) + '">' +
+      '<input placeholder="comment…"><button>Add</button></form>' +
+      '</div>' +
     '</div>';
 }
 document.addEventListener("click", e => {
