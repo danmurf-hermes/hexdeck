@@ -93,7 +93,7 @@
       "id": "T-14",
       "title": "Labels on tickets",
       "description": "A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.",
-      "status": "todo",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-22T06:35:25Z",
@@ -110,9 +110,24 @@
       "id": "T-15",
       "title": "Makefile: common dev tasks in one place",
       "description": "A Makefile with the standard targets: build, test, vet, fmt, render-check, coverage. So contributors (human or agent) run one command instead of remembering the go incantations. Keep it short — it should not wrap everything, just the common paths.",
-      "status": "backlog",
-      "comments": [],
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-22T07:07:24Z",
+          "actor": "danmurf-hermes",
+          "text": "Scope update (Dan, 22 Aug 2026): the Makefile must be a REAL Makefile — `make build` actually compiles and produces the binary (go build -o), not just echo the go incantation. Wire the standard targets: build, test, vet, fmt, render-check, coverage, clean. ALSO in scope: refresh the README web-view screenshots (docs/web-*.png) and the demo board example (docs/demo) so they show the current board — labels, links, three-column flow. Screenshots were re-shot 21 Aug but T-13/T-14 features landed since, so they are stale again."
+        }
+      ],
       "created": "2026-08-21T18:13:05Z",
+      "archived": false
+    },
+    "T-16": {
+      "id": "T-16",
+      "title": "Visual polish: web board and board.svg look like a modern SaaS tool",
+      "description": "Make the web view (hexdeck web) genuinely beautiful — modern SaaS board aesthetics: clean typography, spaced cards, smooth hover/transition states, badge styling, empty-column placeholders, subtle shadows. Then apply the same design language to the generated board.svg (docs/board.svg + repo board.svg): same visual language so both surfaces look like the same product. Reference the popular-web-designs skill for proven SaaS patterns. Benchmark: Linear or Vercel-level polish.",
+      "status": "todo",
+      "comments": [],
+      "created": "2026-08-22T07:07:30Z",
       "archived": false
     },
     "T-2": {
@@ -284,5 +299,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-22T06:35:25Z"
+  "updated": "2026-08-22T07:07:33Z"
 }
