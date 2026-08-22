@@ -152,7 +152,32 @@ created: 2026-08-21T10:23:52Z
 `pick` skips a blocked ticket, so it takes T-1, not T-3. Remove the
 link with `hexdeck link T-2 blocks T-3 --remove`.
 
-## 10. Release the claim
+## 10. Label tickets
+
+```
+$ hexdeck label T-1 feature
+suggested commit: board: label T-1 feature
+
+$ hexdeck label T-1 docs
+suggested commit: board: label T-1 docs
+```
+
+A label is one word, at most 20 characters — `feature`, `bug`, `docs`,
+`infra`. The board card shows the labels in brackets after the title:
+
+```
+$ hexdeck show
+## backlog
+- T-1 Fix login bug [feature, docs]
+  The login form rejects valid passwords.
+- T-2 Add dark mode — claimed by you
+- T-3 Ship the redesign
+```
+
+The ticket view shows them on a `labels:` line. Remove a label with
+`hexdeck label T-1 feature --remove`.
+
+## 11. Release the claim
 
 ```
 $ hexdeck release T-2 --as you
@@ -162,7 +187,7 @@ suggested commit: board: release T-2
 A claim is a cooperative lock, not a security boundary. Release it when
 you stop working on the ticket.
 
-## 11. Read the log
+## 12. Read the log
 
 ```
 $ hexdeck log
@@ -176,13 +201,15 @@ $ hexdeck log
 2026-08-21T10:23:52Z you ticket.created T-3
 2026-08-21T10:23:52Z you ticket.moved T-3
 2026-08-21T10:23:52Z you ticket.link.added T-3
+2026-08-21T10:23:52Z you ticket.label.added T-1
+2026-08-21T10:23:52Z you ticket.label.added T-1
 2026-08-21T10:23:52Z you ticket.released T-2
 ```
 
 The log is the whole history, newest first. Filter it with `--since`,
 `--ticket`, and `--actor`.
 
-## 12. Check the board is honest
+## 13. Check the board is honest
 
 ```
 $ hexdeck render --check

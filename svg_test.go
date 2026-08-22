@@ -140,6 +140,29 @@ func TestRenderSVGStaleClaim(t *testing.T) {
 	}
 }
 
+// TestRenderSVGLabelBadges checks that the card renders a badge per
+// label, and that a ticket without labels renders no label badge.
+func TestRenderSVGLabelBadges(t *testing.T) {
+	state := BoardState{
+		Name:    "labels",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "with labels", Status: "todo", Labels: []string{"feature", "docs"}, Comments: []Comment{}},
+			"T-2": {ID: "T-2", Title: "plain", Status: "todo", Comments: []Comment{}},
+		},
+	}
+	svg := string(RenderSVG(state))
+	for _, want := range []string{">feature<", ">docs<"} {
+		if !strings.Contains(svg, want) {
+			t.Errorf("svg missing the %s label badge:\n%s", want, svg)
+		}
+	}
+	// One pill rect per label — the label fill appears exactly twice.
+	if n := strings.Count(svg, "#fff8c5"); n != 2 {
+		t.Errorf("label pill fill appears %d times, want 2 (one per label):\n%s", n, svg)
+	}
+}
+
 // TestRenderSVGOmitsCommentBadge checks that cards carry no comment
 // badge — comments live on the ticket view, not on the board image.
 func TestRenderSVGOmitsCommentBadge(t *testing.T) {

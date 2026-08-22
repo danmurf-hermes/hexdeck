@@ -76,7 +76,7 @@
       "id": "T-13",
       "title": "Ticket relationships: blocks, related-to",
       "description": "Agents need to know what can run in parallel and what must come first. Add the ability to link tickets: A blocks B, A relates to B. Rendered on the ticket view and considered by pick.",
-      "status": "todo",
+      "status": "done",
       "comments": [
         {
           "ts": "2026-08-21T21:19:28Z",
@@ -93,9 +93,17 @@
       "id": "T-14",
       "title": "Labels on tickets",
       "description": "A small set of labels per ticket (e.g. feature, bug, docs, infra), shown on the board card and filterable, to help agents scan and group work.",
-      "status": "backlog",
-      "comments": [],
+      "status": "todo",
+      "comments": [
+        {
+          "ts": "2026-08-22T06:35:25Z",
+          "actor": "danmurf-hermes",
+          "text": "Working on it: labels on tickets. New ops ticket.label.added/removed — one word, at most 20 chars (feature, bug, docs, infra). The board card shows labels in brackets after the title, the ticket view shows a labels: line, the SVG and web cards get a badge per label. TDD: op parse + fold tests first, then the CLI, then the renders and docs."
+        }
+      ],
       "created": "2026-08-21T17:59:57Z",
+      "claimedBy": "danmurf-hermes",
+      "claimedAt": "2026-08-22T06:35:21Z",
       "archived": false
     },
     "T-15": {
@@ -276,5 +284,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-21T21:19:28Z"
+  "updated": "2026-08-22T06:35:25Z"
 }

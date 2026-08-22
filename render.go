@@ -21,10 +21,10 @@ import (
 //	- T-1 Title — claimed by claude-a
 //	  the description, indented
 //
-// The board shows each ticket's id, title, claim, and description —
-// nothing else. Comments live on the ticket view (`hexdeck show
-// <ticket>`, the web ticket detail, the MCP ticket tool), not on the
-// board.
+// The board shows each ticket's id, title, labels, claim, and
+// description — nothing else. Comments live on the ticket view (`hexdeck
+// show <ticket>`, the web ticket detail, the MCP ticket tool), not on
+// the board.
 //
 // Tickets sort by id within a column, numerically (T-2 before T-10).
 // Archived tickets are hidden. Tickets in a column that is not in the
@@ -41,6 +41,9 @@ func RenderMarkdown(state BoardState) []byte {
 				continue
 			}
 			fmt.Fprintf(&b, "- %s %s", ticket.ID, ticket.Title)
+			if len(ticket.Labels) > 0 {
+				fmt.Fprintf(&b, " [%s]", strings.Join(ticket.Labels, ", "))
+			}
 			if ticket.ClaimedBy != "" {
 				fmt.Fprintf(&b, " — claimed by %s", ticket.ClaimedBy)
 				if ticket.ClaimStale {

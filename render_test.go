@@ -127,6 +127,27 @@ func TestRenderMarkdownDescription(t *testing.T) {
 	}
 }
 
+// TestRenderMarkdownLabels checks that the board card shows the labels
+// in brackets after the title, and that a ticket without labels renders
+// no label text.
+func TestRenderMarkdownLabels(t *testing.T) {
+	state := BoardState{
+		Name:    "labels",
+		Columns: []string{"todo"},
+		Tickets: map[string]Ticket{
+			"T-1": {ID: "T-1", Title: "with labels", Status: "todo", Labels: []string{"feature", "docs"}, Comments: []Comment{}},
+			"T-2": {ID: "T-2", Title: "plain", Status: "todo", Comments: []Comment{}},
+		},
+	}
+	md := string(RenderMarkdown(state))
+	if !strings.Contains(md, "- T-1 with labels [feature, docs]\n") {
+		t.Errorf("board.md does not render the labels on the card:\n%s", md)
+	}
+	if strings.Contains(md, "T-2 plain [") {
+		t.Errorf("board.md renders labels for a ticket without them:\n%s", md)
+	}
+}
+
 // TestRenderMarkdownOmitsComments checks that the board view carries
 // only the ticket line: no comment counts, no inline comments, no
 // comment actors. Comments belong to the ticket view (hexdeck show

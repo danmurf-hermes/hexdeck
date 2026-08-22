@@ -11,14 +11,17 @@ import (
 )
 
 // ticketText renders one ticket the way `hexdeck show <ticket>` and
-// the MCP board_show_ticket tool both print it: fields, links, comments,
-// and history. One formatter, two consumers.
+// the MCP board_show_ticket tool both print it: fields, links, labels,
+// comments, and history. One formatter, two consumers.
 func ticketText(ticket hexdeck.Ticket) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "%s %s\n", ticket.ID, ticket.Title)
 	fmt.Fprintf(&b, "status: %s\n", ticket.Status)
 	if ticket.Description != "" {
 		fmt.Fprintf(&b, "description: %s\n", ticket.Description)
+	}
+	if len(ticket.Labels) > 0 {
+		fmt.Fprintf(&b, "labels: %s\n", strings.Join(ticket.Labels, ", "))
 	}
 	if len(ticket.Blocks) > 0 {
 		fmt.Fprintf(&b, "blocks: %s\n", strings.Join(ticket.Blocks, ", "))

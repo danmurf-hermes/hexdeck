@@ -94,6 +94,32 @@ hexdeck link T-1 blocks T-3 --remove
 
 A ticket can never link to itself.
 
+## Label tickets
+
+```
+hexdeck label T-1 feature
+hexdeck label T-1 docs
+```
+
+A label is one word, at most 20 characters — the small set the board
+is meant to hold: `feature`, `bug`, `docs`, `infra`. The board card
+shows the labels in brackets after the title, so a scan of the board
+groups the work:
+
+```
+$ hexdeck show
+## todo
+- T-1 Fix the auth service [feature]
+- T-2 Write the tutorial [docs]
+```
+
+The ticket view shows them on a `labels:` line. Remove a label with
+`--remove`:
+
+```
+hexdeck label T-1 feature --remove
+```
+
 ## Render the board image
 
 ```

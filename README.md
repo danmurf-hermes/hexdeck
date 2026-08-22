@@ -17,6 +17,7 @@ hexdeck create "Fix login bug"       # new ticket (starts in backlog)
 hexdeck move T-1 todo                # ready to pick up
 hexdeck comment T-1 "on it"          # add a comment
 hexdeck link T-1 blocks T-2          # T-2 waits until T-1 is done
+hexdeck label T-1 feature            # label it: feature, bug, docs, infra
 hexdeck show                         # print the board
 hexdeck log --since 2d               # what happened recently
 hexdeck pick --as your-name          # claim the next todo ticket
@@ -99,6 +100,7 @@ These words describe the board as a project management tool. This is the languag
 - **Release** — clear a claim. The ticket goes back to being unclaimed.
 - **Comment** — a note on a ticket. Comments are part of the ticket's history.
 - **Link** — a connection between two tickets. `blocks` says one must be done before the other; `related` says they are connected but neither comes first. `pick` skips a ticket whose blocker is not done.
+- **Label** — a word on a ticket (`feature`, `bug`, `docs`, `infra`). The board card shows labels in brackets after the title, so a scan of the board groups the work.
 - **Log** — the timeline of everything that happened on the board, newest first.
 
 These words describe the inner workings of the app. You do not need them to use the board, but they explain why it behaves the way it does.
