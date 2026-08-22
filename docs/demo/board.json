@@ -90,7 +90,13 @@
       "title": "Ship v1.0",
       "description": "",
       "status": "todo",
-      "comments": [],
+      "comments": [
+        {
+          "ts": "2026-08-22T07:56:37Z",
+          "actor": "shot-taker",
+          "text": "verified via browser"
+        }
+      ],
       "created": "2026-08-20T20:56:16Z",
       "claimedBy": "carol",
       "claimedAt": "2026-08-20T20:56:21Z",
@@ -113,5 +119,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-22T07:29:07Z"
+  "updated": "2026-08-22T07:57:07Z"
 }
