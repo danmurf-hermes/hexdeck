@@ -140,7 +140,13 @@
       "title": "Web board cards should not carry the comment form — comments belong to the ticket detail view",
       "description": "T-12 moved comments off the board into the ticket view, but the web page still renders an Add-comment form on every collapsed board card. The form (and the comments) belong inside the expanded card detail — the web ticket view. Collapsed cards: id, title, badges only.",
       "status": "todo",
-      "comments": [],
+      "comments": [
+        {
+          "ts": "2026-08-22T07:50:35Z",
+          "actor": "danmurf-hermes",
+          "text": "Working on it: move the comment form inside the .details block so it only shows when the ticket is expanded."
+        }
+      ],
       "created": "2026-08-22T07:50:33Z",
       "archived": false
     },
@@ -313,5 +319,5 @@
     "ticket.moved for T-9: from \"todo\" does not match current status \"backlog\"",
     "ticket.moved for T-10: from \"todo\" does not match current status \"backlog\""
   ],
-  "updated": "2026-08-22T07:50:34Z"
+  "updated": "2026-08-22T07:50:35Z"
 }
