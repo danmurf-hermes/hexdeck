@@ -1,5 +1,5 @@
 # Board — hexdeck
-Updated: 2026-08-22T07:06:55Z · 1 backlog · 0 todo · 14 done
+Updated: 2026-08-22T07:07:24Z · 1 backlog · 0 todo · 14 done
 
 ## backlog
 - T-15 Makefile: common dev tasks in one place
