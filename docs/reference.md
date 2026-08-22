@@ -11,6 +11,7 @@ hexdeck create "Title" [-d "description"] [--as <actor>] [--commit]
 hexdeck move <ticket> <column> [--as <actor>] [--commit]
 hexdeck comment <ticket> "text" [--as <actor>] [--commit]
 hexdeck link <ticket> <kind> <target> [--remove] [--as <actor>] [--commit]
+hexdeck label <ticket> <label> [--remove] [--as <actor>] [--commit]
 hexdeck show [<ticket>] [--json]
 hexdeck log [--since 2d] [--ticket <ticket>] [--actor <actor>]
 hexdeck pick --as <actor> [--commit]
@@ -61,12 +62,21 @@ removes the link. A ticket can never link to itself.
 Links are considered by `pick`: a `todo` ticket whose blocker is not in
 `done` is not pickable.
 
+### label
+
+Adds a label to a ticket. A label is one word, at most 20 characters —
+the small set the board is meant to hold: `feature`, `bug`, `docs`,
+`infra`. The board card shows the labels in brackets after the title;
+the ticket view shows them on a `labels:` line. `--remove` removes the
+label. A duplicate label is skipped with a warning.
+
 ### show
 
-Prints the board as markdown: each ticket's id, title, claim, and
-description. With a ticket id, prints one ticket — fields, links,
-comments, and history. Comments and links live on the ticket view, not
-the board view. `--json` prints the machine view (`board.json`).
+Prints the board as markdown: each ticket's id, title, labels, claim,
+and description. With a ticket id, prints one ticket — fields, links,
+labels, comments, and history. Comments and links live on the ticket
+view, not the board view. `--json` prints the machine view
+(`board.json`).
 
 ### log
 
@@ -139,6 +149,8 @@ One op = one JSON file in `.kanban/ops/`. Fields: `schema`, `opId`,
 | `ticket.archived` | `{}` | Hides the ticket from the default board. |
 | `ticket.link.added` | `{"kind": "blocks"\|"related", "to": "..."}` | Links the ticket to another. |
 | `ticket.link.removed` | `{"kind": "blocks"\|"related", "to": "..."}` | Removes a link. |
+| `ticket.label.added` | `{"label": "..."}` | Adds a label. |
+| `ticket.label.removed` | `{"label": "..."}` | Removes a label. |
 
 Ops sort by `(seq, opId)` — never by file order, never by timestamp.
 Two writers can produce the same seq; the opId breaks the tie.
@@ -205,6 +217,9 @@ be regenerated from the ops alone.
   on B) in sync — a link is one op, and removing it clears both sides.
 - A link to a ticket that does not exist is skipped with a warning —
   a stale link never blocks a pick.
+- A label is one word, at most 20 characters. A duplicate label is
+  skipped with a warning; removing a label that is not there is
+  skipped with a warning too.
 - Ops about a ticket that was never created are skipped with a
   warning. The board must always build.
 - Unparseable op files are skipped with a warning, never fatal. An op

@@ -107,7 +107,7 @@ One op = one JSON file. Fields: `schema`, `opId`, `seq`, `ts`,
 Op types: `board.created`, `ticket.created`, `ticket.moved`,
 `ticket.updated`, `comment.added`, `ticket.claimed`,
 `ticket.released`, `ticket.archived`, `ticket.link.added`,
-`ticket.link.removed`.
+`ticket.link.removed`, `ticket.label.added`, `ticket.label.removed`.
 
 ## Deterministic ordering
 
@@ -161,6 +161,10 @@ The fold rules:
   link is skipped with a warning.
 - `ticket.link.removed` removes a link from both sides. Removing a
   link that is not there is skipped with a warning.
+- `ticket.label.added` appends a label to the ticket's `Labels` list.
+  A duplicate label is skipped with a warning.
+- `ticket.label.removed` removes a label. Removing a label that is
+  not there is skipped with a warning.
 
 Ops about a ticket that was never created are skipped with a warning —
 visible, never fatal. The board must always build. A link whose target
@@ -171,7 +175,8 @@ stall a pick.
 the claim timeout, the tickets (a map by id), the warnings, and the
 newest op ts (`Updated`). `Ticket` holds the id, title, description,
 status, comments, created time, claim (who and when), the stale flag,
-the archived flag, and the links (`Blocks`, `BlockedBy`, `Related`).
+the archived flag, the links (`Blocks`, `BlockedBy`, `Related`), and
+the labels (`Labels`).
 
 ## The life of a ticket
 
@@ -230,6 +235,23 @@ skipped with a warning, never fatal. A link to a missing ticket does
 not block a pick — the fold drops it, so a stale reference can never
 stall the board.
 
+## Labels
+
+A ticket can carry labels — one word each, at most 20 characters. The
+intended set is small (`feature`, `bug`, `docs`, `infra`), so agents
+can scan and group the work. A label is one op:
+
+- `ticket.label.added` appends the label to the ticket's `Labels`
+  list, in the order the ops were added.
+- `ticket.label.removed` removes it.
+
+A duplicate label and a removal of a label that is not there are
+skipped with a warning, never fatal. Labels render on the board card
+(`[feature, docs]` after the title in `board.md`, a badge per label in
+`board.svg` and the web view) and on the ticket view (`labels:` line
+in `hexdeck show <ticket>` and the MCP ticket tool). They are part of
+`board.json` like every other field.
+
 ## The renders
 
 Three functions turn a `BoardState` into the committed board files.
@@ -242,7 +264,7 @@ All are deterministic: same state, same bytes, always.
   T-10. Archived tickets are hidden. A ticket in a column that is not
   in the config renders in a trailing section named after the column.
   A stale claim renders `(stale claim)` after the claim. Each ticket
-  shows its id, title, claim, and description — nothing else.
+  shows its id, title, labels, claim, and description — nothing else.
   Comments live on the ticket view (`hexdeck show <ticket>`, the web
   ticket detail, the MCP ticket tool), not on the board.
 - `RenderJSON(state)` — `board.json`, the machine view. The full
@@ -250,8 +272,8 @@ All are deterministic: same state, same bytes, always.
 - `RenderSVG(state)` — `board.svg`, the board image for the README. A
   header with the board name and the `Updated:` line, then one column
   per configured column, side by side. Each ticket is a card: the id,
-  the title, and a badge for the claim. Comments live on the ticket
-  view, so the cards carry no comment badge.
+  the title, a badge per label, and a badge for the claim. Comments
+  live on the ticket view, so the cards carry no comment badge.
   Archived tickets are hidden. A ticket in a column that is not in the
   config renders in a trailing column named after the column. A stale
   claim renders `(stale)` in the claim badge.

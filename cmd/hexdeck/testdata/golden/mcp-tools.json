@@ -9,7 +9,7 @@
       "name": "board_show"
     },
     {
-      "description": "Show one ticket: its title, description, status, links, claim, and comments.",
+      "description": "Show one ticket: its title, description, status, links, labels, claim, and comments.",
       "inputSchema": {
         "properties": {
           "ticket": {

@@ -57,6 +57,14 @@ func TestParseOpValid(t *testing.T) {
 			name: "ticket.link.removed",
 			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":10,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"blocks","to":"T-3"}}`,
 		},
+		{
+			name: "ticket.label.added",
+			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":11,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.label.added","ticket":"T-1","payload":{"label":"feature"}}`,
+		},
+		{
+			name: "ticket.label.removed",
+			json: `{"schema":1,"opId":"3f2a9c1b-7d4e-4a11-9b2c-0e5f6a7b8c9d","seq":12,"ts":"2026-08-20T14:03:00Z","actor":"claude-a","type":"ticket.label.removed","ticket":"T-1","payload":{"label":"feature"}}`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -195,7 +203,37 @@ func TestParseOpInvalid(t *testing.T) {
 		{
 			name:    "link removed bad kind",
 			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.link.removed","ticket":"T-1","payload":{"kind":"nope","to":"T-2"}}`,
-			wantErr: "kind must be \"blocks\" or \"related\"",
+			wantErr: `kind must be "blocks" or "related"`,
+		},
+		{
+			name:    "non-empty archived payload",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.archived","ticket":"T-1","payload":{"foo":1}}`,
+			wantErr: "archived payload must be empty",
+		},
+		{
+			name:    "label missing",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.label.added","ticket":"T-1","payload":{}}`,
+			wantErr: "label is required",
+		},
+		{
+			name:    "label empty",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.label.added","ticket":"T-1","payload":{"label":""}}`,
+			wantErr: "label is required",
+		},
+		{
+			name:    "label with spaces",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.label.added","ticket":"T-1","payload":{"label":"two words"}}`,
+			wantErr: "label must be one word",
+		},
+		{
+			name:    "label with comma",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.label.added","ticket":"T-1","payload":{"label":"a,b"}}`,
+			wantErr: "label must be one word",
+		},
+		{
+			name:    "label too long",
+			json:    `{"schema":1,"opId":"a","seq":1,"ts":"2026-08-20T14:03:00Z","actor":"x","type":"ticket.label.added","ticket":"T-1","payload":{"label":"this-label-is-way-too-long-to-be-useful"}}`,
+			wantErr: "label must be at most 20 characters",
 		},
 	}
 	for _, tt := range tests {

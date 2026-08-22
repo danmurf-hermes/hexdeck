@@ -18,35 +18,39 @@ import (
 // SchemaVersion is the op schema version this library reads and writes.
 const SchemaVersion = 1
 
-// OpType is one of the eight op types in the V1 spec.
+// OpType is one of the op types in the V1 spec.
 type OpType string
 
 // The complete list of V1 op types.
 const (
-	OpBoardCreated      OpType = "board.created"
-	OpTicketCreated     OpType = "ticket.created"
-	OpTicketMoved       OpType = "ticket.moved"
-	OpTicketUpdated     OpType = "ticket.updated"
-	OpCommentAdded      OpType = "comment.added"
-	OpTicketClaimed     OpType = "ticket.claimed"
-	OpTicketReleased    OpType = "ticket.released"
-	OpTicketArchived    OpType = "ticket.archived"
-	OpTicketLinkAdded   OpType = "ticket.link.added"
-	OpTicketLinkRemoved OpType = "ticket.link.removed"
+	OpBoardCreated       OpType = "board.created"
+	OpTicketCreated      OpType = "ticket.created"
+	OpTicketMoved        OpType = "ticket.moved"
+	OpTicketUpdated      OpType = "ticket.updated"
+	OpCommentAdded       OpType = "comment.added"
+	OpTicketClaimed      OpType = "ticket.claimed"
+	OpTicketReleased     OpType = "ticket.released"
+	OpTicketArchived     OpType = "ticket.archived"
+	OpTicketLinkAdded    OpType = "ticket.link.added"
+	OpTicketLinkRemoved  OpType = "ticket.link.removed"
+	OpTicketLabelAdded   OpType = "ticket.label.added"
+	OpTicketLabelRemoved OpType = "ticket.label.removed"
 )
 
 // validOpTypes is the set of op types the parser accepts.
 var validOpTypes = map[OpType]bool{
-	OpBoardCreated:      true,
-	OpTicketCreated:     true,
-	OpTicketMoved:       true,
-	OpTicketUpdated:     true,
-	OpCommentAdded:      true,
-	OpTicketClaimed:     true,
-	OpTicketReleased:    true,
-	OpTicketArchived:    true,
-	OpTicketLinkAdded:   true,
-	OpTicketLinkRemoved: true,
+	OpBoardCreated:       true,
+	OpTicketCreated:      true,
+	OpTicketMoved:        true,
+	OpTicketUpdated:      true,
+	OpCommentAdded:       true,
+	OpTicketClaimed:      true,
+	OpTicketReleased:     true,
+	OpTicketArchived:     true,
+	OpTicketLinkAdded:    true,
+	OpTicketLinkRemoved:  true,
+	OpTicketLabelAdded:   true,
+	OpTicketLabelRemoved: true,
 }
 
 // Op is one event from the board log. One op = one JSON file in ops/.
@@ -181,6 +185,12 @@ type (
 		Kind string `json:"kind"`
 		To   string `json:"to"`
 	}
+
+	// TicketLabelPayload is the payload for ticket.label.added and
+	// ticket.label.removed. Label is one word, at most 20 characters.
+	TicketLabelPayload struct {
+		Label string `json:"label"`
+	}
 )
 
 // LinkKindBlocks is the blocks link kind: the ticket must come before
@@ -190,6 +200,11 @@ const LinkKindBlocks = "blocks"
 // LinkKindRelated is the related link kind: the tickets are connected
 // but neither must come first.
 const LinkKindRelated = "related"
+
+// MaxLabelLen is the longest label a ticket can carry. Labels are one
+// word, so 20 characters is plenty for the small set the board is
+// meant to hold (feature, bug, docs, infra).
+const MaxLabelLen = 20
 
 // validatePayload checks the payload shape for the op type.
 func validatePayload(op Op) error {
@@ -251,6 +266,18 @@ func validatePayload(op Op) error {
 				err = fmt.Errorf("to is required")
 			} else if p.To == op.Ticket {
 				err = fmt.Errorf("cannot link a ticket to itself")
+			}
+		}
+	case OpTicketLabelAdded, OpTicketLabelRemoved:
+		var p TicketLabelPayload
+		err = decodePayload(op.Payload, &p)
+		if err == nil {
+			if p.Label == "" {
+				err = fmt.Errorf("label is required")
+			} else if strings.ContainsAny(p.Label, " 	,") {
+				err = fmt.Errorf("label must be one word")
+			} else if len(p.Label) > MaxLabelLen {
+				err = fmt.Errorf("label must be at most %d characters", MaxLabelLen)
 			}
 		}
 	}
