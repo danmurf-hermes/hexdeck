@@ -1,0 +1,1 @@
+{"schema":1,"opId":"5ffe6a09-160e-4af2-8d93-c818426a9d24","seq":25,"ts":"2026-08-22T07:29:07Z","actor":"shot-taker","type":"ticket.moved","ticket":"T-6","payload":{"from":"backlog","to":"todo"}}

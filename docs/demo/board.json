@@ -103,7 +103,7 @@
       "id": "T-6",
       "title": "Add keyboard shortcuts",
       "description": "",
-      "status": "backlog",
+      "status": "todo",
       "comments": [],
       "created": "2026-08-20T20:56:16Z",
       "archived": false,
@@ -113,5 +113,5 @@
     }
   },
   "warnings": [],
-  "updated": "2026-08-22T07:27:26Z"
+  "updated": "2026-08-22T07:29:07Z"
 }

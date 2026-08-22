@@ -1,33 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="724" height="408" viewBox="0 0 724 408">
-<rect width="724" height="408" fill="#f6f8fa"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="724" height="480" viewBox="0 0 724 480">
+<rect width="724" height="480" fill="#f6f8fa"/>
 <rect width="724" height="64" fill="#24292f"/>
 <text x="16" y="26" font-family="Helvetica, Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff">hd-demo</text>
-<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">Updated: 2026-08-20T20:56:21Z · 1 backlog · 4 todo · 1 done</text>
-<rect x="16" y="80" width="220" height="312" rx="6" fill="#eaeef2"/>
+<text x="16" y="46" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#ffffff">Updated: 2026-08-22T07:29:07Z · 0 backlog · 5 todo · 1 done</text>
+<rect x="16" y="80" width="220" height="384" rx="6" fill="#eaeef2"/>
 <text x="26" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">backlog</text>
-<rect x="16" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
-<text x="26" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-6</text>
-<text x="26" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add keyboard shortcuts</text>
-<rect x="252" y="80" width="220" height="312" rx="6" fill="#eaeef2"/>
+<rect x="252" y="80" width="220" height="384" rx="6" fill="#eaeef2"/>
 <text x="262" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">todo</text>
 <rect x="252" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-1</text>
 <text x="262" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add login with Google</text>
+<rect x="262" y="158" width="54" height="14" rx="7" fill="#fff8c5"/>
+<text x="268" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">feature</text>
 <rect x="252" y="184" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="206" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-3</text>
 <text x="262" y="222" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Fix checkout race condition</text>
+<rect x="262" y="230" width="30" height="14" rx="7" fill="#fff8c5"/>
+<text x="268" y="240" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">bug</text>
 <rect x="252" y="256" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="278" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-4</text>
 <text x="262" y="294" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add search to docs site</text>
+<rect x="262" y="302" width="36" height="14" rx="7" fill="#fff8c5"/>
+<text x="268" y="312" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">docs</text>
 <rect x="252" y="328" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="262" y="350" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-5</text>
 <text x="262" y="366" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Ship v1.0</text>
-<rect x="262" y="374" width="108" height="14" rx="7" fill="#ddf4ff"/>
-<text x="268" y="384" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0969da">claimed by carol</text>
-<rect x="488" y="80" width="220" height="312" rx="6" fill="#eaeef2"/>
+<rect x="262" y="374" width="54" height="14" rx="7" fill="#fff8c5"/>
+<text x="268" y="384" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">feature</text>
+<rect x="322" y="374" width="108" height="14" rx="7" fill="#ddf4ff"/>
+<text x="328" y="384" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#0969da">claimed by carol</text>
+<rect x="252" y="400" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+<text x="262" y="422" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-6</text>
+<text x="262" y="438" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Add keyboard shortcuts</text>
+<rect x="262" y="446" width="42" height="14" rx="7" fill="#fff8c5"/>
+<text x="268" y="456" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">infra</text>
+<rect x="488" y="80" width="220" height="384" rx="6" fill="#eaeef2"/>
 <text x="498" y="100" font-family="Helvetica, Arial, sans-serif" font-size="14" font-weight="bold" fill="#57606a">done</text>
 <rect x="488" y="112" width="220" height="64" rx="6" fill="#ffffff" stroke="#d0d7de"/>
 <text x="498" y="134" font-family="Helvetica, Arial, sans-serif" font-size="12" font-weight="bold" fill="#1f2328">T-2</text>
 <text x="498" y="150" font-family="Helvetica, Arial, sans-serif" font-size="12" fill="#1f2328">Dark mode</text>
+<rect x="498" y="158" width="66" height="14" rx="7" fill="#fff8c5"/>
+<text x="504" y="168" font-family="Helvetica, Arial, sans-serif" font-size="10" fill="#7d4e00">dark-mode</text>
 </svg>

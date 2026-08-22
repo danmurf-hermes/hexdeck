@@ -1,8 +1,7 @@
 # Board — hd-demo
-Updated: 2026-08-22T07:27:26Z · 1 backlog · 4 todo · 1 done
+Updated: 2026-08-22T07:29:07Z · 0 backlog · 5 todo · 1 done
 
 ## backlog
-- T-6 Add keyboard shortcuts [infra]
 
 ## todo
 - T-1 Add login with Google [feature]
@@ -10,6 +9,7 @@ Updated: 2026-08-22T07:27:26Z · 1 backlog · 4 todo · 1 done
 - T-3 Fix checkout race condition [bug]
 - T-4 Add search to docs site [docs]
 - T-5 Ship v1.0 [feature] — claimed by carol
+- T-6 Add keyboard shortcuts [infra]
 
 ## done
 - T-2 Dark mode [dark-mode]
