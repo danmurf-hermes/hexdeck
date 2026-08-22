@@ -133,13 +133,17 @@ func findBoardDir() (string, error) {
 // repo, like the demo board in docs/demo.
 func resolveBoardDir(cf commonFlags) (string, error) {
 	if cf.dir != "" {
-		boardDir := filepath.Join(cf.dir, ".kanban")
+		abs, err := filepath.Abs(cf.dir)
+		if err != nil {
+			return "", err
+		}
+		boardDir := filepath.Join(abs, ".kanban")
 		if info, err := os.Stat(boardDir); err == nil && info.IsDir() {
 			return boardDir, nil
 		}
-		if info, err := os.Stat(cf.dir); err == nil && info.IsDir() {
-			if _, err := os.Stat(filepath.Join(cf.dir, "config.json")); err == nil {
-				return cf.dir, nil
+		if info, err := os.Stat(abs); err == nil && info.IsDir() {
+			if _, err := os.Stat(filepath.Join(abs, "config.json")); err == nil {
+				return abs, nil
 			}
 		}
 		return "", fmt.Errorf("no .kanban board in %s", cf.dir)
@@ -186,12 +190,13 @@ func runInit(args []string) error {
 	if dir == "" {
 		dir = "."
 	}
+	absDir, err := filepath.Abs(dir)
+	if err != nil {
+		return err
+	}
+	dir = absDir
 	if *name == "" {
-		abs, err := filepath.Abs(dir)
-		if err != nil {
-			return err
-		}
-		*name = filepath.Base(abs)
+		*name = filepath.Base(dir)
 	}
 	actor, err := resolveActor(cf, dir)
 	if err != nil {
@@ -201,8 +206,9 @@ func runInit(args []string) error {
 		return err
 	}
 	boardDir := filepath.Join(dir, ".kanban")
-	stageGit(dir, boardDir, "README.md", ".gitignore", "config.json", "board.md", "board.json")
-	stageGit(dir, dir, "AGENTS.md")
+	repoDir := findRepoRoot(dir)
+	stageGit(repoDir, boardDir, "README.md", ".gitignore", "config.json", "board.md", "board.json")
+	stageGit(repoDir, dir, "AGENTS.md")
 	fmt.Printf("board %q created in %s\n", *name, boardDir)
 	fmt.Printf("suggested commit: board: init %s\n", *name)
 	return nil
@@ -611,7 +617,7 @@ func runPick(args []string) error {
 			Payload: movePayload,
 		})
 	}
-	if _, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, ops...); err != nil {
+	if _, err := writeOp(boardDir, findRepoRoot(boardDir), cf.noPull, ops...); err != nil {
 		return err
 	}
 	fmt.Printf("picked %s %s\n", ticket.ID, ticket.Title)
@@ -695,9 +701,31 @@ func runRender(args []string) error {
 	return nil
 }
 
+// findRepoRoot walks up from dir looking for a git repo (a .git
+// entry). A board can live anywhere in the repo (e.g. docs/demo), so
+// the repo root is found by walking up, not by assuming the board's
+// parent is the repo. Returns "" when dir is not inside a repo — the
+// board works outside git too.
+func findRepoRoot(dir string) string {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return ""
+	}
+	for {
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return ""
+		}
+		dir = parent
+	}
+}
+
 // appendOp writes one op through the shared write path.
 func appendOp(boardDir string, cf commonFlags, op hexdeck.Op) (hexdeck.Op, error) {
-	written, err := writeOp(boardDir, filepath.Dir(boardDir), cf.noPull, op)
+	written, err := writeOp(boardDir, findRepoRoot(boardDir), cf.noPull, op)
 	if err != nil {
 		return hexdeck.Op{}, err
 	}
@@ -712,6 +740,11 @@ func appendOp(boardDir string, cf commonFlags, op hexdeck.Op) (hexdeck.Op, error
 // board.svg is refreshed whenever it exists, so a board that opted
 // into the SVG render never goes stale under the write path.
 func writeOp(boardDir, repoDir string, noPull bool, ops ...hexdeck.Op) ([]hexdeck.Op, error) {
+	if repoDir == "" {
+		// Not inside a git repo — the board works outside git, but
+		// there is nothing to pull, stage, or commit against.
+		noPull = true
+	}
 	if !noPull {
 		if err := gitPullRebase(repoDir); err != nil {
 			return nil, err
@@ -804,7 +837,11 @@ func suggestCommit(cf commonFlags, boardDir, message string) {
 		fmt.Printf("suggested commit: %s\n", message)
 		return
 	}
-	repoDir := filepath.Dir(boardDir)
+	repoDir := findRepoRoot(boardDir)
+	if repoDir == "" {
+		fmt.Fprintf(os.Stderr, "warning: git commit failed: board is not in a git repo\n")
+		return
+	}
 	rel, err := filepath.Rel(repoDir, boardDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning: git commit failed: %v\n", err)
@@ -831,8 +868,10 @@ func suggestCommit(cf commonFlags, boardDir, message string) {
 }
 
 // stagedBoardPaths returns the staged files that belong to a board:
-// paths under the board's relative dir, plus AGENTS.md (the discovery
-// hook staged at init). Everything else the user staged is left alone.
+// paths under the board's relative dir, plus the AGENTS.md discovery
+// hook staged at init (which lives in the board's parent — the repo
+// root for a root board, or the board's containing dir for a nested
+// board). Everything else the user staged is left alone.
 func stagedBoardPaths(repoDir, boardRel string) ([]string, error) {
 	cmd := exec.Command("git", "diff", "--cached", "--name-only")
 	cmd.Dir = repoDir
@@ -840,13 +879,14 @@ func stagedBoardPaths(repoDir, boardRel string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("git diff --cached failed: %w", err)
 	}
+	parentRel := filepath.Dir(boardRel)
 	var paths []string
 	for _, line := range strings.Split(string(out), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}
-		if line == "AGENTS.md" || strings.HasPrefix(line, boardRel+"/") {
+		if line == filepath.Join(parentRel, "AGENTS.md") || strings.HasPrefix(line, boardRel+"/") {
 			paths = append(paths, line)
 		}
 	}

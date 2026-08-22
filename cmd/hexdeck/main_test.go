@@ -274,6 +274,32 @@ func TestE2ECommit(t *testing.T) {
 	}
 }
 
+// TestE2ENestedBoardCommit checks --commit for a board nested below
+// the repo root (e.g. docs/demo). The repo root is found by walking
+// up, not by assuming the board's parent is the repo.
+func TestE2ENestedBoardCommit(t *testing.T) {
+	dir := initRepo(t)
+	nested := filepath.Join(dir, "sub", "docs")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatalf("mkdir nested: %v", err)
+	}
+	if out, code := runHexdeck(t, dir, "init", "--dir", nested, "--as", "claude-a"); code != 0 {
+		t.Fatalf("init: exit %d\n%s", code, out)
+	}
+	if out, code := runHexdeck(t, dir, "create", "One", "--dir", nested, "--as", "claude-a", "--commit"); code != 0 {
+		t.Fatalf("create --commit: exit %d\n%s", code, out)
+	}
+	out := runGitOut(t, dir, "log", "--oneline", "-1")
+	if !strings.Contains(out, "board: create T-1") {
+		t.Errorf("last commit = %q, want the suggested message", out)
+	}
+	// The working tree must be clean after --commit.
+	out = runGitOut(t, dir, "status", "--porcelain")
+	if strings.TrimSpace(out) != "" {
+		t.Errorf("working tree not clean after --commit:\n%s", out)
+	}
+}
+
 // TestE2EStaged checks the same-commit rule: after a move, the op and
 // the board files are staged, nothing is committed.
 func TestE2EStaged(t *testing.T) {

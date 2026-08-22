@@ -28,6 +28,8 @@ hexdeck mcp                          # MCP server: agents ask the board question
 
 Every change stages the op and the board files and prints a suggested commit message. `--commit` commits it. The board lives in `.kanban/` — read `.kanban/README.md` for the full manual.
 
+Contributors run `make` — `make build` compiles the binary, `make test` runs the suite, `make render-check` verifies the boards. `make help` lists the targets.
+
 ## A real session
 
 A fresh repo, five commands, real output:

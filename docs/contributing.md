@@ -29,7 +29,10 @@ that.
 ## The quality bar
 
 - TDD: write the failing test first, then the implementation.
-- Tests green, `gofmt -l .` empty, `go vet ./...` clean.
+- The project Makefile runs the standard checks: `make test` (race
+  detector), `make vet`, `make fmt`, `make render-check` (both boards
+  plus the SVG honesty check). `make build` compiles the binary into
+  `bin/`. Run them before opening a PR.
 - Docs in the same commit as the code they describe. Simplified
   technical English. No undocumented features.
 - Conventional commit messages (`feat:`, `test:`, `docs:`, `chore:`).
