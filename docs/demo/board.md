@@ -1,5 +1,5 @@
 # Board — hd-demo
-Updated: 2026-08-22T07:20:55Z · 1 backlog · 4 todo · 1 done
+Updated: 2026-08-22T07:27:26Z · 1 backlog · 4 todo · 1 done
 
 ## backlog
 - T-6 Add keyboard shortcuts [infra]
