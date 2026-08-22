@@ -1,0 +1,1 @@
+{"schema":1,"opId":"8304e37e-df90-4cf8-addb-485dcbb6c770","seq":18,"ts":"2026-08-22T07:20:55Z","actor":"demo","type":"ticket.label.added","ticket":"T-2","payload":{"label":"dark-mode"}}
